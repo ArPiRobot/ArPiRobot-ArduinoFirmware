@@ -28,6 +28,20 @@ int addDevice(String buf){
     devices[deviceCount] = new OldAdafruit9Dof();
     deviceCount++;
     return deviceCount - 1;
+  }else if(buf.startsWith("ADD_USONIC4_7_8")){
+    String triggerPinStr = buf.substring(12, buf.indexOf("_", 12));
+    String echoPinStr = buf.substring(buf.indexOf("_", 12) + 1, buf.length() - 1);
+    devices[deviceCount] = new Ultrasonic4Pin(triggerPinStr.toInt(), echoPinStr.toInt());
+    deviceCount++;
+    return deviceCount - 1;
+  }else if(buf.startsWith("ADD_VMON")){
+    String pinStr = buf.substring(9, buf.indexOf("_", 9));
+    String vboardStr = buf.substring(10 + pinStr.length(), buf.indexOf("_", 10 + pinStr.length()));
+    String r1Str = buf.substring(11 + pinStr.length() + vboardStr.length(), buf.indexOf("_", 11 + pinStr.length() + vboardStr.length()));
+    String r2Str = buf.substring(12 + pinStr.length() + vboardStr.length() + r1Str.length(), buf.indexOf("_", 12 + pinStr.length() + vboardStr.length() + r1Str.length()));
+    devices[deviceCount] = new VoltageMonitor(analogInputToDigitalPin(pinStr.substring(1).toInt()), vboardStr.toFloat(), r1Str.toInt(), r2Str.toInt());
+    deviceCount++;
+    return deviceCount - 1;
   }
   return -1;
 }
@@ -73,9 +87,11 @@ void setup(){
   configure();
 
   Serial.print("END\n");
+
+  delay(1000);
 }
 
-void loop(){
+void loop(){  
 	unsigned long now = millis();
 	for(uint8_t i = 0; i < deviceCount; ++i){
 		bool shouldSend = devices[i]->poll(buffer, &len);
@@ -84,7 +100,6 @@ void loop(){
 			Serial.write(buffer, len);
       Serial.write('\n');
       Serial.flush();
-      delay(1);
 			devices[i]->nextSendTime += SEND_RATE; // Send again
 		}
 	}
