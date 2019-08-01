@@ -110,6 +110,22 @@ OldAdafruit9Dof::OldAdafruit9Dof(){
   pitch.fval = 0;
   roll.fval = 0;
   yaw.fval = 0;
+
+  /*for(uint8_t i = 0; i < OLDADA9DOF_CALIBRATE_SAMPLES; ++i){
+    sensors_event_t gyro_event;
+    gyro->getEvent(&gyro_event);
+    gyro_x_calib += gyro_event.gyro.x;
+    gyro_y_calib += gyro_event.gyro.y;
+    gyro_z_calib += gyro_event.gyro.z;
+  }
+
+  gyro_x_calib /= OLDADA9DOF_CALIBRATE_SAMPLES;
+  gyro_y_calib /= OLDADA9DOF_CALIBRATE_SAMPLES;
+  gyro_z_calib /= OLDADA9DOF_CALIBRATE_SAMPLES;*/
+  
+  gyro_x_calib = 0;
+  gyro_y_calib = 0;
+  gyro_z_calib = 0;
 }
 
 OldAdafruit9Dof::~OldAdafruit9Dof(){
@@ -145,9 +161,9 @@ bool OldAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
   accel_y.fval = accel_event.acceleration.y;
   accel_z.fval = accel_event.acceleration.z;
 
-  gyro_x.fval += gyro_event.gyro.x / SENSORS_DPS_TO_RADS * dt;
-  gyro_y.fval += gyro_event.gyro.y / SENSORS_DPS_TO_RADS * dt;
-  gyro_z.fval += gyro_event.gyro.z / SENSORS_DPS_TO_RADS * dt;
+  gyro_x.fval += (gyro_event.gyro.x - gyro_x_calib) / SENSORS_DPS_TO_RADS * dt;
+  gyro_y.fval += (gyro_event.gyro.y - gyro_y_calib) / SENSORS_DPS_TO_RADS * dt;
+  gyro_z.fval += (gyro_event.gyro.z - gyro_z_calib) / SENSORS_DPS_TO_RADS * dt;
 
 #ifdef OLDADA9DOF_ENABLE_AHRS
   sensors_vec_t orientation;

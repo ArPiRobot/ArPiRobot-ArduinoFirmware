@@ -42,7 +42,7 @@ while True:
         print("Distance: " + str(usonic.distance))
         last_distance = usonic.distance
 
-    #print("AngleZ: " + str(imu.gyro_z))
+    print("AngleZ: " + str(imu.gyro_z))
 
     time.sleep(.01)
 
