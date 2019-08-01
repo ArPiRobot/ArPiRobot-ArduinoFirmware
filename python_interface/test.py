@@ -9,6 +9,7 @@ arduino = ArduinoUartInterface("COM7", 250000)
 
 
 # Create devices
+arduino.write(b"RESET\n")
 arduino.write(b"ADD_SENC_2\n")
 arduino.write(b"ADD_SENC_3\n")
 arduino.write(b"ADD_OLDADA9DOF\n")

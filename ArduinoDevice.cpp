@@ -17,6 +17,9 @@ ArduinoDevice::ArduinoDevice(){
 	}
 }
 
+ArduinoDevice::~ArduinoDevice(){
+  
+}
 
 
 SingleEncoder::SingleEncoder(int pin) : pin(pin){
@@ -80,6 +83,8 @@ bool Ultrasonic4Pin::poll(uint8_t *buffer, uint8_t *count){
   return shouldSend;
 }
 
+#ifdef OLDADA9DOF_ENABLE
+
 OldAdafruit9Dof::OldAdafruit9Dof(){
   if(locked)
     return;
@@ -112,9 +117,9 @@ OldAdafruit9Dof::OldAdafruit9Dof(){
   yaw.fval = 0;
 
   // Calibrate routine
+  delay(OLDADA9DOF_CALIBRATE_DELAY);
   if(OLDADA9DOF_CALIBRATE_SAMPLES > 0){
     sensors_event_t event;
-    delay(OLDADA9DOF_CALIBRATE_DELAY);
     for(uint8_t i = 0; i < OLDADA9DOF_CALIBRATE_SAMPLES; ++i){
       gyro->getEvent(&event);
       gyro_x_calib += event.gyro.x;
@@ -139,7 +144,7 @@ OldAdafruit9Dof::~OldAdafruit9Dof(){
 }
 
 bool OldAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
-  if(accel == NULL) return;
+  if(accel == NULL) return false;
   
   long now = micros();
   double dt = (now - lastSample) / 1e6;
@@ -147,7 +152,7 @@ bool OldAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
 
   if(dt < 0){
     // Micros rolled over. Some data has been lost...
-    return;
+    return false;
   }
 
   sensors_event_t accel_event, mag_event, gyro_event;
@@ -215,7 +220,9 @@ bool OldAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
   return true;
 }
 
-VoltageMonitor::VoltageMonitor(uint8_t readPin, float vboard, uint32_t r1, uint32_t r2) : vboard(vboard), r1(r1), r2(r2), readPin(readPin){
+#endif // OLDADA9DOF_ENABLE
+
+VoltageMonitor::VoltageMonitor(uint8_t readPin, float vboard, uint32_t r1, uint32_t r2) : readPin(readPin), vboard(vboard), r1(r1), r2(r2){
   pinMode(readPin, INPUT);
   lastSentVoltage.fval = -20;
 }

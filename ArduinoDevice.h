@@ -4,11 +4,6 @@
 #include "Arduino.h"
 #include <stdint.h>
 
-#include <Adafruit_Sensor.h>
-#include <Adafruit_LSM303_U.h>
-#include <Adafruit_L3GD20_U.h>
-#include <Adafruit_9DOF.h>
-
 union floatAsBytes {
     float fval;
     byte bval[4];
@@ -17,6 +12,7 @@ union floatAsBytes {
 class ArduinoDevice {
 public:
 	ArduinoDevice();
+  virtual ~ArduinoDevice();
 
 	virtual bool poll(uint8_t *buffer, uint8_t *count) = 0;
 
@@ -50,6 +46,13 @@ public:
   uint8_t pollIterationCounter = 0;
 };
 
+#ifdef OLDADA9DOF_ENABLE
+
+#include <Adafruit_Sensor.h>
+#include <Adafruit_LSM303_U.h>
+#include <Adafruit_L3GD20_U.h>
+#include <Adafruit_9DOF.h>
+
 class OldAdafruit9Dof : public ArduinoDevice{
 public:
   OldAdafruit9Dof();
@@ -75,6 +78,8 @@ private:
         gyro_y_calib = OLDADA9DOF_Y_OFFSET,
         gyro_z_calib = OLDADA9DOF_Z_OFFSET;
 };
+
+#endif // OLDADA9DOF_ENABLE
 
 class VoltageMonitor : public ArduinoDevice{
 public:

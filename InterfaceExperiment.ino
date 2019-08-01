@@ -6,6 +6,9 @@
 uint8_t buffer[255];
 uint8_t len;
 
+// Serial read buffer
+String readBuffer = "";
+
 ArduinoDevice *devices[255];
 uint8_t deviceCount = 0;
 
@@ -30,7 +33,12 @@ int addDevice(String buf){
 }
 
 void reset(){
-  
+  for(uint8_t i = 0; i < deviceCount; ++i){
+    delete devices[i];
+  }
+  ArduinoDevice::nextId = 0;
+  deviceCount = 0;
+  readBuffer = "";
 }
 
 void configure(){
@@ -80,4 +88,16 @@ void loop(){
 			devices[i]->nextSendTime += SEND_RATE; // Send again
 		}
 	}
+
+  while(Serial.available()){
+    readBuffer += (char) Serial.read();
+    if(readBuffer.endsWith("\n")){
+      if(readBuffer.startsWith("RESET")){
+        reset();
+        configure();
+        return;
+      }
+      readBuffer = "";
+    }
+  }
 }
