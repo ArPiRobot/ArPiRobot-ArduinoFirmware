@@ -1,15 +1,16 @@
 from device import ArduinoDevice
 from interface import ArduinoUartInterface
-from sensors import SingleEncoder, OldAdafruit9Dof, Ultrasonic4Pin
+from sensors import SingleEncoder, OldAdafruit9Dof, Ultrasonic4Pin, VoltageMonitor
 import time
 import threading
 
 
-arduino = ArduinoUartInterface("COM10", 250000)
+arduino = ArduinoUartInterface("COM7", 250000)
 renc = SingleEncoder(0)
 lenc = SingleEncoder(1)
 usonic = Ultrasonic4Pin(2)
 imu = OldAdafruit9Dof(3)
+vmon = VoltageMonitor(4)
 
 rlast_count = 0
 llast_count = 0
@@ -31,18 +32,20 @@ arduino_thread.start()
 
 while True:
     if renc.count != rlast_count:
-        print("RightEncoder: " + str(renc.count))
+        #print("RightEncoder: " + str(renc.count))
         rlast_count = renc.count
     
     if lenc.count != llast_count:
-        print("LeftEncoder: " + str(lenc.count))
+        # print("LeftEncoder: " + str(lenc.count))
         llast_count = lenc.count
 
     if usonic.distance != last_distance:
-        print("Distance: " + str(usonic.distance))
+        # print("Distance: " + str(usonic.distance))
         last_distance = usonic.distance
 
-    print("AngleZ: " + str(imu.gyro_z))
+    # print("AngleZ: " + str(imu.gyro_z))
+
+    print("Voltage: " + str(vmon.voltage))
 
     time.sleep(.01)
 

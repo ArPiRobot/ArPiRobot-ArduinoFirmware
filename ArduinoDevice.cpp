@@ -213,3 +213,41 @@ bool OldAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
   *count = 36;
   return true;
 }
+
+VoltageMonitor::VoltageMonitor(uint8_t readPin, float vboard, uint32_t r1, uint32_t r2) : vboard(vboard), r1(r1), r2(r2), readPin(readPin){
+  pinMode(readPin, INPUT);
+  lastSentVoltage.fval = -20;
+}
+
+bool VoltageMonitor::poll(uint8_t *buffer, uint8_t *count){
+  float readVal = analogRead(readPin);
+  float sample = (((float)readVal / 1023 * vboard) * (r1 + r2)) / r2;
+
+  if(currentSample < 0){
+    // Current voltage fills all samples and is the average
+    for(size_t i = 0; i < SAMPLE_COUNT; ++i){
+      samples[i] = sample;
+    }
+    voltage.fval = sample;
+    currentSample = 0;
+  }else{
+    // Remove old sample from rolling average and add new sample (max samples is SAMPLE_COUNT)
+    voltage.fval = (SAMPLE_COUNT * voltage.fval - samples[currentSample] + sample) / SAMPLE_COUNT;
+    samples[currentSample] = sample;
+    currentSample++;
+    if(currentSample >= SAMPLE_COUNT) currentSample = 0;
+  }
+
+  Serial.println("Voltage: " + String(voltage.fval));
+
+  // Only send voltage if it has changed by more than .1V
+  if(fabs(lastSentVoltage.fval - voltage.fval) > 0.1){
+    buffer[0] = voltage.bval[0];
+    buffer[1] = voltage.bval[1];
+    buffer[2] = voltage.bval[2];
+    buffer[3] = voltage.bval[3];
+    *count = 4;
+    return true;
+  }
+  return false;
+}

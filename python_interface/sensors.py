@@ -96,3 +96,19 @@ class Ultrasonic4Pin(ArduinoDevice):
     def handle_data(self, data: bytes):
         if len(data) >= 4:
             self.__distance = struct.unpack_from('<H', data, offset=1)[0]
+
+class VoltageMonitor(ArduinoDevice):
+    def __init__(self, device_id: int):
+        super().__init__(device_id)
+        self.__voltage = 0
+
+    @property
+    def voltage(self):
+        return self.__voltage
+
+    def device_name(self):
+        return "VoltageMonitor"
+
+    def handle_data(self, data: bytes):
+        if len(data) >= 6:
+            self.__voltage = struct.unpack_from('<f', data, offset=1)[0]

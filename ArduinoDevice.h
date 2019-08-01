@@ -46,7 +46,6 @@ public:
   uint8_t triggerPin, echoPin;
   uint16_t distance;
   bool waitingForPulse = false;
-  unsigned long lastTrigger = 0;
 
   uint8_t pollIterationCounter = 0;
 };
@@ -73,4 +72,24 @@ private:
   floatAsBytes gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z, pitch, roll, yaw;
 
   float gyro_x_calib = 0, gyro_y_calib = 0, gyro_z_calib = 0;
+};
+
+class VoltageMonitor : public ArduinoDevice{
+public:
+  VoltageMonitor(uint8_t readPin, float vboard, uint32_t r1, uint32_t r2);
+
+  bool poll(uint8_t *buffer, uint8_t *count) override;
+
+private:
+
+  uint8_t readPin;
+  float vboard;
+  uint32_t r1, r2;
+
+  floatAsBytes voltage;
+  floatAsBytes lastSentVoltage; // So difference is always large enough to send
+
+  const static size_t SAMPLE_COUNT = 20;
+  float samples[SAMPLE_COUNT];
+  int currentSample = -1;
 };

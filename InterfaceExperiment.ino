@@ -17,7 +17,8 @@ void setup(){
   devices[1] = new SingleEncoder(3);
   devices[2] = new Ultrasonic4Pin(7, 8);
   devices[3] = new OldAdafruit9Dof();
-	deviceCount = 4;
+  devices[4] = new VoltageMonitor(A0, 3.33, 471000, 410000);
+	deviceCount = 5;
 }
 
 void loop(){
