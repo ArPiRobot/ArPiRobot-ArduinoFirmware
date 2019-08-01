@@ -71,7 +71,9 @@ private:
   // Calculated values
   floatAsBytes gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z, pitch, roll, yaw;
 
-  float gyro_x_calib = 0, gyro_y_calib = 0, gyro_z_calib = 0;
+  float gyro_x_calib = OLDADA9DOF_X_OFFSET, 
+        gyro_y_calib = OLDADA9DOF_Y_OFFSET,
+        gyro_z_calib = OLDADA9DOF_Z_OFFSET;
 };
 
 class VoltageMonitor : public ArduinoDevice{

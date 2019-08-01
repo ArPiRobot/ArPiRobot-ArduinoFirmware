@@ -111,21 +111,22 @@ OldAdafruit9Dof::OldAdafruit9Dof(){
   roll.fval = 0;
   yaw.fval = 0;
 
-  /*for(uint8_t i = 0; i < OLDADA9DOF_CALIBRATE_SAMPLES; ++i){
-    sensors_event_t gyro_event;
-    gyro->getEvent(&gyro_event);
-    gyro_x_calib += gyro_event.gyro.x;
-    gyro_y_calib += gyro_event.gyro.y;
-    gyro_z_calib += gyro_event.gyro.z;
+  // Calibrate routine
+  if(OLDADA9DOF_CALIBRATE_SAMPLES > 0){
+    sensors_event_t event;
+    delay(5000);
+    for(uint8_t i = 0; i < OLDADA9DOF_CALIBRATE_SAMPLES; ++i){
+      gyro->getEvent(&event);
+      gyro_x_calib += event.gyro.x;
+      gyro_y_calib += event.gyro.y;
+      gyro_z_calib += event.gyro.z;
+      delay(100);
+    }
+    gyro_x_calib /= OLDADA9DOF_CALIBRATE_SAMPLES;
+    gyro_y_calib /= OLDADA9DOF_CALIBRATE_SAMPLES;
+    gyro_z_calib /= OLDADA9DOF_CALIBRATE_SAMPLES;
   }
-
-  gyro_x_calib /= OLDADA9DOF_CALIBRATE_SAMPLES;
-  gyro_y_calib /= OLDADA9DOF_CALIBRATE_SAMPLES;
-  gyro_z_calib /= OLDADA9DOF_CALIBRATE_SAMPLES;*/
   
-  gyro_x_calib = 0;
-  gyro_y_calib = 0;
-  gyro_z_calib = 0;
 }
 
 OldAdafruit9Dof::~OldAdafruit9Dof(){
@@ -238,16 +239,10 @@ bool VoltageMonitor::poll(uint8_t *buffer, uint8_t *count){
     if(currentSample >= SAMPLE_COUNT) currentSample = 0;
   }
 
-  Serial.println("Voltage: " + String(voltage.fval));
-
-  // Only send voltage if it has changed by more than .1V
-  if(fabs(lastSentVoltage.fval - voltage.fval) > 0.1){
-    buffer[0] = voltage.bval[0];
-    buffer[1] = voltage.bval[1];
-    buffer[2] = voltage.bval[2];
-    buffer[3] = voltage.bval[3];
-    *count = 4;
-    return true;
-  }
-  return false;
+  buffer[0] = voltage.bval[0];
+  buffer[1] = voltage.bval[1];
+  buffer[2] = voltage.bval[2];
+  buffer[3] = voltage.bval[3];
+  *count = 4;
+  return true;
 }
