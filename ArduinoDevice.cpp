@@ -42,8 +42,8 @@ bool SingleEncoder::poll(uint8_t *buffer, uint8_t *count) {
   }
 
   if(shouldSend){
-    buffer[0] = this->count >> 8;
-    buffer[1] = this->count;
+    buffer[0] = this->count;
+    buffer[1] = this->count >> 8;
     *count = 2;
   }
   return shouldSend;
@@ -73,8 +73,8 @@ bool Ultrasonic4Pin::poll(uint8_t *buffer, uint8_t *count){
   }
 
   if(shouldSend){
-    buffer[0] = distance >> 8;
-    buffer[1] = distance;
+    buffer[0] = distance;
+    buffer[1] = distance >> 8;
     *count = 2;
   }
   return shouldSend;
