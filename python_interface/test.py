@@ -6,11 +6,21 @@ import threading
 
 
 arduino = ArduinoUartInterface("COM7", 250000)
+
+
+# Create devices
+arduino.write(b"ADD_SENC_2\n")
+arduino.write(b"ADD_SENC_3\n")
+arduino.write(b"ADD_OLDADA9DOF\n")
+arduino.write(b"END\n")
+
+
+time.sleep(6)
+
+
 renc = SingleEncoder(0)
 lenc = SingleEncoder(1)
-usonic = Ultrasonic4Pin(2)
-imu = OldAdafruit9Dof(3)
-vmon = VoltageMonitor(4)
+imu = OldAdafruit9Dof(2)
 
 rlast_count = 0
 llast_count = 0
@@ -18,9 +28,7 @@ last_distance = 0
 
 arduino.register_device(renc)
 arduino.register_device(lenc)
-arduino.register_device(usonic)
 arduino.register_device(imu)
-arduino.register_device(vmon)
 
 def feed_arduino():
     while True:
@@ -40,10 +48,6 @@ try:
         if lenc.count != llast_count:
             print("LeftEncoder: " + str(lenc.count))
             llast_count = lenc.count
-
-        if usonic.distance != last_distance:
-            print("Distance: " + str(usonic.distance))
-            last_distance = usonic.distance
 
         print("AngleZ: " + str(imu.gyro_z))
 

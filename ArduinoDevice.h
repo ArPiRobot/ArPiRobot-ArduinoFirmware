@@ -91,7 +91,7 @@ private:
   floatAsBytes voltage;
   floatAsBytes lastSentVoltage; // So difference is always large enough to send
 
-  const static size_t SAMPLE_COUNT = 20;
+  const static int SAMPLE_COUNT = 20;
   float samples[SAMPLE_COUNT];
   int currentSample = -1;
 };

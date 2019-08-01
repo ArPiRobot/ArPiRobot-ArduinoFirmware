@@ -1,6 +1,8 @@
 import serial
 from abc import ABC, abstractmethod
 from device import ArduinoDevice
+import struct
+
 
 class ArduinoInterface(ABC):
     def __init__(self):

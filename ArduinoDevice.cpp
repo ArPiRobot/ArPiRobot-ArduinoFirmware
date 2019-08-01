@@ -114,13 +114,13 @@ OldAdafruit9Dof::OldAdafruit9Dof(){
   // Calibrate routine
   if(OLDADA9DOF_CALIBRATE_SAMPLES > 0){
     sensors_event_t event;
-    delay(5000);
+    delay(OLDADA9DOF_CALIBRATE_DELAY);
     for(uint8_t i = 0; i < OLDADA9DOF_CALIBRATE_SAMPLES; ++i){
       gyro->getEvent(&event);
       gyro_x_calib += event.gyro.x;
       gyro_y_calib += event.gyro.y;
       gyro_z_calib += event.gyro.z;
-      delay(100);
+      delay(OLDADA9DOF_CALIBRATE_SPACING);
     }
     gyro_x_calib /= OLDADA9DOF_CALIBRATE_SAMPLES;
     gyro_y_calib /= OLDADA9DOF_CALIBRATE_SAMPLES;
