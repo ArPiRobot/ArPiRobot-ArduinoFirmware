@@ -40,7 +40,6 @@ arduino.register_device(vmon)
 def feed_arduino():
     while True:
         arduino.feed()
-        time.sleep(.005)
 
 arduino_thread = threading.Thread(target=feed_arduino)
 arduino_thread.daemon = True
@@ -60,9 +59,9 @@ try:
             print("Distance: " + str(usonic.distance))
             last_distance = usonic.distance
 
-        #print("AngleZ: " + str(imu.gyro_z))
+        print("AngleZ: " + str(imu.gyro_z))
 
-        print("Voltage: " + str(vmon.voltage))
+        #print("Voltage: " + str(vmon.voltage))
 
         time.sleep(.01)
 except KeyboardInterrupt:
