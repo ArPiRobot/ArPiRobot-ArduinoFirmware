@@ -12,7 +12,6 @@ class SingleEncoder(ArduinoDevice):
         device_id = ArduinoDevice.await_add_response(arduino)
         if device_id == -1:
             return None
-        print("ID: " + str(device_id))
         dev = SingleEncoder(device_id)
         arduino.register_device(dev)
         return dev
@@ -40,6 +39,16 @@ class OldAdafruit9Dof(ArduinoDevice):
         self.__pitch = 0
         self.__roll = 0
         self.__yaw = 0
+
+    @staticmethod
+    def create(arduino):
+        arduino.write(b'ADD_OLDADA9DOF\n')
+        device_id = ArduinoDevice.await_add_response(arduino)
+        if device_id == -1:
+            return None
+        dev = OldAdafruit9Dof(device_id)
+        arduino.register_device(dev)
+        return dev
 
     @property
     def gyro_x(self):
@@ -97,6 +106,16 @@ class Ultrasonic4Pin(ArduinoDevice):
         super().__init__(device_id)
         self.__distance = 0
 
+    @staticmethod
+    def create(arduino, trigger_pin: int, echo_pin: int):
+        arduino.write(b'ADD_USONIC4_' + str(trigger_pin).encode() + b'_' + str(echo_pin).encode() + b'\n')
+        device_id = ArduinoDevice.await_add_response(arduino)
+        if device_id == -1:
+            return None
+        dev = Ultrasonic4Pin(device_id)
+        arduino.register_device(dev)
+        return dev
+
     @property
     def distance(self) -> int:
         return self.__distance
@@ -112,6 +131,16 @@ class VoltageMonitor(ArduinoDevice):
     def __init__(self, device_id: int):
         super().__init__(device_id)
         self.__voltage = 0
+
+    @staticmethod
+    def create(arduino, pin: str, vboard: float, r1: int, r2: int):
+        arduino.write(b'ADD_VMON_' + pin.encode() + b'_' + str(vboard).encode() + b'_' + str(r1).encode() + b'_' + str(r2).encode() + b'\n')
+        device_id = ArduinoDevice.await_add_response(arduino)
+        if device_id == -1:
+            return None
+        dev = VoltageMonitor(device_id)
+        arduino.register_device(dev)
+        return dev
 
     @property
     def voltage(self):
