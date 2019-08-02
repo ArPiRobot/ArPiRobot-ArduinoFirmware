@@ -6,6 +6,24 @@
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////
+/// Interface method
+///////////////////////////////////////////////////////
+
+//#define INTERFACE_HW_SERIAL
+#define INTERFACE_TEENSY_USB_SERIAL
+#define HW_SERIAL_PORT Serial
+#define HW_SERIAL_BAUD 250000
+
+//#define INTERFACE_SW_SERIAL
+#define SW_SERIAL_TX 3
+#define SW_SERIAL_RX 4
+#define SW_SERIAL_BAUD 9600
+
+///////////////////////////////////////////////////////
+/// Other intereface settings
+///////////////////////////////////////////////////////
+
 // How often sensor data should be sent
 #define SEND_RATE 20  // ms
 
@@ -28,8 +46,8 @@
 // Enable pitch, roll, and yaw
 #define OLDADA9DOF_ENABLE_AHRS
 
-// Number of samples to take when calibrating IMU
-#define OLDADA9DOF_CALIBRATE_SAMPLES 0
+// Number of samples to take when calibrating IMU (-1 to disable automatic calibration)
+#define OLDADA9DOF_CALIBRATE_SAMPLES -1
 
 // Time to wait before calibrating IMU (ms)
 #define OLDADA9DOF_CALIBRATE_DELAY 1000
@@ -37,7 +55,7 @@
 // Time between samples for calibration (ms)
 #define OLDADA9DOF_CALIBRATE_SPACING 30
 
-// Pre-defined calibration for the IMU
+// Pre-defined (manual) calibration for the IMU
 #define OLDADA9DOF_X_OFFSET -0.031700856983661
 #define OLDADA9DOF_Y_OFFSET 0.040051378309726
 #define OLDADA9DOF_Z_OFFSET 0.003336852183565

@@ -8,28 +8,6 @@ import sys
 
 arduino = ArduinoUartInterface("COM7", 250000)
 
-
-# Create devices
-#arduino.write(b"RESET\n")
-#arduino.write(b"ADD_OLDADA9DOF\n")
-#arduino.write(b"ADD_USONIC4_7_8\n")
-#arduino.write(b"ADD_VMON_A0_3.3_30000_7500\n")
-#arduino.write(b"END\n")
-
-#time.sleep(6)
-
-#renc = SingleEncoder(0)
-#lenc = SingleEncoder(1)
-#imu = OldAdafruit9Dof(2)
-#usonic = Ultrasonic4Pin(3)
-#vmon = VoltageMonitor(4)
-
-#arduino.register_device(renc)
-#arduino.register_device(lenc)
-#arduino.register_device(imu)
-#arduino.register_device(usonic)
-#arduino.register_device(vmon)
-
 rlast_count = 0
 llast_count = 0
 last_distance = 0
