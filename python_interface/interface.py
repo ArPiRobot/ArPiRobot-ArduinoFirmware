@@ -9,6 +9,12 @@ class ArduinoInterface(ABC):
         self.open()
         self.__devices = []
 
+    def reset(self):
+        self.write(b'RESET\n')
+
+    def start_processing(self):
+        self.write(b'END\n')
+    
     @abstractmethod
     def open(self):
         pass
@@ -31,10 +37,11 @@ class ArduinoInterface(ABC):
     
     def feed(self):
         data_line = self.readline()
-        for device in self.__devices:
-            if device.device_id == data_line[0]:
-                device.handle_data(data_line)
-                break
+        if data_line != b'':
+            for device in self.__devices:
+                if len(data_line) >= 1 and device.device_id == data_line[0]:
+                    device.handle_data(data_line)
+                    break
 
 
 class ArduinoUartInterface(ArduinoInterface):
@@ -45,7 +52,7 @@ class ArduinoUartInterface(ArduinoInterface):
         super().__init__()
 
     def open(self):
-        self.__serial = serial.Serial(self.__port, self.__baud)
+        self.__serial = serial.Serial(self.__port, self.__baud, timeout=1)
 
     def close(self):
         self.__serial.close()

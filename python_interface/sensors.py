@@ -6,6 +6,17 @@ class SingleEncoder(ArduinoDevice):
         super().__init__(device_id)
         self.__count = 0
 
+    @staticmethod
+    def create(arduino, pin):
+        arduino.write(b'ADD_SENC_' + str(pin).encode() + b'\n')
+        device_id = ArduinoDevice.await_add_response(arduino)
+        if device_id == -1:
+            return None
+        print("ID: " + str(device_id))
+        dev = SingleEncoder(device_id)
+        arduino.register_device(dev)
+        return dev
+    
     @property
     def count(self):
         return self.__count
