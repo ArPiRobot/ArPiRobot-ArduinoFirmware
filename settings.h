@@ -10,8 +10,8 @@
 /// Interface method
 ///////////////////////////////////////////////////////
 
-//#define INTERFACE_HW_SERIAL
-#define INTERFACE_TEENSY_USB_SERIAL
+#define INTERFACE_HW_SERIAL
+//#define INTERFACE_TEENSY_USB_SERIAL
 #define HW_SERIAL_PORT Serial
 #define HW_SERIAL_BAUD 250000
 
@@ -29,6 +29,12 @@
 
 // How long to offset sensors send times from each other
 #define OFFSET_STEP 5 // ms
+
+// Maximum number of ArduinoDevices supported by a single interface (mem mgmt)
+#define MAX_DEVICES 10
+
+// Sensor data buffer size for an interface
+#define DATA_BUFFER_SIZE 96
 
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////

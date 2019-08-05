@@ -48,11 +48,6 @@ public:
 
 #ifdef OLDADA9DOF_ENABLE
 
-// Fix warnings about redefining PI on teensy boards
-#ifdef PI
-#undef PI
-#endif
-
 #include <Adafruit_Sensor.h>
 #include <Adafruit_LSM303_U.h>
 #include <Adafruit_L3GD20_U.h>

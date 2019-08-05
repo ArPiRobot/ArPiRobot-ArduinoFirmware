@@ -4,6 +4,7 @@
 #include "Arduino.h"
 #include "ArduinoDevice.h"
 
+
 class RPiInterface{
 public:
   int addDevice(String buf);
@@ -21,13 +22,13 @@ public:
 
 private:
   // Sensor data buffer
-  uint8_t buffer[255];
+  uint8_t buffer[DATA_BUFFER_SIZE];
   uint8_t len = 0;
   
   // Serial read buffer
   String readBuffer = "";
   
-  ArduinoDevice *devices[255];
+  ArduinoDevice *devices[MAX_DEVICES];
   uint8_t deviceCount = 0;
 };
 

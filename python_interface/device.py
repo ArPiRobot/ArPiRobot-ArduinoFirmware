@@ -12,6 +12,7 @@ class ArduinoDevice(ABC):
         start_time = millis()
         while millis() - start_time <= 3000:
             response = arduino.readline()
+            print(response)
             if response.startswith(b'ADDSUCCESS'):
                 try:
                     device_id = int(response[11:len(response)-1].decode())

@@ -1,14 +1,17 @@
 #include "RPiInterface.h"
 
+
 int RPiInterface::addDevice(String buf){
+  if(deviceCount >= MAX_DEVICES){
+    return -1;
+  }
   if(buf.startsWith("ADD_SENC")){
     String readPinStr = buf.substring(9, buf.length() - 1);
     int readPin = 0;
     if(readPinStr.startsWith("A"))
       readPin = analogInputToDigitalPin(readPinStr.substring(1).toInt());
     else
-      readPin = readPinStr.toInt();
-
+      readPin = readPinStr.toInt();    
     devices[deviceCount] = new SingleEncoder(readPin);
     deviceCount++;
     return deviceCount - 1;
@@ -26,7 +29,7 @@ int RPiInterface::addDevice(String buf){
     String pinStr = buf.substring(9, buf.indexOf("_", 9));
     String vboardStr = buf.substring(10 + pinStr.length(), buf.indexOf("_", 10 + pinStr.length()));
     String r1Str = buf.substring(11 + pinStr.length() + vboardStr.length(), buf.indexOf("_", 11 + pinStr.length() + vboardStr.length()));
-    String r2Str = buf.substring(12 + pinStr.length() + vboardStr.length() + r1Str.length(), buf.indexOf("_", 12 + pinStr.length() + vboardStr.length() + r1Str.length()));
+    String r2Str = buf.substring(12 + pinStr.length() + vboardStr.length() + r1Str.length(), buf.length() - 1);
     devices[deviceCount] = new VoltageMonitor(analogInputToDigitalPin(pinStr.substring(1).toInt()), vboardStr.toFloat(), r1Str.toInt(), r2Str.toInt());
     deviceCount++;
     return deviceCount - 1;
@@ -44,7 +47,6 @@ void RPiInterface::reset(){
 }
 
 void RPiInterface::configure(){
-  print("START\n");
   String buf = "";
   while(true){
     if(available())
