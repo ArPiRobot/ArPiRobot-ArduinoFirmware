@@ -16,6 +16,8 @@ public:
 
 	virtual bool poll(uint8_t *buffer, uint8_t *count) = 0;
 
+  virtual void handleData(String &buffer) = 0;
+
 	static uint8_t sendTimeOffset;
 	unsigned long nextSendTime = 0;
   uint8_t deviceId = 0;
@@ -27,9 +29,11 @@ public:
   SingleEncoder(int pin);
 
   bool poll(uint8_t *buffer, uint8_t *count) override;
+  void handleData(String &buffer) override;
   
   uint8_t lastState = 0;
   uint8_t pin;
+  bool changed = false;
   uint16_t count = 0;
 };
 
@@ -38,6 +42,7 @@ public:
   Ultrasonic4Pin(int triggerPin, int echoPin);
 
   bool poll(uint8_t *buffer, uint8_t *count) override;
+  void handleData(String &buffer) override;
 
   uint8_t triggerPin, echoPin;
   uint16_t distance;
@@ -59,6 +64,7 @@ public:
   ~OldAdafruit9Dof();
 
   bool poll(uint8_t *buffer, uint8_t *count) override;
+  void handleData(String &buffer) override;
 
 private:
   static bool locked;
@@ -83,6 +89,7 @@ public:
   VoltageMonitor(uint8_t readPin, float vboard, uint32_t r1, uint32_t r2);
 
   bool poll(uint8_t *buffer, uint8_t *count) override;
+  void handleData(String &buffer) override;
 
 private:
   uint8_t readPin;

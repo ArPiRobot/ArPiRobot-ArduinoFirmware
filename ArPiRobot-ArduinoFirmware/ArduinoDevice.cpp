@@ -28,28 +28,36 @@ SingleEncoder::SingleEncoder(int pin) : pin(pin){
 }
 
 bool SingleEncoder::poll(uint8_t *buffer, uint8_t *count) {
-  bool shouldSend = false;
   if(lastState == LOW){
     lastState = digitalRead(pin);
     if(lastState == HIGH){
       this->count++;
-      shouldSend = true;
+      changed = true;
     }
   }
   if(lastState == HIGH){
     lastState = digitalRead(pin);
     if(lastState == LOW){
       this->count++;
-      shouldSend = true;
+      changed = true;
     }
   }
 
-  if(shouldSend){
+  if(changed){
     buffer[0] = this->count;
     buffer[1] = this->count >> 8;
     *count = 2;
+    changed = false;
+    return true;
   }
-  return shouldSend;
+  return false;
+}
+
+void SingleEncoder::handleData(String &buffer){
+  if(buffer.length() >= 4){
+    count = buffer.charAt(2) | (buffer.charAt(3) << 8);
+    changed = true;
+  }
 }
 
 Ultrasonic4Pin::Ultrasonic4Pin(int triggerPin, int echoPin) : triggerPin(triggerPin), echoPin(echoPin){
@@ -81,6 +89,10 @@ bool Ultrasonic4Pin::poll(uint8_t *buffer, uint8_t *count){
     *count = 2;
   }
   return shouldSend;
+}
+
+void Ultrasonic4Pin::handleData(String &buffer){
+  
 }
 
 #ifdef OLDADA9DOF_ENABLE
@@ -198,6 +210,10 @@ bool OldAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
   return true;
 }
 
+void OldAdafruit9Dof::handleData(String &buffer){
+  // TODO: Reset if correct data
+}
+
 #endif // OLDADA9DOF_ENABLE
 
 VoltageMonitor::VoltageMonitor(uint8_t readPin, float vboard, uint32_t r1, uint32_t r2) : readPin(readPin), vboard(vboard), r1(r1), r2(r2){
@@ -212,4 +228,8 @@ bool VoltageMonitor::poll(uint8_t *buffer, uint8_t *count){
   buffer[3] = voltage.bval[3];
   *count = 4;
   return true;
+}
+
+void VoltageMonitor::handleData(String &buffer){
+  
 }

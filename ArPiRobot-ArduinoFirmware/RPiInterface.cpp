@@ -95,7 +95,16 @@ void RPiInterface::feed(){
         reset();
         configure();
         return;
+      }else if (readBuffer.startsWith("-")){
+        uint8_t id = (uint8_t)readBuffer.charAt(1);
+        for(uint8_t i = 0; i < deviceCount; ++i){
+          if(devices[i]->deviceId == id){
+            devices[i]->handleData(readBuffer);
+            break;
+          }
+        }
       }
+      readBuffer = "";
     }
   }
 }
