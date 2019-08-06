@@ -73,10 +73,7 @@ private:
 
   // Calculated values
   floatAsBytes gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z, pitch, roll, yaw;
-
-  float gyro_x_calib = OLDADA9DOF_X_OFFSET, 
-        gyro_y_calib = OLDADA9DOF_Y_OFFSET,
-        gyro_z_calib = OLDADA9DOF_Z_OFFSET;
+  sensors_event_t accel_event, mag_event, gyro_event;
 };
 
 #endif // OLDADA9DOF_ENABLE

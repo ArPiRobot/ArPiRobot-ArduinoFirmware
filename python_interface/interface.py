@@ -13,16 +13,20 @@ class ArduinoInterface(ABC):
         self.open()
         self.__devices = []
 
-    def reset(self, timeout_ms: int = 5000) -> bool:
+    def reset(self, timeout_ms: int = 1000) -> bool:
         self.write(b'RESET\n')
         return self.wait_for_ready(timeout_ms)
 
-    def start_processing(self):
+    def start_processing(self, timeout_ms: int = 1000):
         self.write(b'END\n')
+        while not self.readline() == b'END\n':
+            if millis() - start_time >= timeout_ms:
+                return False
+        return True
 
     def wait_for_ready(self, timeout_ms: int = 5000) -> bool:
         start_time = millis()
-        while not self.readline().startswith(b'START'):
+        while not self.readline() == b'START\n':
             if millis() - start_time >= timeout_ms:
                 return False
         return True

@@ -19,7 +19,6 @@ void setup(){
   
   rpi->open();
   rpi->configure();
-  rpi->print("END\n");
   delay(1000);
 }
 

@@ -72,6 +72,7 @@ void RPiInterface::configure(){
     }
     delay(10);
   }
+  print("END\n");
 }
 
 void RPiInterface::feed(){

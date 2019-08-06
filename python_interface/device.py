@@ -12,13 +12,13 @@ class ArduinoDevice(ABC):
         start_time = millis()
         while millis() - start_time <= timeout_ms:
             response = arduino.readline()
-            if response.startswith(b'ADDSUCCESS'):
+            if response.startswith(b'ADDSUCCESS_'):
                 try:
                     device_id = int(response[11:len(response)-1].decode())
                     return device_id
                 except:
                     return -1
-            elif response.startswith(b'ADDFAIL'):
+            elif response == b'ADDFAIL\n':
                 return -1
         return -1
     

@@ -114,24 +114,7 @@ OldAdafruit9Dof::OldAdafruit9Dof(){
   accel_z.fval = 0;
   pitch.fval = 0;
   roll.fval = 0;
-  yaw.fval = 0;
-
-  // Calibrate routine
-  delay(OLDADA9DOF_CALIBRATE_DELAY);
-  if(OLDADA9DOF_CALIBRATE_SAMPLES > 0){
-    sensors_event_t event;
-    for(uint8_t i = 0; i < OLDADA9DOF_CALIBRATE_SAMPLES; ++i){
-      gyro->getEvent(&event);
-      gyro_x_calib += event.gyro.x;
-      gyro_y_calib += event.gyro.y;
-      gyro_z_calib += event.gyro.z;
-      delay(OLDADA9DOF_CALIBRATE_SPACING);
-    }
-    gyro_x_calib /= OLDADA9DOF_CALIBRATE_SAMPLES;
-    gyro_y_calib /= OLDADA9DOF_CALIBRATE_SAMPLES;
-    gyro_z_calib /= OLDADA9DOF_CALIBRATE_SAMPLES;
-  }
-  
+  yaw.fval = 0; 
 }
 
 OldAdafruit9Dof::~OldAdafruit9Dof(){
@@ -155,31 +138,26 @@ bool OldAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
     return false;
   }
 
-  sensors_event_t accel_event, mag_event, gyro_event;
   accel->getEvent(&accel_event);
   gyro->getEvent(&gyro_event);
 
-#ifdef OLDADA9DOF_ENABLE_AHRS
   mag->getEvent(&mag_event);
-#endif
 
   accel_x.fval = accel_event.acceleration.x;
   accel_y.fval = accel_event.acceleration.y;
   accel_z.fval = accel_event.acceleration.z;
 
-  gyro_x.fval += (gyro_event.gyro.x - gyro_x_calib) / SENSORS_DPS_TO_RADS * dt;
-  gyro_y.fval += (gyro_event.gyro.y - gyro_y_calib) / SENSORS_DPS_TO_RADS * dt;
-  gyro_z.fval += (gyro_event.gyro.z - gyro_z_calib) / SENSORS_DPS_TO_RADS * dt;
+  gyro_x.fval += (gyro_event.gyro.x - OLDADA9DOF_GYRO_X_OFFSET) / SENSORS_DPS_TO_RADS * dt;
+  gyro_y.fval += (gyro_event.gyro.y - OLDADA9DOF_GYRO_Y_OFFSET) / SENSORS_DPS_TO_RADS * dt;
+  gyro_z.fval += (gyro_event.gyro.z - OLDADA9DOF_GYRO_Z_OFFSET) / SENSORS_DPS_TO_RADS * dt;
 
-#ifdef OLDADA9DOF_ENABLE_AHRS
   sensors_vec_t orientation;
   if(dof->fusionGetOrientation(&accel_event, &mag_event, &orientation)){
     pitch.fval = orientation.pitch;
     roll.fval = orientation.roll;
     yaw.fval = orientation.heading;
   }
-#endif
-
+  
   buffer[0] = gyro_x.bval[0];
   buffer[1] = gyro_x.bval[1];
   buffer[2] = gyro_x.bval[2];
