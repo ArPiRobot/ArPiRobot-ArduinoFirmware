@@ -85,15 +85,9 @@ public:
   bool poll(uint8_t *buffer, uint8_t *count) override;
 
 private:
-
   uint8_t readPin;
   float vboard;
   uint32_t r1, r2;
 
   floatAsBytes voltage;
-  floatAsBytes lastSentVoltage; // So difference is always large enough to send
-
-  const static int SAMPLE_COUNT = 20;
-  float samples[SAMPLE_COUNT];
-  int currentSample = -1;
 };
