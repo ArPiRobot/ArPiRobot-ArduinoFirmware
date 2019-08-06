@@ -2,6 +2,10 @@ import serial
 from abc import ABC, abstractmethod
 from device import ArduinoDevice
 import struct
+import time
+
+
+millis = lambda: int(round(time.time() * 1000))
 
 
 class ArduinoInterface(ABC):
@@ -9,11 +13,19 @@ class ArduinoInterface(ABC):
         self.open()
         self.__devices = []
 
-    def reset(self):
+    def reset(self, timeout_ms: int = 5000) -> bool:
         self.write(b'RESET\n')
+        return self.wait_for_ready(timeout_ms)
 
     def start_processing(self):
         self.write(b'END\n')
+
+    def wait_for_ready(self, timeout_ms: int = 5000) -> bool:
+        start_time = millis()
+        while not self.readline().startswith(b'START'):
+            if millis() - start_time >= timeout_ms:
+                return False
+        return True
     
     @abstractmethod
     def open(self):

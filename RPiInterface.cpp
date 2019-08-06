@@ -47,20 +47,25 @@ void RPiInterface::reset(){
 }
 
 void RPiInterface::configure(){
+  print("START\n");
   String buf = "";
   while(true){
     if(available())
       buf += (char) read();
 
     if(buf.endsWith("\n")){
-      if(buf.startsWith("ADD")){
+      if(buf.startsWith("ADD_")){
         int deviceId = addDevice(buf);
         if(deviceId == -1){
           print("ADDFAIL\n");
         }else{
           print("ADDSUCCESS_" + String(deviceId) + "\n");
         }
-      }else if(buf.startsWith("END")){
+      }else if(buf.equals("END\n")){
+        break;
+      }else if(buf.equals("RESET\n")){
+        reset();
+        configure();
         break;
       }
       buf = "";

@@ -8,11 +8,10 @@ class ArduinoDevice(ABC):
         self.__device_id = device_id
 
     @staticmethod
-    def await_add_response(arduino) -> int:
+    def await_add_response(arduino, timeout_ms: int = 3000) -> int:
         start_time = millis()
-        while millis() - start_time <= 3000:
+        while millis() - start_time <= timeout_ms:
             response = arduino.readline()
-            print(response)
             if response.startswith(b'ADDSUCCESS'):
                 try:
                     device_id = int(response[11:len(response)-1].decode())

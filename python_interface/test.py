@@ -6,42 +6,66 @@ import threading
 import sys
 
 
-arduino = ArduinoUartInterface("COM10", 250000)
-
-while not arduino.readline().startswith(b'START'):
-    pass
-
 rlast_count = 0
 llast_count = 0
 last_distance = 0
 
 
-arduino.reset()
+arduino = ArduinoUartInterface("COM10", 250000)
 
+print("Waiting for arduino to become ready...", end="")
+if arduino.wait_for_ready(5000):
+    print("OK")
+else:
+    print("Failed.")
+    sys.exit(1)
+
+print("Resetting arduino...", end="")
+if arduino.reset():
+    print("OK")
+else:
+    print("Failed.")
+    sys.exit(1)
+
+print("Creating right encoder...", end="")
 renc = SingleEncoder.create(arduino, 2)
-lenc = SingleEncoder.create(arduino, 3)
-imu = OldAdafruit9Dof.create(arduino)
-usonic = Ultrasonic4Pin.create(arduino, 7, 8)
-vmon = VoltageMonitor.create(arduino, "A0", 3.3, 30000, 7500)
-
 if renc is None:
-    print("Failed to create right encoder.")
+    print("Failed.")
     sys.exit(1)
-if lenc is None:
-    print("Failed to create left encoder.")
-    sys.exit(1)
-if imu is None:
-    print("Failed to create IMU.")
-    sys.exit(1)
-if usonic is None:
-    print("Failed to create ultrasonic sensor.")
-    sys.exit(1)
-if vmon is None:
-    print("Failed to create voltage monitor.")
-    sys.exit(1)
+print("OK")
 
-print("Sensor processing started.")
+print("Creating left encoder...", end="")
+lenc = SingleEncoder.create(arduino, 3)
+if lenc is None:
+    print("Failed.")
+    sys.exit(1)
+print("OK")
+
+print("Creating Old Adafruit 9DOF IMU...", end="")
+imu = OldAdafruit9Dof.create(arduino)
+if imu is None:
+    print("Failed.")
+    sys.exit(1)
+print("OK")
+
+print("Creating ultrasonic sensor...", end="")
+usonic = Ultrasonic4Pin.create(arduino, 7, 8)
+if usonic is None:
+    print("Failed.")
+    sys.exit(1)
+print("OK")
+
+print("Creating voltage monitor...", end="")
+vmon = VoltageMonitor.create(arduino, "A0", 3.3, 30000, 7500)
+if vmon is None:
+    print("Failed.")
+    sys.exit(1)
+print("OK")
+
+
+print("Starting sensor processing...", end="")
 arduino.start_processing()
+print("OK")
 
 def feed_arduino():
     while True:
@@ -67,7 +91,7 @@ try:
 
         #print("AngleZ: " + str(imu.gyro_z))
 
-        #print("Voltage: " + str(vmon.voltage))
+        print("Voltage: " + str(vmon.voltage))
 
         time.sleep(.01)
 except KeyboardInterrupt:
