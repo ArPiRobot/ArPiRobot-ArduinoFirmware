@@ -64,7 +64,9 @@ print("OK")
 
 
 print("Starting sensor processing...", end="")
-arduino.start_processing()
+if not arduino.start_processing():
+    print("Failed.")
+    sys.exit(1)
 print("OK")
 
 def feed_arduino():
@@ -89,9 +91,8 @@ try:
             print("Distance: " + str(usonic.distance))
             last_distance = usonic.distance
 
-        #print("AngleZ: " + str(imu.gyro_z))
-
-        print("Voltage: " + str(vmon.voltage))
+        # print("AngleZ: " + str(imu.gyro_z))
+        # print("Voltage: " + str(vmon.voltage))
 
         time.sleep(.01)
 except KeyboardInterrupt:

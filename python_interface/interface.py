@@ -17,7 +17,7 @@ class ArduinoInterface(ABC):
         self.write(b'RESET\n')
         return self.wait_for_ready(timeout_ms)
 
-    def start_processing(self, timeout_ms: int = 1000):
+    def start_processing(self, timeout_ms: int = 1000) -> bool:
         self.write(b'END\n')
         while not self.readline() == b'END\n':
             if millis() - start_time >= timeout_ms:
