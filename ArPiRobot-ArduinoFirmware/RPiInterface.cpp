@@ -78,8 +78,18 @@ void RPiInterface::configure(){
 void RPiInterface::feed(){
   unsigned long now = millis();
   for(uint8_t i = 0; i < deviceCount; ++i){
-    bool shouldSend = devices[i]->poll(buffer, &len);
+    bool shouldSend = devices[i]->poll(buffer, &len);    
     if(shouldSend && now >= devices[i]->nextSendTime){
+      // Add a checksum to the sensor data buffer
+      uint16_t sum = 0;
+      for(uint8_t i = 0; i < len; ++i){
+        sum += buffer[i];
+      }
+      buffer[len] = sum;
+      buffer[len + 1] = sum >> 8;
+      len += 2;
+
+      // Send the data
       write(devices[i]->deviceId);
       write(buffer, len);
       print("\n");
