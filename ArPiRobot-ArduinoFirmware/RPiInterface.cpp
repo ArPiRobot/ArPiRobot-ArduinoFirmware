@@ -47,7 +47,9 @@ void RPiInterface::reset(){
 }
 
 void RPiInterface::configure(){
-  print("START\n");
+  // Always print a newline first. It is possible that the arduino was 
+  //    reset in the middle of a message and the Pi's read buffer is not empty
+  print("\nSTART\n");
   String buf = "";
   while(true){
     if(available())
