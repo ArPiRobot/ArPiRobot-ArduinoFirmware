@@ -10,6 +10,11 @@ RPiInterface *rpi;
 
 void setup(){
 
+#ifdef DEBUG
+  DEBUG_SERIAL.begin(DEBUG_SERIAL_BAUD);
+  DEBUG_SERIAL.println("At setup()");
+#endif
+
 #if defined(INTERFACE_HW_SERIAL) || defined(INTERFACE_TEENSY_USB_SERIAL)
   rpi = new RPiUartInterface(HW_SERIAL_PORT, HW_SERIAL_BAUD);
 #endif

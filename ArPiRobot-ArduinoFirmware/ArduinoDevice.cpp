@@ -2,7 +2,10 @@
 
 uint8_t ArduinoDevice::sendTimeOffset = 0;
 uint8_t ArduinoDevice::nextId = 0;
+
+#ifdef OLDADA9DOF_ENABLE
 bool OldAdafruit9Dof::locked = false;
+#endif
 
 ArduinoDevice::ArduinoDevice(){
 
@@ -53,11 +56,8 @@ bool SingleEncoder::poll(uint8_t *buffer, uint8_t *count) {
   return false;
 }
 
-void SingleEncoder::handleData(String &buffer){
-  if(buffer.length() >= 4){
-    count = buffer.charAt(2) | (buffer.charAt(3) << 8);
-    changed = true;
-  }
+void SingleEncoder::handleData(uint8_t *data, uint8_t len){
+  
 }
 
 Ultrasonic4Pin::Ultrasonic4Pin(int triggerPin, int echoPin) : triggerPin(triggerPin), echoPin(echoPin){
@@ -77,7 +77,7 @@ bool Ultrasonic4Pin::poll(uint8_t *buffer, uint8_t *count){
     uint16_t duration = pulseIn(echoPin, HIGH, 5000);
     if(duration > 0){
       uint16_t newDistance = duration * 0.034 / 2;
-      shouldSend = newDistance == distance;
+      shouldSend = newDistance != distance;
       distance = newDistance;
     }
     pollIterationCounter = 0;
@@ -91,7 +91,7 @@ bool Ultrasonic4Pin::poll(uint8_t *buffer, uint8_t *count){
   return shouldSend;
 }
 
-void Ultrasonic4Pin::handleData(String &buffer){
+void Ultrasonic4Pin::handleData(uint8_t *data, uint8_t len){
   
 }
 
@@ -210,8 +210,8 @@ bool OldAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
   return true;
 }
 
-void OldAdafruit9Dof::handleData(String &buffer){
-  // TODO: Reset if correct data
+void OldAdafruit9Dof::handleData(uint8_t *data, uint8_t len){
+  
 }
 
 #endif // OLDADA9DOF_ENABLE
@@ -230,6 +230,6 @@ bool VoltageMonitor::poll(uint8_t *buffer, uint8_t *count){
   return true;
 }
 
-void VoltageMonitor::handleData(String &buffer){
+void VoltageMonitor::handleData(uint8_t *data, uint8_t len){
   
 }

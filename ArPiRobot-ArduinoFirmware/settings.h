@@ -2,9 +2,18 @@
 
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
-/// Interface and bandwidth settinsg
+/// Interface and bandwidth settings
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////
+/// Debug Interface
+///////////////////////////////////////////////////////
+//#define DEBUG
+#ifdef DEBUG
+  #define DEBUG_SERIAL Serial1
+  #define DEBUG_SERIAL_BAUD 9600
+#endif
 
 ///////////////////////////////////////////////////////
 /// Interface method
@@ -13,7 +22,7 @@
 #define INTERFACE_HW_SERIAL
 //#define INTERFACE_TEENSY_USB_SERIAL
 #define HW_SERIAL_PORT Serial
-#define HW_SERIAL_BAUD 250000
+#define HW_SERIAL_BAUD 500000
 
 //#define INTERFACE_SW_SERIAL
 #define SW_SERIAL_TX 3
@@ -34,7 +43,8 @@
 #define MAX_DEVICES 10
 
 // Sensor data buffer size for an interface
-#define DATA_BUFFER_SIZE 96
+#define DATA_WRITE_BUFFER_SIZE 64
+#define DATA_READ_BUFFER_SIZE 64
 
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
@@ -49,10 +59,10 @@
 // Enable the IMU (third party libraries required)
 #define OLDADA9DOF_ENABLE
 
-// Calibration data for the IMU's gyroscope
-#define OLDADA9DOF_GYRO_X_OFFSET -0.031700856983661
-#define OLDADA9DOF_GYRO_Y_OFFSET 0.040051378309726
-#define OLDADA9DOF_GYRO_Z_OFFSET 0.003336852183565
+// Calibration data for the IMU's gyroscope (Get from sensor calibration project)
+#define OLDADA9DOF_GYRO_X_OFFSET 0
+#define OLDADA9DOF_GYRO_Y_OFFSET 0
+#define OLDADA9DOF_GYRO_Z_OFFSET 0
 
 ///////////////////////////////////////////////////////
 // 4-Pin Ultrasonic Sensor (HC-SR04)
