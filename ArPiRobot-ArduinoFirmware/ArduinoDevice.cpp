@@ -169,7 +169,9 @@ bool OldAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
     roll.fval = orientation.roll;
     yaw.fval = orientation.heading;
   }
-  
+
+  //TODO: Handle if big endian here...
+  //      If big endian need to reverse order of bytes in buffer so it looks little endian to the pi
   buffer[0] = gyro_x.bval[0];
   buffer[1] = gyro_x.bval[1];
   buffer[2] = gyro_x.bval[2];

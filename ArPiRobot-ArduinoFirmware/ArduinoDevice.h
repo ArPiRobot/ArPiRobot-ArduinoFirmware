@@ -34,7 +34,7 @@ public:
   uint8_t lastState = 0;
   uint8_t pin;
   bool changed;
-  uint32_t count = 0;
+  uint16_t count = 0;
 };
 
 class Ultrasonic4Pin : public ArduinoDevice {

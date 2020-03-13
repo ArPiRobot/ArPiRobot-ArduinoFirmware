@@ -193,7 +193,7 @@ void RPiInterface::feed(){
     if(shouldSend && now >= devices[i]->nextSendTime){
       // Send the data
       buffer[0] = devices[i]->deviceId;
-      writeData(buffer, len);
+      writeData(buffer, len + 1);
       flush();
       devices[i]->nextSendTime += SEND_RATE; // Send again
     }
