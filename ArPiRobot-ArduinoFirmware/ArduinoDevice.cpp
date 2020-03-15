@@ -1,16 +1,12 @@
 #include "ArduinoDevice.h"
 
 uint8_t ArduinoDevice::sendTimeOffset = 0;
-uint8_t ArduinoDevice::nextId = 0;
 
 #ifdef OLDADA9DOF_ENABLE
 bool OldAdafruit9Dof::locked = false;
 #endif
 
-ArduinoDevice::ArduinoDevice(){
-
-  deviceId = nextId++;
-  
+ArduinoDevice::ArduinoDevice(){  
 	nextSendTime = sendTimeOffset;
 	sendTimeOffset += OFFSET_STEP; // Stager the next by 5ms
 
@@ -24,6 +20,10 @@ ArduinoDevice::~ArduinoDevice(){
   
 }
 
+
+void ArduinoDevice::assignDeviceId(uint8_t deviceId){
+  this->deviceId = deviceId;
+}
 
 SingleEncoder::SingleEncoder(int pin) : pin(pin){
   pinMode(pin, INPUT);

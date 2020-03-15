@@ -4,6 +4,20 @@
 FastCRC16 CRC16;
 
 
+int RPiInterface::addStaticDevice(ArduinoDevice *device){
+  if(deviceCount >= MAX_DEVICES){
+    return -1;
+  }
+
+  devices[deviceCount] = device;
+  devices[deviceCount]->assignDeviceId(deviceCount);
+  
+  staticDeviceCount++; // This is used when resetting deviceCount
+  deviceCount++;
+
+  return deviceCount - 1;
+}
+
 /*
  * Device add commands:
  *  Commands are ascii as it is easy to code comparisons
@@ -28,8 +42,6 @@ int RPiInterface::addDevice(){
   if(readBufferLen >= 9 && dataStartsWith(readBuffer, readBufferLen, "ADDSENC", 7)){
     uint8_t readPin = readBuffer[8];
 
-    
-
     // If analog
     if(readBuffer[7]){
       readPin = analogInputToDigitalPin(readPin);
@@ -41,11 +53,13 @@ int RPiInterface::addDevice(){
 #endif
     
     devices[deviceCount] = new SingleEncoder(readPin);
+    devices[deviceCount]->assignDeviceId(deviceCount);
     deviceCount++;
     return deviceCount - 1;
   }else if(dataDoesMatch(readBuffer, readBufferLen, "ADDOLDADA9DOF", 13)){
 #ifdef OLDADA9DOF_ENABLE
     devices[deviceCount] = new OldAdafruit9Dof();
+    devices[deviceCount]->assignDeviceId(deviceCount);
     deviceCount++;
     return deviceCount - 1;
 #else
@@ -70,6 +84,7 @@ int RPiInterface::addDevice(){
 #endif
     
     devices[deviceCount] = new Ultrasonic4Pin(trigPin, echoPin);
+    devices[deviceCount]->assignDeviceId(deviceCount);
     deviceCount++;
     return deviceCount - 1;
   }else if(readBufferLen >= 20 && dataStartsWith(readBuffer, readBufferLen, "ADDVMON", 7)){
@@ -126,6 +141,7 @@ int RPiInterface::addDevice(){
 #endif
     
     devices[deviceCount] = new VoltageMonitor(analogInputToDigitalPin(analogPin), vboard.fval, r1.uival, r2.uival);
+    devices[deviceCount]->assignDeviceId(deviceCount);
     deviceCount++;
     return deviceCount - 1;
   }
@@ -137,11 +153,11 @@ int RPiInterface::addDevice(){
 }
 
 void RPiInterface::reset(){
-  for(uint8_t i = 0; i < deviceCount; ++i){
+  // Delete non-static devices
+  for(uint8_t i = staticDeviceCount; i < deviceCount; ++i){
     delete devices[i];
   }
-  ArduinoDevice::nextId = 0;
-  deviceCount = 0;
+  deviceCount = staticDeviceCount;
   readBufferLen = 0;
 }
 

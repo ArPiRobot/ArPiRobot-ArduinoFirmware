@@ -18,10 +18,11 @@ public:
 
   virtual void handleData(uint8_t *data, uint8_t len) = 0;
 
+  void assignDeviceId(uint8_t deviceId);
+  
 	static uint8_t sendTimeOffset;
 	unsigned long nextSendTime = 0;
   uint8_t deviceId = 0;
-  static uint8_t nextId;
 };
 
 class SingleEncoder : public ArduinoDevice {

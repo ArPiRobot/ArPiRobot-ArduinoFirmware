@@ -46,6 +46,12 @@ union byte_convert_4{
 
 class RPiInterface{
 public:
+
+  /**
+   * Add a device to the pi from arduino code (not based on data received from the Pi)
+   * This device will always exist. This must be done before calling configure
+   */
+  int addStaticDevice(ArduinoDevice *device);
   int addDevice();
   void reset();
   void configure();
@@ -100,6 +106,7 @@ private:
   
   ArduinoDevice *devices[MAX_DEVICES];
   uint8_t deviceCount = 0;
+  uint8_t staticDeviceCount = 0;
 };
 
 #if defined(INTERFACE_HW_SERIAL) || defined(INTERFACE_TEENSY_USB_SERIAL) || defined(INTERFACE_SW_SERIAL)
