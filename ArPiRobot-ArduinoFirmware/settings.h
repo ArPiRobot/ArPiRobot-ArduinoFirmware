@@ -22,7 +22,7 @@
 #define INTERFACE_HW_SERIAL
 //#define INTERFACE_TEENSY_USB_SERIAL
 #define HW_SERIAL_PORT Serial
-#define HW_SERIAL_BAUD 250000
+#define HW_SERIAL_BAUD 500000
 
 //#define INTERFACE_SW_SERIAL
 #define SW_SERIAL_TX 3
@@ -53,11 +53,25 @@
 ///////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////
+// Adafruit NXP Precision 9DOF IMU (XOS8700 + FXAS21002C)
+///////////////////////////////////////////////////////
+
+// Enable the IMU (third party libraries required)
+// Note: This cannot coexist with the Old 9DOF IMU (only enable one)
+#define NXPADA9DOF_ENABLE
+
+// Calibration data for the IMU's gyroscope (Get from sensor calibration project)
+#define NXPADA9DOF_GYRO_X_OFFSET 0
+#define NXPADA9DOF_GYRO_Y_OFFSET 0
+#define NXPADA9DOF_GYRO_Z_OFFSET 0
+
+///////////////////////////////////////////////////////
 // Old Adafruit 9DOF IMU (L3GD20H + LSM303)
 ///////////////////////////////////////////////////////
 
 // Enable the IMU (third party libraries required)
-#define OLDADA9DOF_ENABLE
+// Note: This cannot coexist with the NXP 9DOF IMU (only enable one)
+//#define OLDADA9DOF_ENABLE
 
 // Calibration data for the IMU's gyroscope (Get from sensor calibration project)
 #define OLDADA9DOF_GYRO_X_OFFSET 0

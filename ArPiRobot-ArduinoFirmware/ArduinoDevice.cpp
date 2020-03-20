@@ -6,6 +6,10 @@ uint8_t ArduinoDevice::sendTimeOffset = 0;
 bool OldAdafruit9Dof::locked = false;
 #endif
 
+#ifdef NXPADA9DOF_ENABLE
+bool NxpAdafruit9Dof::locked = false;
+#endif
+
 ArduinoDevice::ArduinoDevice(){  
 	nextSendTime = sendTimeOffset;
 	sendTimeOffset += OFFSET_STEP; // Stager the next by 5ms
@@ -235,3 +239,132 @@ bool VoltageMonitor::poll(uint8_t *buffer, uint8_t *count){
 void VoltageMonitor::handleData(uint8_t *data, uint8_t len){
   
 }
+
+#ifdef NXPADA9DOF_ENABLE
+
+NxpAdafruit9Dof::NxpAdafruit9Dof(){
+  if(locked)
+    return;
+
+  locked = true;
+  accelmag = new Adafruit_FXOS8700(0x8700A, 0x8700B);
+  gyro = new Adafruit_FXAS21002C(0x0021002C);
+  fusion = new Adafruit_NXPSensorFusion();
+
+  bool success = accelmag->begin(ACCEL_RANGE_4G) && gyro->begin();
+  if(!success){
+    delete accelmag;
+    delete gyro;
+    delete fusion;
+    accelmag = NULL;
+    gyro = NULL;
+    fusion = NULL;
+    locked = false;
+  }
+
+  fusion->begin();
+
+  gyro_x.fval = 0;
+  gyro_y.fval = 0;
+  gyro_z.fval = 0;
+  accel_x.fval = 0;
+  accel_y.fval = 0;
+  accel_z.fval = 0;
+  pitch.fval = 0;
+  roll.fval = 0;
+  yaw.fval = 0; 
+}
+
+NxpAdafruit9Dof::~NxpAdafruit9Dof(){
+  if(accelmag != NULL){
+    delete accelmag;
+    delete gyro;
+    delete fusion;
+    locked = false;
+  }
+}
+
+bool NxpAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
+  if(accelmag == NULL) return false;
+  
+  long now = micros();
+  double dt = (now - lastSample) / 1e6;
+  lastSample = now;
+
+  if(dt < 0){
+    // Micros rolled over. Some data has been lost...
+    return false;
+  }
+
+  accelmag->getEvent(&accel_event, &mag_event);
+  gyro->getEvent(&gyro_event);
+
+  accel_x.fval = accel_event.acceleration.x;
+  accel_y.fval = accel_event.acceleration.y;
+  accel_z.fval = accel_event.acceleration.z;
+
+  gyro_x.fval += (gyro_event.gyro.x - NXPADA9DOF_GYRO_X_OFFSET) / SENSORS_DPS_TO_RADS * dt;
+  gyro_y.fval += (gyro_event.gyro.y - NXPADA9DOF_GYRO_Y_OFFSET) / SENSORS_DPS_TO_RADS * dt;
+  gyro_z.fval += (gyro_event.gyro.z - NXPADA9DOF_GYRO_Z_OFFSET) / SENSORS_DPS_TO_RADS * dt;
+
+  fusion->update(gyro_event.gyro.x, 
+                 gyro_event.gyro.y, 
+                 gyro_event.gyro.z, 
+                 accel_event.acceleration.x, 
+                 accel_event.acceleration.y, 
+                 accel_event.acceleration.z,
+                 mag_event.magnetic.x,
+                 mag_event.magnetic.y,
+                 mag_event.magnetic.z);
+  pitch.fval = fusion->getPitch();
+  roll.fval = fusion->getRoll();
+  yaw.fval = fusion->getYaw();
+
+  //TODO: Handle if big endian here...
+  //      If big endian need to reverse order of bytes in buffer so it looks little endian to the pi
+  //      In setup() should do a big endian test and write create a global bool indicating if big endian
+  buffer[0] = gyro_x.bval[0];
+  buffer[1] = gyro_x.bval[1];
+  buffer[2] = gyro_x.bval[2];
+  buffer[3] = gyro_x.bval[3];
+  buffer[4] = gyro_y.bval[0];
+  buffer[5] = gyro_y.bval[1];
+  buffer[6] = gyro_y.bval[2];
+  buffer[7] = gyro_y.bval[3];
+  buffer[8] = gyro_z.bval[0];
+  buffer[9] = gyro_z.bval[1];
+  buffer[10] = gyro_z.bval[2];
+  buffer[11] = gyro_z.bval[3];
+  buffer[12] = accel_x.bval[0];
+  buffer[13] = accel_x.bval[1];
+  buffer[14] = accel_x.bval[2];
+  buffer[15] = accel_x.bval[3];
+  buffer[16] = accel_y.bval[0];
+  buffer[17] = accel_y.bval[1];
+  buffer[18] = accel_y.bval[2];
+  buffer[19] = accel_y.bval[3];
+  buffer[20] = accel_z.bval[0];
+  buffer[21] = accel_z.bval[1];
+  buffer[22] = accel_z.bval[2];
+  buffer[23] = accel_z.bval[3];
+  buffer[24] = pitch.bval[0];
+  buffer[25] = pitch.bval[1];
+  buffer[26] = pitch.bval[2];
+  buffer[27] = pitch.bval[3];
+  buffer[28] = roll.bval[0];
+  buffer[29] = roll.bval[1];
+  buffer[30] = roll.bval[2];
+  buffer[31] = roll.bval[3];
+  buffer[32] = yaw.bval[0];
+  buffer[33] = yaw.bval[1];
+  buffer[34] = yaw.bval[2];
+  buffer[35] = yaw.bval[3];
+  *count = 36;
+  return true;
+}
+
+void NxpAdafruit9Dof::handleData(uint8_t *data, uint8_t len){
+  
+}
+
+#endif // NXPADA9DOF_ENABLE

@@ -99,3 +99,35 @@ private:
 
   floatAsBytes voltage;
 };
+
+#ifdef NXPADA9DOF_ENABLE
+
+#include <Adafruit_Sensor.h>
+#include <Adafruit_FXAS21002C.h>
+#include <Adafruit_FXOS8700.h>
+#include <Adafruit_AHRS_NXPFusion.h>
+
+class NxpAdafruit9Dof : public ArduinoDevice{
+public:
+  NxpAdafruit9Dof();
+  ~NxpAdafruit9Dof();
+
+  bool poll(uint8_t *buffer, uint8_t *count) override;
+  void handleData(uint8_t *data, uint8_t len) override;
+
+private:
+  static bool locked;
+
+  unsigned long lastSample = 0;
+  
+  // Sensors
+  Adafruit_FXOS8700 *accelmag = NULL;
+  Adafruit_FXAS21002C *gyro = NULL;
+  Adafruit_NXPSensorFusion *fusion = NULL;
+
+  // Calculated values
+  floatAsBytes gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z, pitch, roll, yaw;
+  sensors_event_t accel_event, mag_event, gyro_event;
+};
+
+#endif // NXPADA9DOF_ENABLE

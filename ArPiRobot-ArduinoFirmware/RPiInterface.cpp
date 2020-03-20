@@ -21,12 +21,13 @@ int RPiInterface::addStaticDevice(ArduinoDevice *device){
 /*
  * Device add commands:
  *  Commands are ascii as it is easy to code comparisons
- *  ADDSENC[PIN_NUMBER]\n - SingleEncoder(PIN_NUMBER)
- *  ADDOLDADA9DOF\n - OldAdafruit9DofImu()
+ *  ADDSENC[PIN_NUMBER] - SingleEncoder(PIN_NUMBER)
+ *  ADDOLDADA9DOF - OldAdafruit9DofImu()
  *  ADDUSONIC4[TRIG_PIN][ECHO_PIN]\n
- *  ADDVMON[ANALOG_PIN][VBOARD_FLOAT_4_BYTES_BIG_ENDIAN][4_BYTE_R1_UINT32_BIG_ENDIAN][4_BYTE_R2_UINT32_BIG_ENDIAN]
+ *  ADDVMON[ANALOG_PIN][VBOARD_FLOAT_4_BYTES_BIG_ENDIAN][4_BYTE_R1_UINT32_BIG_ENDIAN][4_BYTE_R2_UINT32_BIG_ENDIAN] - VoltageMonitor(readPin, vboard, r1, r2)
+ *  ADDNXPADA9DOF - NxpAdafruit9DofImu()
  *  
- *  Pin numbers are sent as two bytes each:
+ *  Digital pin numbers are sent as two bytes each (any analog pin is also able to be used as a digital input):
  *    IS_ANALOG, PIN_NUMBER
  *  
  *  Pins that must be analog are sent as one byte: the pin number.
@@ -144,6 +145,15 @@ int RPiInterface::addDevice(){
     devices[deviceCount]->assignDeviceId(deviceCount);
     deviceCount++;
     return deviceCount - 1;
+  }else if(dataDoesMatch(readBuffer, readBufferLen, "ADDNXPADA9DOF", 13)){
+#ifdef NXPADA9DOF_ENABLE
+    devices[deviceCount] = new NxpAdafruit9Dof();
+    devices[deviceCount]->assignDeviceId(deviceCount);
+    deviceCount++;
+    return deviceCount - 1;
+#else
+    return -1;
+#endif
   }
 
 #ifdef DEBUG
