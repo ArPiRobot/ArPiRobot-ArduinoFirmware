@@ -107,17 +107,13 @@ OldAdafruit9Dof::OldAdafruit9Dof(){
 
   locked = true;
   accel = new Adafruit_LSM303_Accel_Unified(30301);
-  mag = new Adafruit_LSM303_Mag_Unified(30302);
   gyro = new Adafruit_L3GD20_Unified(20);
-  dof = new Adafruit_9DOF();
 
-  bool success = accel->begin() && mag->begin() && gyro->begin();
+  bool success = accel->begin() && gyro->begin();
   if(!success){
     delete accel;
     delete gyro;
-    delete mag;
     accel = NULL;
-    mag = NULL;
     gyro = NULL;
     locked = false;
   }
@@ -127,17 +123,13 @@ OldAdafruit9Dof::OldAdafruit9Dof(){
   gyro_z.fval = 0;
   accel_x.fval = 0;
   accel_y.fval = 0;
-  accel_z.fval = 0;
-  pitch.fval = 0;
-  roll.fval = 0;
-  yaw.fval = 0; 
+  accel_z.fval = 0; 
 }
 
 OldAdafruit9Dof::~OldAdafruit9Dof(){
   if(accel != NULL){
     delete accel;
     delete gyro;
-    delete mag;
     locked = false;
   }
 }
@@ -157,22 +149,13 @@ bool OldAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
   accel->getEvent(&accel_event);
   gyro->getEvent(&gyro_event);
 
-  mag->getEvent(&mag_event);
-
-  accel_x.fval = accel_event.acceleration.x;
-  accel_y.fval = accel_event.acceleration.y;
-  accel_z.fval = accel_event.acceleration.z;
+  accel_x.fval = accel_event.acceleration.x - OLDADA9DOF_ACCEL_X_OFFSET;
+  accel_y.fval = accel_event.acceleration.y - OLDADA9DOF_ACCEL_Y_OFFSET;
+  accel_z.fval = accel_event.acceleration.z - OLDADA9DOF_ACCEL_Z_OFFSET;
 
   gyro_x.fval += (gyro_event.gyro.x - OLDADA9DOF_GYRO_X_OFFSET) / SENSORS_DPS_TO_RADS * dt;
   gyro_y.fval += (gyro_event.gyro.y - OLDADA9DOF_GYRO_Y_OFFSET) / SENSORS_DPS_TO_RADS * dt;
   gyro_z.fval += (gyro_event.gyro.z - OLDADA9DOF_GYRO_Z_OFFSET) / SENSORS_DPS_TO_RADS * dt;
-
-  sensors_vec_t orientation;
-  if(dof->fusionGetOrientation(&accel_event, &mag_event, &orientation)){
-    pitch.fval = orientation.pitch;
-    roll.fval = orientation.roll;
-    yaw.fval = orientation.heading;
-  }
 
   //TODO: Handle if big endian here...
   //      If big endian need to reverse order of bytes in buffer so it looks little endian to the pi
@@ -200,19 +183,7 @@ bool OldAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
   buffer[21] = accel_z.bval[1];
   buffer[22] = accel_z.bval[2];
   buffer[23] = accel_z.bval[3];
-  buffer[24] = pitch.bval[0];
-  buffer[25] = pitch.bval[1];
-  buffer[26] = pitch.bval[2];
-  buffer[27] = pitch.bval[3];
-  buffer[28] = roll.bval[0];
-  buffer[29] = roll.bval[1];
-  buffer[30] = roll.bval[2];
-  buffer[31] = roll.bval[3];
-  buffer[32] = yaw.bval[0];
-  buffer[33] = yaw.bval[1];
-  buffer[34] = yaw.bval[2];
-  buffer[35] = yaw.bval[3];
-  *count = 36;
+  *count = 24;
   return true;
 }
 
@@ -249,20 +220,15 @@ NxpAdafruit9Dof::NxpAdafruit9Dof(){
   locked = true;
   accelmag = new Adafruit_FXOS8700(0x8700A, 0x8700B);
   gyro = new Adafruit_FXAS21002C(0x0021002C);
-  fusion = new Adafruit_NXPSensorFusion();
 
   bool success = accelmag->begin(ACCEL_RANGE_4G) && gyro->begin();
   if(!success){
     delete accelmag;
     delete gyro;
-    delete fusion;
     accelmag = NULL;
     gyro = NULL;
-    fusion = NULL;
     locked = false;
   }
-
-  fusion->begin();
 
   gyro_x.fval = 0;
   gyro_y.fval = 0;
@@ -270,16 +236,12 @@ NxpAdafruit9Dof::NxpAdafruit9Dof(){
   accel_x.fval = 0;
   accel_y.fval = 0;
   accel_z.fval = 0;
-  pitch.fval = 0;
-  roll.fval = 0;
-  yaw.fval = 0; 
 }
 
 NxpAdafruit9Dof::~NxpAdafruit9Dof(){
   if(accelmag != NULL){
     delete accelmag;
     delete gyro;
-    delete fusion;
     locked = false;
   }
 }
@@ -299,26 +261,13 @@ bool NxpAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
   accelmag->getEvent(&accel_event, &mag_event);
   gyro->getEvent(&gyro_event);
 
-  accel_x.fval = accel_event.acceleration.x;
-  accel_y.fval = accel_event.acceleration.y;
-  accel_z.fval = accel_event.acceleration.z;
+  accel_x.fval = accel_event.acceleration.x - NXPADA9DOF_ACCEL_X_OFFSET;
+  accel_y.fval = accel_event.acceleration.y - NXPADA9DOF_ACCEL_Y_OFFSET;
+  accel_z.fval = accel_event.acceleration.z - NXPADA9DOF_ACCEL_Z_OFFSET;
 
   gyro_x.fval += (gyro_event.gyro.x - NXPADA9DOF_GYRO_X_OFFSET) / SENSORS_DPS_TO_RADS * dt;
   gyro_y.fval += (gyro_event.gyro.y - NXPADA9DOF_GYRO_Y_OFFSET) / SENSORS_DPS_TO_RADS * dt;
   gyro_z.fval += (gyro_event.gyro.z - NXPADA9DOF_GYRO_Z_OFFSET) / SENSORS_DPS_TO_RADS * dt;
-
-  fusion->update(gyro_event.gyro.x, 
-                 gyro_event.gyro.y, 
-                 gyro_event.gyro.z, 
-                 accel_event.acceleration.x, 
-                 accel_event.acceleration.y, 
-                 accel_event.acceleration.z,
-                 mag_event.magnetic.x,
-                 mag_event.magnetic.y,
-                 mag_event.magnetic.z);
-  pitch.fval = fusion->getPitch();
-  roll.fval = fusion->getRoll();
-  yaw.fval = fusion->getYaw();
 
   //TODO: Handle if big endian here...
   //      If big endian need to reverse order of bytes in buffer so it looks little endian to the pi
@@ -347,19 +296,7 @@ bool NxpAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
   buffer[21] = accel_z.bval[1];
   buffer[22] = accel_z.bval[2];
   buffer[23] = accel_z.bval[3];
-  buffer[24] = pitch.bval[0];
-  buffer[25] = pitch.bval[1];
-  buffer[26] = pitch.bval[2];
-  buffer[27] = pitch.bval[3];
-  buffer[28] = roll.bval[0];
-  buffer[29] = roll.bval[1];
-  buffer[30] = roll.bval[2];
-  buffer[31] = roll.bval[3];
-  buffer[32] = yaw.bval[0];
-  buffer[33] = yaw.bval[1];
-  buffer[34] = yaw.bval[2];
-  buffer[35] = yaw.bval[3];
-  *count = 36;
+  *count = 34;
   return true;
 }
 

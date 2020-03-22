@@ -53,17 +53,20 @@
 ///////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////
-// Adafruit NXP Precision 9DOF IMU (XOS8700 + FXAS21002C)
+// Adafruit NXP Precision 9DOF IMU (FXOS8700 + FXAS21002C)
 ///////////////////////////////////////////////////////
 
 // Enable the IMU (third party libraries required)
 // Note: This cannot coexist with the Old 9DOF IMU (only enable one)
-#define NXPADA9DOF_ENABLE
+//#define NXPADA9DOF_ENABLE
 
-// Calibration data for the IMU's gyroscope (Get from sensor calibration project)
+// Calibration data for the IMU's gyroscope and accelerometer (Get from sensor calibration project)
 #define NXPADA9DOF_GYRO_X_OFFSET 0
 #define NXPADA9DOF_GYRO_Y_OFFSET 0
 #define NXPADA9DOF_GYRO_Z_OFFSET 0
+#define NXPADA9DOF_ACCEL_X_OFFSET 0
+#define NXPADA9DOF_ACCEL_Y_OFFSET 0
+#define NXPADA9DOF_ACCEL_Z_OFFSET 0
 
 ///////////////////////////////////////////////////////
 // Old Adafruit 9DOF IMU (L3GD20H + LSM303)
@@ -71,12 +74,15 @@
 
 // Enable the IMU (third party libraries required)
 // Note: This cannot coexist with the NXP 9DOF IMU (only enable one)
-//#define OLDADA9DOF_ENABLE
+#define OLDADA9DOF_ENABLE
 
-// Calibration data for the IMU's gyroscope (Get from sensor calibration project)
-#define OLDADA9DOF_GYRO_X_OFFSET 0
-#define OLDADA9DOF_GYRO_Y_OFFSET 0
-#define OLDADA9DOF_GYRO_Z_OFFSET 0
+// Calibration data for the IMU's gyroscope and accelerometer (Get from sensor calibration project)
+#define OLDADA9DOF_GYRO_X_OFFSET  0
+#define OLDADA9DOF_GYRO_Y_OFFSET  0
+#define OLDADA9DOF_GYRO_Z_OFFSET  0
+#define OLDADA9DOF_ACCEL_X_OFFSET 0
+#define OLDADA9DOF_ACCEL_Y_OFFSET 0
+#define OLDADA9DOF_ACCEL_Z_OFFSET 0
 
 ///////////////////////////////////////////////////////
 // 4-Pin Ultrasonic Sensor (HC-SR04)

@@ -57,7 +57,6 @@ public:
 #include <Adafruit_Sensor.h>
 #include <Adafruit_LSM303_U.h>
 #include <Adafruit_L3GD20_U.h>
-#include <Adafruit_9DOF.h>
 
 class OldAdafruit9Dof : public ArduinoDevice{
 public:
@@ -74,13 +73,11 @@ private:
   
   // Sensors
   Adafruit_LSM303_Accel_Unified *accel = NULL;
-  Adafruit_LSM303_Mag_Unified *mag = NULL;
   Adafruit_L3GD20_Unified *gyro = NULL;
-  Adafruit_9DOF *dof = NULL;
 
   // Calculated values
-  floatAsBytes gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z, pitch, roll, yaw;
-  sensors_event_t accel_event, mag_event, gyro_event;
+  floatAsBytes gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z;
+  sensors_event_t accel_event, gyro_event;
 };
 
 #endif // OLDADA9DOF_ENABLE
@@ -105,7 +102,6 @@ private:
 #include <Adafruit_Sensor.h>
 #include <Adafruit_FXAS21002C.h>
 #include <Adafruit_FXOS8700.h>
-#include <Adafruit_AHRS_NXPFusion.h>
 
 class NxpAdafruit9Dof : public ArduinoDevice{
 public:
@@ -123,10 +119,9 @@ private:
   // Sensors
   Adafruit_FXOS8700 *accelmag = NULL;
   Adafruit_FXAS21002C *gyro = NULL;
-  Adafruit_NXPSensorFusion *fusion = NULL;
 
   // Calculated values
-  floatAsBytes gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z, pitch, roll, yaw;
+  floatAsBytes gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z;
   sensors_event_t accel_event, mag_event, gyro_event;
 };
 
