@@ -1,3 +1,13 @@
+/**
+ * Simple project to generate sensor calibration offsets to be used with ArPiRobot-ArduinoFirmware project
+ * 
+ * Offsets are calculated as follows:
+ *  While the board is level (z axis vertical) and stationary:
+ *  Sensor readings (rotation rates, accelerations, etc) are summed for CALIBRATE_SAMPLES samples spaced out by SAMPLE_SPACING milliseconds
+ *  The sum is then divided by CALIBRATE_SAMPLES making it an average reading of the sensor over the sample duration
+ *  This average is the offset that is subtracted from the reading of each sensor axis (zeroing the sensor) which should reduce sensor drift
+ */
+
 
 // How many samples and how long to wait between samples (ms)
 #define CALIBRATE_SAMPLES 5000
@@ -6,7 +16,6 @@
 // Uncomment a single sensor to calibrate
 #define OLD_ADA_9DOF
 //#define NXP_ADA_9DOF
-
 
 
 
