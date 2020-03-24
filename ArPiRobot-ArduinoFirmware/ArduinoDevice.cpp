@@ -1,4 +1,5 @@
 #include "ArduinoDevice.h"
+#include "RPiInterface.h"
 
 uint8_t ArduinoDevice::sendTimeOffset = 0;
 
@@ -10,7 +11,7 @@ bool OldAdafruit9Dof::locked = false;
 bool NxpAdafruit9Dof::locked = false;
 #endif
 
-ArduinoDevice::ArduinoDevice(){  
+ArduinoDevice::ArduinoDevice(uint8_t buffer_len){  
 	nextSendTime = sendTimeOffset;
 	sendTimeOffset += OFFSET_STEP; // Stager the next by 5ms
 
@@ -18,6 +19,8 @@ ArduinoDevice::ArduinoDevice(){
 	if(sendTimeOffset >= SEND_RATE){
 		sendTimeOffset = 0;
 	}
+
+  buffer = new uint8_t[buffer_len];
 }
 
 ArduinoDevice::~ArduinoDevice(){
@@ -29,12 +32,21 @@ void ArduinoDevice::assignDeviceId(uint8_t deviceId){
   this->deviceId = deviceId;
 }
 
-SingleEncoder::SingleEncoder(int pin) : pin(pin){
+void ArduinoDevice::sendBuffer(RPiInterface &rpi){
+  if(buffer_count > 0){
+    rpi.writeData(buffer, buffer_count);
+    rpi.flush();
+    buffer_count = 0;
+  }
+}
+
+
+SingleEncoder::SingleEncoder(int pin)  : ArduinoDevice(3), pin(pin){
   pinMode(pin, INPUT);
   lastState = digitalRead(pin);
 }
 
-bool SingleEncoder::poll(uint8_t *buffer, uint8_t *count) {
+void SingleEncoder::poll() {
   if(lastState == LOW){
     lastState = digitalRead(pin);
     if(lastState == HIGH){
@@ -51,25 +63,24 @@ bool SingleEncoder::poll(uint8_t *buffer, uint8_t *count) {
   }
 
   if(changed){
-    buffer[0] = this->count;
-    buffer[1] = this->count >> 8;
-    *count = 2;
+    buffer[0] = deviceId;
+    buffer[1] = count;
+    buffer[2] = count >> 8;
+    buffer_count = 3;
     changed = false;
-    return true;
   }
-  return false;
 }
 
 void SingleEncoder::handleData(uint8_t *data, uint8_t len){
-  
+  // This device does not accept data from the pi
 }
 
-Ultrasonic4Pin::Ultrasonic4Pin(int triggerPin, int echoPin) : triggerPin(triggerPin), echoPin(echoPin){
+Ultrasonic4Pin::Ultrasonic4Pin(int triggerPin, int echoPin)  : ArduinoDevice(3), triggerPin(triggerPin), echoPin(echoPin){
   pinMode(triggerPin, OUTPUT);
   pinMode(echoPin, INPUT);
 }
 
-bool Ultrasonic4Pin::poll(uint8_t *buffer, uint8_t *count){
+void Ultrasonic4Pin::poll(){
   bool shouldSend = false;
   pollIterationCounter++;
 
@@ -88,20 +99,20 @@ bool Ultrasonic4Pin::poll(uint8_t *buffer, uint8_t *count){
   }
 
   if(shouldSend){
-    buffer[0] = distance;
-    buffer[1] = distance >> 8;
-    *count = 2;
+    buffer[0] = deviceId;
+    buffer[1] = distance;
+    buffer[2] = distance >> 8;
+    buffer_count = 3;
   }
-  return shouldSend;
 }
 
 void Ultrasonic4Pin::handleData(uint8_t *data, uint8_t len){
-  
+    // This device does not accept data from the pi
 }
 
 #ifdef OLDADA9DOF_ENABLE
 
-OldAdafruit9Dof::OldAdafruit9Dof(){
+OldAdafruit9Dof::OldAdafruit9Dof() : ArduinoDevice(25){
   if(locked)
     return;
 
@@ -134,8 +145,8 @@ OldAdafruit9Dof::~OldAdafruit9Dof(){
   }
 }
 
-bool OldAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
-  if(accel == NULL) return false;
+void OldAdafruit9Dof::poll(){
+  if(accel == NULL) return;
   
   long now = micros();
   double dt = (now - lastSample) / 1e6;
@@ -143,7 +154,7 @@ bool OldAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
 
   if(dt < 0){
     // Micros rolled over. Some data has been lost...
-    return false;
+    return;
   }
 
   accel->getEvent(&accel_event);
@@ -159,61 +170,62 @@ bool OldAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
 
   //TODO: Handle if big endian here...
   //      If big endian need to reverse order of bytes in buffer so it looks little endian to the pi
-  buffer[0] = gyro_x.bval[0];
-  buffer[1] = gyro_x.bval[1];
-  buffer[2] = gyro_x.bval[2];
-  buffer[3] = gyro_x.bval[3];
-  buffer[4] = gyro_y.bval[0];
-  buffer[5] = gyro_y.bval[1];
-  buffer[6] = gyro_y.bval[2];
-  buffer[7] = gyro_y.bval[3];
-  buffer[8] = gyro_z.bval[0];
-  buffer[9] = gyro_z.bval[1];
-  buffer[10] = gyro_z.bval[2];
-  buffer[11] = gyro_z.bval[3];
-  buffer[12] = accel_x.bval[0];
-  buffer[13] = accel_x.bval[1];
-  buffer[14] = accel_x.bval[2];
-  buffer[15] = accel_x.bval[3];
-  buffer[16] = accel_y.bval[0];
-  buffer[17] = accel_y.bval[1];
-  buffer[18] = accel_y.bval[2];
-  buffer[19] = accel_y.bval[3];
-  buffer[20] = accel_z.bval[0];
-  buffer[21] = accel_z.bval[1];
-  buffer[22] = accel_z.bval[2];
-  buffer[23] = accel_z.bval[3];
-  *count = 24;
-  return true;
+  buffer[0] = deviceId;
+  buffer[1] = gyro_x.bval[0];
+  buffer[2] = gyro_x.bval[1];
+  buffer[3] = gyro_x.bval[2];
+  buffer[4] = gyro_x.bval[3];
+  buffer[5] = gyro_y.bval[0];
+  buffer[6] = gyro_y.bval[1];
+  buffer[7] = gyro_y.bval[2];
+  buffer[8] = gyro_y.bval[3];
+  buffer[9] = gyro_z.bval[0];
+  buffer[10] = gyro_z.bval[1];
+  buffer[11] = gyro_z.bval[2];
+  buffer[12] = gyro_z.bval[3];
+  buffer[13] = accel_x.bval[0];
+  buffer[14] = accel_x.bval[1];
+  buffer[15] = accel_x.bval[2];
+  buffer[16] = accel_x.bval[3];
+  buffer[17] = accel_y.bval[0];
+  buffer[18] = accel_y.bval[1];
+  buffer[19] = accel_y.bval[2];
+  buffer[20] = accel_y.bval[3];
+  buffer[21] = accel_z.bval[0];
+  buffer[22] = accel_z.bval[1];
+  buffer[23] = accel_z.bval[2];
+  buffer[24] = accel_z.bval[3];
+  buffer_count = 25;
 }
 
 void OldAdafruit9Dof::handleData(uint8_t *data, uint8_t len){
-  
+    // This device does not accept data from the pi
 }
 
 #endif // OLDADA9DOF_ENABLE
 
-VoltageMonitor::VoltageMonitor(uint8_t readPin, float vboard, uint32_t r1, uint32_t r2) : readPin(readPin), vboard(vboard), r1(r1), r2(r2){
+VoltageMonitor::VoltageMonitor(uint8_t readPin, float vboard, uint32_t r1, uint32_t r2) : ArduinoDevice(5), readPin(readPin), vboard(vboard), r1(r1), r2(r2){
   pinMode(readPin, INPUT);
 }
 
-bool VoltageMonitor::poll(uint8_t *buffer, uint8_t *count){
+void VoltageMonitor::poll(){
+  // TODO: Handle big endian system
   voltage.fval = (((float)analogRead(readPin) / 1023 * vboard) * (r1 + r2)) / r2;
-  buffer[0] = voltage.bval[0];
-  buffer[1] = voltage.bval[1];
-  buffer[2] = voltage.bval[2];
-  buffer[3] = voltage.bval[3];
-  *count = 4;
-  return true;
+  buffer[0] = deviceId;
+  buffer[1] = voltage.bval[0];
+  buffer[2] = voltage.bval[1];
+  buffer[3] = voltage.bval[2];
+  buffer[4] = voltage.bval[3];
+  buffer_count = 5;
 }
 
 void VoltageMonitor::handleData(uint8_t *data, uint8_t len){
-  
+    // This device does not accept data from the pi
 }
 
 #ifdef NXPADA9DOF_ENABLE
 
-NxpAdafruit9Dof::NxpAdafruit9Dof(){
+NxpAdafruit9Dof::NxpAdafruit9Dof() : ArduinoDevice(25){
   if(locked)
     return;
 
@@ -246,8 +258,8 @@ NxpAdafruit9Dof::~NxpAdafruit9Dof(){
   }
 }
 
-bool NxpAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
-  if(accelmag == NULL) return false;
+void NxpAdafruit9Dof::poll(){
+  if(accelmag == NULL) return;
   
   long now = micros();
   double dt = (now - lastSample) / 1e6;
@@ -255,7 +267,7 @@ bool NxpAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
 
   if(dt < 0){
     // Micros rolled over. Some data has been lost...
-    return false;
+    return;
   }
 
   accelmag->getEvent(&accel_event, &mag_event);
@@ -272,36 +284,37 @@ bool NxpAdafruit9Dof::poll(uint8_t *buffer, uint8_t *count){
   //TODO: Handle if big endian here...
   //      If big endian need to reverse order of bytes in buffer so it looks little endian to the pi
   //      In setup() should do a big endian test and write create a global bool indicating if big endian
-  buffer[0] = gyro_x.bval[0];
-  buffer[1] = gyro_x.bval[1];
-  buffer[2] = gyro_x.bval[2];
-  buffer[3] = gyro_x.bval[3];
-  buffer[4] = gyro_y.bval[0];
-  buffer[5] = gyro_y.bval[1];
-  buffer[6] = gyro_y.bval[2];
-  buffer[7] = gyro_y.bval[3];
-  buffer[8] = gyro_z.bval[0];
-  buffer[9] = gyro_z.bval[1];
-  buffer[10] = gyro_z.bval[2];
-  buffer[11] = gyro_z.bval[3];
-  buffer[12] = accel_x.bval[0];
-  buffer[13] = accel_x.bval[1];
-  buffer[14] = accel_x.bval[2];
-  buffer[15] = accel_x.bval[3];
-  buffer[16] = accel_y.bval[0];
-  buffer[17] = accel_y.bval[1];
-  buffer[18] = accel_y.bval[2];
-  buffer[19] = accel_y.bval[3];
-  buffer[20] = accel_z.bval[0];
-  buffer[21] = accel_z.bval[1];
-  buffer[22] = accel_z.bval[2];
-  buffer[23] = accel_z.bval[3];
-  *count = 34;
+  buffer[0] = deviceId;
+  buffer[1] = gyro_x.bval[0];
+  buffer[2] = gyro_x.bval[1];
+  buffer[3] = gyro_x.bval[2];
+  buffer[4] = gyro_x.bval[3];
+  buffer[5] = gyro_y.bval[0];
+  buffer[6] = gyro_y.bval[1];
+  buffer[7] = gyro_y.bval[2];
+  buffer[8] = gyro_y.bval[3];
+  buffer[9] = gyro_z.bval[0];
+  buffer[10] = gyro_z.bval[1];
+  buffer[11] = gyro_z.bval[2];
+  buffer[12] = gyro_z.bval[3];
+  buffer[13] = accel_x.bval[0];
+  buffer[14] = accel_x.bval[1];
+  buffer[15] = accel_x.bval[2];
+  buffer[16] = accel_x.bval[3];
+  buffer[17] = accel_y.bval[0];
+  buffer[18] = accel_y.bval[1];
+  buffer[19] = accel_y.bval[2];
+  buffer[20] = accel_y.bval[3];
+  buffer[21] = accel_z.bval[0];
+  buffer[22] = accel_z.bval[1];
+  buffer[23] = accel_z.bval[2];
+  buffer[24] = accel_z.bval[3];
+  buffer_count = 25;
   return true;
 }
 
 void NxpAdafruit9Dof::handleData(uint8_t *data, uint8_t len){
-  
+    // This device does not accept data from the pi
 }
 
 #endif // NXPADA9DOF_ENABLE

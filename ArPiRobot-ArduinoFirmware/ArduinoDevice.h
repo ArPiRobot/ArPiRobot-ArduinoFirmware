@@ -9,27 +9,42 @@ union floatAsBytes {
     byte bval[4];
 };
 
+class RPiInterface;
+
 class ArduinoDevice {
 public:
-	ArduinoDevice();
+	ArduinoDevice(uint8_t buffer_len);
   virtual ~ArduinoDevice();
 
-	virtual bool poll(uint8_t *buffer, uint8_t *count) = 0;
+  /**
+   * Polls sensor. If new data to send sets it in the buffer
+   */
+	virtual void poll() = 0;
 
   virtual void handleData(uint8_t *data, uint8_t len) = 0;
 
   void assignDeviceId(uint8_t deviceId);
+
+  /**
+   * If there is data to send in the buffer send it using the given RPiInterface
+   */
+  void sendBuffer(RPiInterface &rpi);
   
 	static uint8_t sendTimeOffset;
 	unsigned long nextSendTime = 0;
   uint8_t deviceId = 0;
+
+protected:
+  // This holds data to be sent
+  uint8_t *buffer;
+  uint8_t buffer_count = 0;
 };
 
 class SingleEncoder : public ArduinoDevice {
 public:
   SingleEncoder(int pin);
 
-  bool poll(uint8_t *buffer, uint8_t *count) override;
+  void poll() override;
   void handleData(uint8_t *data, uint8_t len) override;
   
   uint8_t lastState = 0;
@@ -42,7 +57,7 @@ class Ultrasonic4Pin : public ArduinoDevice {
 public:
   Ultrasonic4Pin(int triggerPin, int echoPin);
 
-  bool poll(uint8_t *buffer, uint8_t *count) override;
+  void poll() override;
   void handleData(uint8_t *data, uint8_t len) override;
 
   uint8_t triggerPin, echoPin;
@@ -63,7 +78,7 @@ public:
   OldAdafruit9Dof();
   ~OldAdafruit9Dof();
 
-  bool poll(uint8_t *buffer, uint8_t *count) override;
+  void poll() override;
   void handleData(uint8_t *data, uint8_t len) override;
 
 private:
@@ -86,7 +101,7 @@ class VoltageMonitor : public ArduinoDevice{
 public:
   VoltageMonitor(uint8_t readPin, float vboard, uint32_t r1, uint32_t r2);
 
-  bool poll(uint8_t *buffer, uint8_t *count) override;
+  void poll() override;
   void handleData(uint8_t *data, uint8_t len) override;
 
 private:
@@ -108,7 +123,7 @@ public:
   NxpAdafruit9Dof();
   ~NxpAdafruit9Dof();
 
-  bool poll(uint8_t *buffer, uint8_t *count) override;
+  void poll() override;
   void handleData(uint8_t *data, uint8_t len) override;
 
 private:

@@ -214,13 +214,11 @@ void RPiInterface::feed(){
   unsigned long now = millis();
   for(uint8_t i = 0; i < deviceCount; ++i){
 
-    // Start at buffer[1] so the device id can be put at buffer[0]
-    bool shouldSend = devices[i]->poll(&buffer[1], &len);    
-    if(shouldSend && now >= devices[i]->nextSendTime){
-      // Send the data
-      buffer[0] = devices[i]->deviceId;
-      writeData(buffer, len + 1);
-      flush();
+    // Poll the deviec. If the device has new data it will put it in its buffer here
+    devices[i]->poll();    
+    if(now >= devices[i]->nextSendTime){
+      // Send the data (if the sensor has any in its buffer)
+      devices[i]->sendBuffer(*this);
       devices[i]->nextSendTime += SEND_RATE; // Send again
     }
   }
