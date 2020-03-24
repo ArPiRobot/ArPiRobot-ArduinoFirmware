@@ -37,13 +37,6 @@ const uint8_t startByte = 253;
 const uint8_t endByte = 254;
 const uint8_t escapeByte = 255;
 
-union byte_convert_4{
-  uint8_t b[4];
-  float fval;
-  uint32_t uival;
-  int32_t ival;
-};
-
 class RPiInterface{
 public:
 

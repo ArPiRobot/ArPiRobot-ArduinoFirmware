@@ -8,7 +8,7 @@ start_byte = b'\xfd'  # 253
 end_byte = b'\xfe'    # 254
 escape_byte = b'\xff' # 255
 
-s = serial.Serial("/dev/ttyACM1", 500000)
+s = serial.Serial("/dev/ttyUSB0", 500000)
 read_buffer = b''
 
 atexit.register(s.close)

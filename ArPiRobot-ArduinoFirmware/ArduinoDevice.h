@@ -3,11 +3,8 @@
 #include "settings.h"
 #include "Arduino.h"
 #include <stdint.h>
+#include "conversions.h"
 
-union floatAsBytes {
-    float fval;
-    byte bval[4];
-};
 
 class RPiInterface;
 
@@ -50,7 +47,7 @@ public:
   uint8_t lastState = 0;
   uint8_t pin;
   bool changed;
-  uint16_t count = 0;
+  Any16 count;
 };
 
 class Ultrasonic4Pin : public ArduinoDevice {
@@ -61,7 +58,7 @@ public:
   void handleData(uint8_t *data, uint8_t len) override;
 
   uint8_t triggerPin, echoPin;
-  uint16_t distance;
+  Any16 distance;
   bool waitingForPulse = false;
 
   uint8_t pollIterationCounter = 0;
@@ -91,7 +88,7 @@ private:
   Adafruit_L3GD20_Unified *gyro = NULL;
 
   // Calculated values
-  floatAsBytes gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z;
+  Any32 gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z;
   sensors_event_t accel_event, gyro_event;
 };
 
@@ -109,7 +106,7 @@ private:
   float vboard;
   uint32_t r1, r2;
 
-  floatAsBytes voltage;
+  Any32 voltage;
 };
 
 #ifdef NXPADA9DOF_ENABLE
@@ -136,7 +133,7 @@ private:
   Adafruit_FXAS21002C *gyro = NULL;
 
   // Calculated values
-  floatAsBytes gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z;
+  Any32 gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z;
   sensors_event_t accel_event, mag_event, gyro_event;
 };
 

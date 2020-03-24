@@ -44,28 +44,31 @@ void ArduinoDevice::sendBuffer(RPiInterface &rpi){
 SingleEncoder::SingleEncoder(int pin)  : ArduinoDevice(3), pin(pin){
   pinMode(pin, INPUT);
   lastState = digitalRead(pin);
+  count.uival = 0;
 }
 
 void SingleEncoder::poll() {
   if(lastState == LOW){
     lastState = digitalRead(pin);
     if(lastState == HIGH){
-      this->count++;
+      this->count.uival++;
       changed = true;
     }
   }
   if(lastState == HIGH){
     lastState = digitalRead(pin);
     if(lastState == LOW){
-      this->count++;
+      this->count.uival++;
       changed = true;
     }
   }
 
   if(changed){
     buffer[0] = deviceId;
-    buffer[1] = count;
-    buffer[2] = count >> 8;
+
+    // Buffer count little endian
+    bufferValue16(count, true, buffer, 1);
+
     buffer_count = 3;
     changed = false;
   }
@@ -78,6 +81,7 @@ void SingleEncoder::handleData(uint8_t *data, uint8_t len){
 Ultrasonic4Pin::Ultrasonic4Pin(int triggerPin, int echoPin)  : ArduinoDevice(3), triggerPin(triggerPin), echoPin(echoPin){
   pinMode(triggerPin, OUTPUT);
   pinMode(echoPin, INPUT);
+  distance.uival = 0;
 }
 
 void Ultrasonic4Pin::poll(){
@@ -92,16 +96,18 @@ void Ultrasonic4Pin::poll(){
     uint16_t duration = pulseIn(echoPin, HIGH, 5000);
     if(duration > 0){
       uint16_t newDistance = duration * 0.034 / 2;
-      shouldSend = newDistance != distance;
-      distance = newDistance;
+      shouldSend = newDistance != distance.uival;
+      distance.uival = newDistance;
     }
     pollIterationCounter = 0;
   }
 
   if(shouldSend){
     buffer[0] = deviceId;
-    buffer[1] = distance;
-    buffer[2] = distance >> 8;
+
+    // Buffer distance little endian
+    bufferValue16(distance, true, buffer, 1);
+    
     buffer_count = 3;
   }
 }
@@ -168,33 +174,16 @@ void OldAdafruit9Dof::poll(){
   gyro_y.fval += (gyro_event.gyro.y - OLDADA9DOF_GYRO_Y_OFFSET) / SENSORS_DPS_TO_RADS * dt;
   gyro_z.fval += (gyro_event.gyro.z - OLDADA9DOF_GYRO_Z_OFFSET) / SENSORS_DPS_TO_RADS * dt;
 
-  //TODO: Handle if big endian here...
-  //      If big endian need to reverse order of bytes in buffer so it looks little endian to the pi
   buffer[0] = deviceId;
-  buffer[1] = gyro_x.bval[0];
-  buffer[2] = gyro_x.bval[1];
-  buffer[3] = gyro_x.bval[2];
-  buffer[4] = gyro_x.bval[3];
-  buffer[5] = gyro_y.bval[0];
-  buffer[6] = gyro_y.bval[1];
-  buffer[7] = gyro_y.bval[2];
-  buffer[8] = gyro_y.bval[3];
-  buffer[9] = gyro_z.bval[0];
-  buffer[10] = gyro_z.bval[1];
-  buffer[11] = gyro_z.bval[2];
-  buffer[12] = gyro_z.bval[3];
-  buffer[13] = accel_x.bval[0];
-  buffer[14] = accel_x.bval[1];
-  buffer[15] = accel_x.bval[2];
-  buffer[16] = accel_x.bval[3];
-  buffer[17] = accel_y.bval[0];
-  buffer[18] = accel_y.bval[1];
-  buffer[19] = accel_y.bval[2];
-  buffer[20] = accel_y.bval[3];
-  buffer[21] = accel_z.bval[0];
-  buffer[22] = accel_z.bval[1];
-  buffer[23] = accel_z.bval[2];
-  buffer[24] = accel_z.bval[3];
+
+  // Buffer each little endian
+  bufferValue32(gyro_x, true, buffer, 1);
+  bufferValue32(gyro_y, true, buffer, 5);
+  bufferValue32(gyro_z, true, buffer, 9);
+  bufferValue32(accel_x, true, buffer, 13);
+  bufferValue32(accel_y, true, buffer, 17);
+  bufferValue32(accel_z, true, buffer, 21);
+  
   buffer_count = 25;
 }
 
@@ -209,13 +198,12 @@ VoltageMonitor::VoltageMonitor(uint8_t readPin, float vboard, uint32_t r1, uint3
 }
 
 void VoltageMonitor::poll(){
-  // TODO: Handle big endian system
   voltage.fval = (((float)analogRead(readPin) / 1023 * vboard) * (r1 + r2)) / r2;
   buffer[0] = deviceId;
-  buffer[1] = voltage.bval[0];
-  buffer[2] = voltage.bval[1];
-  buffer[3] = voltage.bval[2];
-  buffer[4] = voltage.bval[3];
+
+  // Buffer voltage little endian
+  bufferValue32(voltage, true, buffer, 1);
+  
   buffer_count = 5;
 }
 
@@ -281,34 +269,14 @@ void NxpAdafruit9Dof::poll(){
   gyro_y.fval += (gyro_event.gyro.y - NXPADA9DOF_GYRO_Y_OFFSET) / SENSORS_DPS_TO_RADS * dt;
   gyro_z.fval += (gyro_event.gyro.z - NXPADA9DOF_GYRO_Z_OFFSET) / SENSORS_DPS_TO_RADS * dt;
 
-  //TODO: Handle if big endian here...
-  //      If big endian need to reverse order of bytes in buffer so it looks little endian to the pi
-  //      In setup() should do a big endian test and write create a global bool indicating if big endian
-  buffer[0] = deviceId;
-  buffer[1] = gyro_x.bval[0];
-  buffer[2] = gyro_x.bval[1];
-  buffer[3] = gyro_x.bval[2];
-  buffer[4] = gyro_x.bval[3];
-  buffer[5] = gyro_y.bval[0];
-  buffer[6] = gyro_y.bval[1];
-  buffer[7] = gyro_y.bval[2];
-  buffer[8] = gyro_y.bval[3];
-  buffer[9] = gyro_z.bval[0];
-  buffer[10] = gyro_z.bval[1];
-  buffer[11] = gyro_z.bval[2];
-  buffer[12] = gyro_z.bval[3];
-  buffer[13] = accel_x.bval[0];
-  buffer[14] = accel_x.bval[1];
-  buffer[15] = accel_x.bval[2];
-  buffer[16] = accel_x.bval[3];
-  buffer[17] = accel_y.bval[0];
-  buffer[18] = accel_y.bval[1];
-  buffer[19] = accel_y.bval[2];
-  buffer[20] = accel_y.bval[3];
-  buffer[21] = accel_z.bval[0];
-  buffer[22] = accel_z.bval[1];
-  buffer[23] = accel_z.bval[2];
-  buffer[24] = accel_z.bval[3];
+  // Buffer each little endian
+  bufferValue32(gyro_x, true, buffer, 1);
+  bufferValue32(gyro_y, true, buffer, 5);
+  bufferValue32(gyro_z, true, buffer, 9);
+  bufferValue32(accel_x, true, buffer, 13);
+  bufferValue32(accel_y, true, buffer, 17);
+  bufferValue32(accel_z, true, buffer, 21);
+  
   buffer_count = 25;
   return true;
 }

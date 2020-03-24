@@ -1,5 +1,5 @@
 #include "RPiInterface.h"
-
+#include "conversions.h"
 
 FastCRC16 CRC16;
 
@@ -91,44 +91,12 @@ int RPiInterface::addDevice(){
   }else if(readBufferLen >= 20 && dataStartsWith(readBuffer, readBufferLen, "ADDVMON", 7)){
     uint8_t analogPin = readBuffer[7];
 
-    byte_convert_4 vboard, r1, r2;
+    Any32 vboard, r1, r2;
 
-    uint16_t i = 1;  
-    char *c = (char*)&i;
-
-    if(c){
-      // This is a little endian system (reverse order because these were sent big endian)
-      vboard.b[0] = readBuffer[11];
-      vboard.b[1] = readBuffer[10];
-      vboard.b[2] = readBuffer[9];
-      vboard.b[3] = readBuffer[8];
-  
-      r1.b[0] = readBuffer[15];
-      r1.b[1] = readBuffer[14];
-      r1.b[2] = readBuffer[13];
-      r1.b[3] = readBuffer[12];
-  
-      r2.b[0] = readBuffer[19];
-      r2.b[1] = readBuffer[18];
-      r2.b[2] = readBuffer[17];
-      r2.b[3] = readBuffer[16];
-    }else{
-      // This is a big endian system
-      vboard.b[0] = readBuffer[8];
-      vboard.b[1] = readBuffer[9];
-      vboard.b[2] = readBuffer[10];
-      vboard.b[3] = readBuffer[11];
-  
-      r1.b[0] = readBuffer[12];
-      r1.b[1] = readBuffer[13];
-      r1.b[2] = readBuffer[14];
-      r1.b[3] = readBuffer[15];
-  
-      r2.b[0] = readBuffer[16];
-      r2.b[1] = readBuffer[17];
-      r2.b[2] = readBuffer[18];
-      r2.b[3] = readBuffer[19];
-    }
+    // This data was sent big endian
+    unbufferValue32(readBuffer, 8, false, &vboard);
+    unbufferValue32(readBuffer, 12, false, &r1);
+    unbufferValue32(readBuffer, 16, false, &r2);
 
 #ifdef DEBUG
     DEBUG_SERIAL.print("Pin: ");
@@ -304,31 +272,36 @@ void RPiInterface::writeData(uint8_t *data, uint8_t len){
     }
   }
 
-  // Send CRC big endian (high byte first)
-  uint16_t crc = CRC16.ccitt(data, len);
-  uint8_t crc_high = crc >> 8;
-  uint8_t crc_low = crc;
+  // Send CRC big endian
+  Any16 crc;
+  crc.uival = CRC16.ccitt(data, len);
+  uint8_t crcbuffer[2];
+  bufferValue16(crc, false, crcbuffer, 0);
 
-  if(crc_high == startByte || crc_high == endByte || crc_high == escapeByte){
+  // High byte
+  if(crcbuffer[0] == startByte || crcbuffer[0] == endByte || crcbuffer[0] == escapeByte){
     write(escapeByte);
   }
-  write(crc_high);
+  write(crcbuffer[0]);
 
-  if(crc_low == startByte || crc_low == endByte || crc_low == escapeByte){
+  // Low byte
+  if(crcbuffer[1] == startByte || crcbuffer[1] == endByte || crcbuffer[1] == escapeByte){
     write(escapeByte);
   }
-  write(crc_low);
+  write(crcbuffer[1]);
 
   write(endByte);
 }
 
 bool RPiInterface::checkData(uint8_t *data, uint8_t len){
-  uint16_t read_crc = data[len - 1];
-  read_crc = read_crc | (data[len - 2] << 8);
+  Any16 read_crc;
+
+  // Big endian CRC at end of data
+  unbufferValue16(data, len - 2, false, &read_crc);
 
   uint16_t calc_crc = CRC16.ccitt(data, len - 2);
 
-  return calc_crc == read_crc;
+  return calc_crc == read_crc.uival;
 }
 
 // Does data 1 start with data 2
