@@ -4,6 +4,7 @@
 #include "Arduino.h"
 #include "ArduinoDevice.h"
 #include "FastCRC.h"
+#include "LinkedList.h"
 
 /*
  * Interface for raspberry pi
@@ -97,9 +98,10 @@ private:
   bool parse_started = false;  // Has start byte
   bool parse_escaped = false;  // Is parse escaped
   
-  ArduinoDevice *devices[MAX_DEVICES];
-  uint8_t deviceCount = 0;
+  LinkedList<ArduinoDevice*> devices;
   uint8_t staticDeviceCount = 0;
+
+  bool canAddStatic = true;
 };
 
 #if defined(INTERFACE_HW_SERIAL) || defined(INTERFACE_TEENSY_USB_SERIAL) || defined(INTERFACE_SW_SERIAL)

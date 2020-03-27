@@ -2,6 +2,10 @@
 
 #include <Arduino.h>
 
+/**
+ * Note: This conversion method relies on type-punning. This is present in g++ for most systems, but is not part of the C++ specification.
+ */
+
 extern bool isBigEndian;
 
 void checkBigEndian();

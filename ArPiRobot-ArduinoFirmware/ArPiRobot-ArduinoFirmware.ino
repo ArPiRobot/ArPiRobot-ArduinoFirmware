@@ -7,6 +7,8 @@
 SoftwareSerial swSerial(SW_SERIAL_RX, SW_SERIAL_TX);
 #endif
 
+#include <LinkedList.h>
+
 RPiInterface *rpi;
 
 void setup(){
@@ -29,7 +31,7 @@ void setup(){
   ///////////////////////////////////////////////////////
   /// Add any static devices here
   ///////////////////////////////////////////////////////
-  
+  rpi->addStaticDevice(new SingleEncoder(2));
 
   ///////////////////////////////////////////////////////
 

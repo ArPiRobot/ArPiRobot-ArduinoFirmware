@@ -5,17 +5,21 @@ FastCRC16 CRC16;
 
 
 int RPiInterface::addStaticDevice(ArduinoDevice *device){
-  if(deviceCount >= MAX_DEVICES){
+  if(!canAddStatic){
+    return -2;
+  }
+  
+  if(devices.size() >= MAX_DEVICES){
     return -1;
   }
 
-  devices[deviceCount] = device;
-  devices[deviceCount]->assignDeviceId(deviceCount);
+  // Add at beginning of linked list
+  device->assignDeviceId(devices.size());
+  devices.add(0, device);
   
   staticDeviceCount++; // This is used when resetting deviceCount
-  deviceCount++;
 
-  return deviceCount - 1;
+  return devices.size() - 1;
 }
 
 /*
@@ -35,9 +39,10 @@ int RPiInterface::addStaticDevice(ArduinoDevice *device){
 
 
 // Returns device id. Uses readBuffer to get data
+// Note: always add to the beginning of the linked list - add(0, device)
 int RPiInterface::addDevice(){
   String buf;
-  if(deviceCount >= MAX_DEVICES){
+  if(devices.size() >= MAX_DEVICES){
     return -1;
   }
   if(readBufferLen >= 9 && dataStartsWith(readBuffer, readBufferLen, "ADDSENC", 7)){
@@ -53,16 +58,16 @@ int RPiInterface::addDevice(){
     DEBUG_SERIAL.println(readPin);
 #endif
     
-    devices[deviceCount] = new SingleEncoder(readPin);
-    devices[deviceCount]->assignDeviceId(deviceCount);
-    deviceCount++;
-    return deviceCount - 1;
+    SingleEncoder *d = new SingleEncoder(readPin);
+    d->assignDeviceId(devices.size());
+    devices.add(0, d);
+    return devices.size() - 1;
   }else if(dataDoesMatch(readBuffer, readBufferLen, "ADDOLDADA9DOF", 13)){
 #ifdef OLDADA9DOF_ENABLE
-    devices[deviceCount] = new OldAdafruit9Dof();
-    devices[deviceCount]->assignDeviceId(deviceCount);
-    deviceCount++;
-    return deviceCount - 1;
+    OldAdafruit9Dof *d = new OldAdafruit9Dof();
+    d->assignDeviceId(devices.size());
+    devices.add(0, d);
+    return devices.size() - 1;
 #else
     return -1;
 #endif
@@ -84,10 +89,10 @@ int RPiInterface::addDevice(){
     DEBUG_SERIAL.println(echoPin);
 #endif
     
-    devices[deviceCount] = new Ultrasonic4Pin(trigPin, echoPin);
-    devices[deviceCount]->assignDeviceId(deviceCount);
-    deviceCount++;
-    return deviceCount - 1;
+    Ultrasonic4Pin *d = new Ultrasonic4Pin(trigPin, echoPin);
+    d->assignDeviceId(devices.size());
+    devices.add(0, d);
+    return devices.size() - 1;
   }else if(readBufferLen >= 20 && dataStartsWith(readBuffer, readBufferLen, "ADDVMON", 7)){
     uint8_t analogPin = readBuffer[7];
 
@@ -109,16 +114,16 @@ int RPiInterface::addDevice(){
     DEBUG_SERIAL.println((int)r2.uival);
 #endif
     
-    devices[deviceCount] = new VoltageMonitor(analogInputToDigitalPin(analogPin), vboard.fval, r1.uival, r2.uival);
-    devices[deviceCount]->assignDeviceId(deviceCount);
-    deviceCount++;
-    return deviceCount - 1;
+    VoltageMonitor *d = new VoltageMonitor(analogInputToDigitalPin(analogPin), vboard.fval, r1.uival, r2.uival);
+    d->assignDeviceId(devices.size());
+    devices.add(0, d);
+    return devices.size() - 1;
   }else if(dataDoesMatch(readBuffer, readBufferLen, "ADDNXPADA9DOF", 13)){
 #ifdef NXPADA9DOF_ENABLE
-    devices[deviceCount] = new NxpAdafruit9Dof();
-    devices[deviceCount]->assignDeviceId(deviceCount);
-    deviceCount++;
-    return deviceCount - 1;
+    NxpAdafruit9Dof *d = new NxpAdafruit9Dof();
+    d->assignDeviceId(deviceCount);
+    devices.add(0, d);
+    return devices.size() - 1;
 #else
     return -1;
 #endif
@@ -131,11 +136,12 @@ int RPiInterface::addDevice(){
 }
 
 void RPiInterface::reset(){
-  // Delete non-static devices
-  for(uint8_t i = staticDeviceCount; i < deviceCount; ++i){
-    delete devices[i];
+  // Delete non-static devices ((deviceCount - staticDeviceCount) devices removed from the front)
+  // None-static devices added to the front of the linked list after static devices.
+  for(uint8_t i = staticDeviceCount; i < devices.size(); ++i){
+    devices.remove(0);
   }
-  deviceCount = staticDeviceCount;
+  // There are now only staticDeviceCount devices in the list
   readBufferLen = 0;
 }
 
@@ -143,6 +149,10 @@ void RPiInterface::configure(){
 #ifdef DEBUG
   DEBUG_SERIAL.println("Starting configure");
 #endif
+
+  // No longer allow static devices. They must be added to the linked list before any dynamic devices (devices created by data from the pi)
+  canAddStatic = false;
+
   writeData("START", 5);
   while(true){
     if(readData() && checkData(readBuffer, readBufferLen)){
@@ -180,14 +190,18 @@ void RPiInterface::configure(){
 
 void RPiInterface::feed(){
   unsigned long now = millis();
-  for(uint8_t i = 0; i < deviceCount; ++i){
+  for(uint8_t i = 0; i < devices.size(); ++i){
 
-    // Poll the deviec. If the device has new data it will put it in its buffer here
-    devices[i]->poll();    
-    if(now >= devices[i]->nextSendTime){
+    // Poll the device. If the device has new data it will put it in its buffer here
+
+    // Iterating in order will not cause performance issues. get() method caches
+    ArduinoDevice *d = devices.get(i);
+    
+    d->poll();    
+    if(now >= d->nextSendTime){
       // Send the data (if the sensor has any in its buffer)
-      devices[i]->sendBuffer(*this);
-      devices[i]->nextSendTime += SEND_RATE; // Send again
+      d->sendBuffer(*this);
+      d->nextSendTime += SEND_RATE; // Send again
     }
   }
 
@@ -206,10 +220,12 @@ void RPiInterface::feed(){
         DEBUG_SERIAL.print("Got data for device with id: ");
         DEBUG_SERIAL.println((int)id);
 #endif
-        for(uint8_t i = 0; i < deviceCount; ++i){
-          if(devices[i]->deviceId == id){
+        for(uint8_t i = 0; i < devices.size(); ++i){
+          // Iterating in forward order will not cause performance issues. get() method caches.
+          ArduinoDevice *d = devices.get(i);
+          if(d->deviceId == id){
             // Skip the '-' in the data given to the device
-            devices[i]->handleData(&readBuffer[1], readBufferLen - 1);
+            d->handleData(&readBuffer[1], readBufferLen - 1);
             break;
           }
         }
