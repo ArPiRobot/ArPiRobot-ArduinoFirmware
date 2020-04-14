@@ -138,3 +138,18 @@ private:
 };
 
 #endif // NXPADA9DOF_ENABLE
+
+class IRReflectorModule : public ArduinoDevice {
+public:
+  IRReflectorModule(uint8_t digitalPin, uint8_t analogPin);
+
+  void poll() override;
+  void handleData(uint8_t *data, uint8_t len) override;
+  
+private:
+  bool changed = false;
+
+  uint8_t digitalPin, analogPin;
+  uint8_t lastDigitalState;
+  Any16 lastAnalogValue;
+};

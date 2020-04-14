@@ -269,6 +269,8 @@ void NxpAdafruit9Dof::poll(){
   gyro_y.fval += (gyro_event.gyro.y - NXPADA9DOF_GYRO_Y_OFFSET) / SENSORS_DPS_TO_RADS * dt;
   gyro_z.fval += (gyro_event.gyro.z - NXPADA9DOF_GYRO_Z_OFFSET) / SENSORS_DPS_TO_RADS * dt;
 
+  buffer[0] = deviceId;
+
   // Buffer each little endian
   bufferValue32(gyro_x, true, buffer, 1);
   bufferValue32(gyro_y, true, buffer, 5);
@@ -286,3 +288,45 @@ void NxpAdafruit9Dof::handleData(uint8_t *data, uint8_t len){
 }
 
 #endif // NXPADA9DOF_ENABLE
+
+IRReflectorModule::IRReflectorModule(uint8_t digitalPin, uint8_t analogPin) : ArduinoDevice(4), digitalPin(digitalPin), analogPin(analogPin){
+  pinMode(digitalPin, INPUT);
+  lastDigitalState = digitalRead(digitalPin);
+  if(analogPin != 255)
+    lastAnalogValue.uival = analogRead(analogPin);
+}
+
+void IRReflectorModule::poll(){
+  uint8_t state = digitalRead(digitalPin);
+  if(state != lastDigitalState){
+    changed = true;
+  }
+  lastDigitalState = state == HIGH;
+
+  if(analogPin != 255){
+    uint16_t analogVal = analogRead(analogPin);
+    if(analogVal != lastAnalogValue.uival){
+      changed = true;
+    }
+    lastAnalogValue.uival = analogVal;
+  }
+
+  if(changed){
+    buffer[0] = deviceId;
+
+    // Invert this so 1 means reflection detected and 0 means no reflection detected. This way it matches the onboard LED
+    buffer[1] = !lastDigitalState;
+
+    if(analogPin != 255){
+      bufferValue16(lastAnalogValue, true, buffer, 2);
+      buffer_count = 4;
+    }else{
+      buffer_count = 2;
+    }
+    changed = false;
+  }
+}
+
+void IRReflectorModule::handleData(uint8_t *data, uint8_t len){
+  
+}

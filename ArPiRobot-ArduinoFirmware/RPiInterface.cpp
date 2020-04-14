@@ -30,6 +30,7 @@ int RPiInterface::addStaticDevice(ArduinoDevice *device){
  *  ADDUSONIC4[TRIG_PIN][ECHO_PIN]\n
  *  ADDVMON[ANALOG_PIN][VBOARD_FLOAT_4_BYTES_BIG_ENDIAN][4_BYTE_R1_UINT32_BIG_ENDIAN][4_BYTE_R2_UINT32_BIG_ENDIAN] - VoltageMonitor(readPin, vboard, r1, r2)
  *  ADDNXPADA9DOF - NxpAdafruit9DofImu()
+ *  ADDIRREFLECTOR[DIGITAL_PIN_NUM][ANALOG_PIN_NUM] - IRReflectorModule(DIGITAL_PIN_NUM, ANALOG_PIN_NUM)
  *  
  *  Digital pin numbers are sent as two bytes each (any analog pin is also able to be used as a digital input):
  *    IS_ANALOG, PIN_NUMBER
@@ -127,6 +128,26 @@ int RPiInterface::addDevice(){
 #else
     return -1;
 #endif
+  }else if(readBufferLen >= 16 && dataStartsWith(readBuffer, readBufferLen, "ADDIRREFLECTOR", 14)){
+    uint8_t digitalPin = readBuffer[15];
+    if(readBuffer[14]){
+      // Digital pin was specified using analog number: meaning if readBuffer[15] is 0 this means A0
+      digitalPin = analogInputToDigitalPin(digitalPin);
+    }
+
+    // This is always an analog number (0=A0, 1=A1, etc)
+    // Can still use analogRead with the digital pin number for an analog pin
+    // 255 is a special value used to disable analog measurements
+    uint8_t analogPin;
+    if(readBuffer[16] == 255)
+      analogPin = 255;
+    else
+      analogPin = analogInputToDigitalPin(readBuffer[16]);
+
+    IRReflectorModule *d = new IRReflectorModule(digitalPin, analogPin);
+    d->assignDeviceId(devices.size());
+    devices.add(0, d);
+    return devices.size() - 1;
   }
 
 #ifdef DEBUG

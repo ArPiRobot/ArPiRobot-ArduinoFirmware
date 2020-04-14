@@ -90,3 +90,10 @@
 
 // Number of iterations between polls for 4-pin ultrasonic sensor (affects update rate)
 #define ULTRASONIC_4PIN_POLL_RATE 3
+
+///////////////////////////////////////////////////////
+// IR Reflector Module (TCRT5000 for example)
+///////////////////////////////////////////////////////
+
+// How much the analog reading has to change before new data is sent
+#define IR_REFLECTOR_ANALOG_CHANGE_THRESHOLD 16
