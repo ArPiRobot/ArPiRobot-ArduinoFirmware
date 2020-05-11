@@ -102,11 +102,24 @@ public:
   void handleData(uint8_t *data, uint8_t len) override;
 
 private:
+  // Number of analog readings to average together to smooth readings a little
+  const static uint8_t AVG_READINGS = 5;
+
   uint8_t readPin;
   float vboard;
   uint32_t r1, r2;
+  float readingScaleFactor;
 
+  // Used to smooth voltage readings by averaging previous 10 values together
+  uint16_t readings[AVG_READINGS];
+  uint16_t readingRunningSum = 0;
+  uint8_t readingIndex = 0;
+  uint16_t newReading;
+
+  float lastSentVoltage = -1;
   Any32 voltage;
+
+  uint8_t sendIterationCounter = VMON_MAX_SEND_RATE; // Start at this value so data is sent the first iteration
 };
 
 #ifdef NXPADA9DOF_ENABLE

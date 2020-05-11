@@ -122,7 +122,7 @@ int RPiInterface::addDevice(){
   }else if(dataDoesMatch(readBuffer, readBufferLen, "ADDNXPADA9DOF", 13)){
 #ifdef NXPADA9DOF_ENABLE
     NxpAdafruit9Dof *d = new NxpAdafruit9Dof();
-    d->assignDeviceId(deviceCount);
+    d->assignDeviceId(devices.size());
     devices.add(0, d);
     return devices.size() - 1;
 #else

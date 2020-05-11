@@ -195,16 +195,39 @@ void OldAdafruit9Dof::handleData(uint8_t *data, uint8_t len){
 
 VoltageMonitor::VoltageMonitor(uint8_t readPin, float vboard, uint32_t r1, uint32_t r2) : ArduinoDevice(5), readPin(readPin), vboard(vboard), r1(r1), r2(r2){
   pinMode(readPin, INPUT);
+
+  // Zero the samples buffer
+  for(uint8_t i = 0; i < AVG_READINGS; ++i){
+    readings[i] = 0;
+  }
+
+  readingScaleFactor = vboard * (r1 + r2) / r2 / 1023 / AVG_READINGS;
 }
 
 void VoltageMonitor::poll(){
-  voltage.fval = (((float)analogRead(readPin) / 1023 * vboard) * (r1 + r2)) / r2;
-  buffer[0] = deviceId;
-
-  // Buffer voltage little endian
-  bufferValue32(voltage, true, buffer, 1);
+  readingRunningSum -= readings[readingIndex];
+  readings[readingIndex] = analogRead(readPin);
+  readingRunningSum += readings[readingIndex];
+  readingIndex++;
+  if(readingIndex >= AVG_READINGS) readingIndex = 0;
   
-  buffer_count = 5;
+  voltage.fval = readingRunningSum * readingScaleFactor;
+
+  // Don't need to send voltage data every iteration. Just slows down Pi to handle that much data.
+  if(sendIterationCounter >= VMON_MAX_SEND_RATE){
+    sendIterationCounter = 0;
+    if(fabs(lastSentVoltage - voltage.fval) > .02){
+      buffer[0] = deviceId;
+    
+      // Buffer voltage little endian
+      bufferValue32(voltage, true, buffer, 1);
+      
+      buffer_count = 5;
+      lastSentVoltage = voltage.fval;
+    } 
+  }else{
+    sendIterationCounter++;
+  }
 }
 
 void VoltageMonitor::handleData(uint8_t *data, uint8_t len){
