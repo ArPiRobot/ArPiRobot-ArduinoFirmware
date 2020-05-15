@@ -39,7 +39,7 @@ protected:
 
 class SingleEncoder : public ArduinoDevice {
 public:
-  SingleEncoder(int pin);
+  SingleEncoder(int pin, bool pullup);
 
   void poll() override;
   void handleData(uint8_t *data, uint8_t len) override;

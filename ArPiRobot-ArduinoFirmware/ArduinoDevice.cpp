@@ -41,8 +41,12 @@ void ArduinoDevice::sendBuffer(RPiInterface &rpi){
 }
 
 
-SingleEncoder::SingleEncoder(int pin)  : ArduinoDevice(3), pin(pin){
-  pinMode(pin, INPUT);
+SingleEncoder::SingleEncoder(int pin, bool pullup)  : ArduinoDevice(3), pin(pin){
+  if(pullup){
+    pinMode(pin, INPUT_PULLUP);
+  }else{
+    pinMode(pin, INPUT);
+  }
   lastState = digitalRead(pin);
   count.uival = 0;
 }

@@ -25,7 +25,7 @@ int RPiInterface::addStaticDevice(ArduinoDevice *device){
 /*
  * Device add commands:
  *  Commands are ascii as it is easy to code comparisons
- *  ADDSENC[PIN_NUMBER] - SingleEncoder(PIN_NUMBER)
+ *  ADDSENC[PIN_NUMBER][PULLUP] - SingleEncoder(PIN_NUMBER)
  *  ADDOLDADA9DOF - OldAdafruit9DofImu()
  *  ADDUSONIC4[TRIG_PIN][ECHO_PIN]\n
  *  ADDVMON[ANALOG_PIN][VBOARD_FLOAT_4_BYTES_BIG_ENDIAN][4_BYTE_R1_UINT32_BIG_ENDIAN][4_BYTE_R2_UINT32_BIG_ENDIAN] - VoltageMonitor(readPin, vboard, r1, r2)
@@ -36,6 +36,8 @@ int RPiInterface::addStaticDevice(ArduinoDevice *device){
  *    IS_ANALOG, PIN_NUMBER
  *  
  *  Pins that must be analog are sent as one byte: the pin number.
+ *  
+ *  A 1 or 0 flag can be used to indicate if an input pin should use the internal pullup resistor (1 = on, 0 = off)
  */
 
 
@@ -54,12 +56,16 @@ int RPiInterface::addDevice(){
       readPin = analogInputToDigitalPin(readPin);
     }    
 
+    bool pullup = readBuffer[9];
+
 #ifdef DEBUG
     DEBUG_SERIAL.print("Encoder pin: ");
     DEBUG_SERIAL.println(readPin);
+    DEBUG_SERIAL.print("Pullup enabled: ");
+    DEBUG_SERIAL.println(pullup);
 #endif
     
-    SingleEncoder *d = new SingleEncoder(readPin);
+    SingleEncoder *d = new SingleEncoder(readPin, pullup);
     d->assignDeviceId(devices.size());
     devices.add(0, d);
     return devices.size() - 1;

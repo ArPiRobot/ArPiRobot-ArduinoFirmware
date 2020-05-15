@@ -34,7 +34,7 @@
 ///////////////////////////////////////////////////////
 
 // How often sensor data should be sent (at most, some sensors will not send each time if nothing has changed)
-#define SEND_RATE 20  // ms
+#define SEND_RATE 50  // ms
 
 // How long to offset sensors send times from each other
 #define OFFSET_STEP 5 // ms
