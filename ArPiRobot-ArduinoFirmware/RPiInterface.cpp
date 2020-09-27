@@ -19,6 +19,7 @@
 
 #include "RPiInterface.h"
 #include "conversions.h"
+#include "support.h"
 
 FastCRC16 CRC16;
 
