@@ -117,11 +117,16 @@ void Ultrasonic4Pin::poll(){
     digitalWrite(triggerPin, LOW);
   
     uint16_t duration = pulseIn(echoPin, HIGH, 5000);
+    uint16_t newDistance;
+
     if(duration > 0){
-      uint16_t newDistance = duration * 0.034 / 2;
-      shouldSend = newDistance != distance.uival;
-      distance.uival = newDistance;
+       newDistance = duration * 0.034 / 2;
+    }else{
+      newDistance = 999;
     }
+    
+    shouldSend = newDistance != distance.uival;
+    distance.uival = newDistance;
     pollIterationCounter = 0;
   }
 
