@@ -59,9 +59,9 @@ class RPiInterface{
 public:
 
     // Start, end, and escape byte for sending data from sensors
-    const uint8_t startByte = 253;
-    const uint8_t endByte = 254;
-    const uint8_t escapeByte = 255;
+    const uint8_t START_BYTE = 253;
+    const uint8_t END_BYTE = 254;
+    const uint8_t ESCAPE_BYTE = 255;
 
     virtual ~RPiInterface();
 
@@ -71,7 +71,7 @@ public:
      * @param device A pointer to the device to add
      * @return The device id for the added device.
      */
-    int addStaticDevice(ArduinoDevice *device);
+    int16_t addStaticDevice(ArduinoDevice *device);
 
     /**
      * Add a device to the Pi interface. Device will be created from command data.
@@ -79,7 +79,7 @@ public:
      * @param len The number of bytes in data
      * @return The device ID of the created device
      */
-    int addDevice(uint8_t data, uint16_t len);
+    int16_t addDevice(uint8_t data, uint16_t len);
 
     /**
      * Reset the Pi interface
@@ -178,44 +178,17 @@ private:
      * @param len2 Length of the second dataset
      */
     bool dataDoesMatch(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t len2);
-
-private:
-    // Buffer for devices sending data to the Pi
-    uint8_t writeBuffer[DATA_WRITE_BUFFER_SIZE];
-    uint16_t writeBuggerLen = 0;
     
     // Serial read buffer (reading data from the Pi)
     uint8_t readBuffer[DATA_READ_BUFFER_SIZE];
     uint16_t readBufferLen = 0;
 
     // Status of parsing data (readData also handles parsing)
-    bool parse_started = false;    // Has start byte
-    bool parse_escaped = false;    // Is parse escaped
+    bool parseStarted = false;    // Has start byte
+    bool parseEscaped = false;    // Is parse escaped
     
     LinkedList<ArduinoDevice*> devices;
     uint8_t staticDeviceCount = 0;
 
     bool canAddStatic = true;
-};
-
-/**
- * Raspberry Pi interface that uses UART to communicate with the Pi
- */
-class RPiUartInterface : public RPiInterface {
-public:
-    /**
-     * @param serail The serial port to use (hardware or software serial)
-     * @param baud The baud rate to use
-     */
-    RPiUartInterface(Stream &serial, uint32_t baud);
-
-    void open() override;
-    uint16_t available() override;
-    int16_t read() override;
-    void write(uint8_t data) override;
-    void flush() override;
-
-private:
-    Stream &serial;
-    uint32_t baud;
 };

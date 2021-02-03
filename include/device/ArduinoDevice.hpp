@@ -67,6 +67,10 @@ protected:
 
     // Buffer sensor data is written into to be sent to the Pi
     uint8_t *sendBuffer;
-    uint16_t sendBufferCurrentPos = 0;
-    uint16_t sendBufferMaxLen;
+    uint16_t sendBufferLen = 0;  // Len is current number of items in buffer
+    uint16_t sendBufferSize;     // Size is max size
+
+    int16_t deviceId = -1; // Device id is only an 8-bit int (unsigned), but is negative if invalid
+
+    friend class RPiInterface;
 };

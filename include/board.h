@@ -53,17 +53,25 @@
 
 #endif // ARDUINO_AVR_NANO_EVERY
 
+#if defined(CORE_TEENSY)
+
+    // Teensy USB serial uses different HW serial class
+    // Comment this out if using another UART port on the teensy
+    #define HW_SERIAL_T usb_serial_class
+
+#endif // Teensy
+
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Default settings (any board)
 ////////////////////////////////////////////////////////////////////////////////
 
-// RPiInterface write buffer size
-#ifndef DATA_WRITE_BUFFER_SIZE
-    #define DATA_WRITE_BUFFER_SIZE 64
-#endif
-
 // RPiInterface read buffer size
 #ifndef DATA_READ_BUFFER_SIZE
     #define DATA_READ_BUFFER_SIZE 64
+#endif
+
+// Class for hardware serial port
+#ifndef HW_SERIAL_T
+    #define HW_SERIAL_T HardwareSerial
 #endif
