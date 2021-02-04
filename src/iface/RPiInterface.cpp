@@ -98,9 +98,12 @@ void RPiInterface::run(){
 
             // Service will return true if there is data to send
             if(d->service(this)){
-                uint8_t *data;
-                uint16_t len;
-                d->getSendData(&data, &len);
+                uint8_t data[d->getSendBufferSize() + 1];
+                data[0] = d->deviceId;
+                uint16_t len = d->getSendData(&data[1]);
+                d->updateNextSendTime();
+                writeData(data, len);
+                flush();
             }
         }
 

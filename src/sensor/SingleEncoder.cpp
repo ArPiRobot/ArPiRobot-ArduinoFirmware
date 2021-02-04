@@ -20,40 +20,31 @@
 #include <sensor/SingleEncoder.hpp>
 #include <conversions.hpp>
 
-SingleEncoder::SingleEncoder(uint8_t pin, bool pullup) : ArduinoDevice(3), pin(pin){
+SingleEncoder::SingleEncoder(uint8_t pin, bool pullup) : ArduinoDevice(2), pin(pin){
     pinMode(pin, pullup ? INPUT_PULLUP : INPUT);
     lastState = digitalRead(pin);
 }
 
-SingleEncoder::SingleEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(3){
+SingleEncoder::SingleEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(2){
+    pin = data[8];
 
+    if(data[7])
+        pin = analogInputToDigitalPin(pin);
+    
+    pinMode(pin, data[9] ? INPUT_PULLUP : INPUT);
+    lastState = digitalRead(pin);
 }
 
-SingleEncoder::SingleEncoder(const SingleEncoder &other) : ArduinoDevice(other){
-    // No need to configure pinMode in copy constructor
-    pin = other.pin;
-    lastState = other.lastState;
-    count = other.count;
-}
-
-SingleEncoder &SingleEncoder::operator=(const SingleEncoder &other){
-    if(this != &other){
-        ArduinoDevice::operator=(other);
-        pin = other.pin;
-        lastState = other.lastState;
-        count = other.count;
-    }
-    return *this;
+uint16_t SingleEncoder::getSendData(uint8_t *data){
+    // Buffer count little endian
+    Conversions::convertInt16ToData(count, &data[1], true);
+    return 2;
 }
 
 bool SingleEncoder::service(RPiInterface *rpi){
     bool state = digitalRead(pin);
     if(state != lastState){
         count++;
-        sendBuffer[0] = deviceId;
-        // Buffer count little endian
-        Conversions::convertInt16ToData(count, &sendBuffer[1], true);
-        sendBufferLen = 3;
         lastState = state;
         return millis() >= nextSendTime;
     }

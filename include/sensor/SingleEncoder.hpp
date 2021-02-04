@@ -23,21 +23,33 @@
 #include <board.h>
 #include <device/ArduinoDevice.hpp>
 
+/**
+ * Single-channel encoder
+ */
 class SingleEncoder : public ArduinoDevice{
 public:
+    /**
+     * @param pin Digital pin number to use
+     * @param pullup if true internal pullup will be used, if false it will not
+     */
     SingleEncoder(uint8_t pin, bool pullup);
 
+    /**
+     * Construct a SingleEncoder from command data
+     * Data format: ADDSENC[ANALOG][PIN][PULLUP]
+     *      ANALOG: 1 = analog pin #, 0 = digital pin #
+     *      PIN: Pin number (unsigned 8-bit int)
+     *      PULLUP: 1 = use internal pullup resistor, 0 = do not
+     */
     SingleEncoder(uint8_t *data, uint16_t len);
 
-    SingleEncoder(const SingleEncoder &other);
+    uint16_t getSendData(uint8_t *data) = 0;
 
-    SingleEncoder &operator=(const SingleEncoder &other);
-
-protected:
     bool service(RPiInterface *rpi) override;
 
     void handleMessage(uint8_t *data, uint16_t len) override;
 
+private:
     uint8_t pin;
     bool lastState;
     uint16_t count = 0;

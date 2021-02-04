@@ -36,18 +36,27 @@ public:
      */
     ArduinoDevice(uint16_t sendBufferSize);
 
-    ArduinoDevice(const ArduinoDevice &other);
-
     virtual ~ArduinoDevice();
 
-    virtual ArduinoDevice &operator=(const ArduinoDevice &other);
+    /**
+     * Get the size the buffer for getSendData must be
+     * This is the maximum number of bytes that may be written into the buffer
+     * @return sendBufferSize
+     */
+    uint16_t getSendBufferSize();
+
+    /**
+     * Call this after sending data for this sensor
+     * Next send time will be recalculated
+     */
+    void updateNextSendTime();
 
     /**
      * Get the data to be sent from this device
-     * @param data Will be set to a pointer to the data to send
-     * @param len Will be set to the length of the data to send
+     * @param data Buffer to write data into (must be at least sendBufferSize)
+     * @return The number of bytes written into the buffer
      */
-    void getSendData(uint8_t **data, uint16_t *len);
+    virtual uint16_t getSendData(uint8_t *data) = 0;
 
     /**
      * Handle periodic actions for this device
@@ -61,9 +70,6 @@ public:
     virtual void handleMessage(uint8_t *msg, uint16_t len) = 0;
 
 protected:
-    // Buffer sensor data is written into to be sent to the Pi
-    uint8_t *sendBuffer;
-    uint16_t sendBufferLen = 0;  // Len is current number of items in buffer
     uint16_t sendBufferSize;     // Size is max size
 
     // How often this device should send data back to the Pi (not how often this device should be serviced)
