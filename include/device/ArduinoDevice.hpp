@@ -22,6 +22,8 @@
 #include <Arduino.h>
 #include <board.h>
 
+class RPiInterface;
+
 /**
  * Any device that can be added to a RPiInterface
  */
@@ -32,7 +34,7 @@ public:
      * @param sendBufferSize How many bytes internal send buffer should be
      * @param sendRateMs How frequently (in ms) data from this sensor should be sent to the pi
      */
-    ArduinoDevice(uint16_t sendBufferSize, uint16_t sendRateMs = 50);
+    ArduinoDevice(uint16_t sendBufferSize);
 
     ArduinoDevice(const ArduinoDevice &other);
 
@@ -45,13 +47,13 @@ public:
      * @param data Will be set to a pointer to the data to send
      * @param len Will be set to the length of the data to send
      */
-    virtual void getSendData(uint8_t **data, uint16_t *len);
+    void getSendData(uint8_t **data, uint16_t *len);
 
     /**
      * Handle periodic actions for this device
      * @return true if data should be sent from this device to the Pi
      */
-    virtual bool service() = 0;
+    virtual bool service(RPiInterface *rpi) = 0;
 
     /**
      * Handle some data sent to this device by the Pi
@@ -65,7 +67,7 @@ protected:
     uint16_t sendBufferSize;     // Size is max size
 
     // How often this device should send data back to the Pi (not how often this device should be serviced)
-    uint16_t sendRateMs;
+    uint16_t sendRateMs = 50;
 
     // The next time to send data (calculated by getSendData function)
     unsigned long nextSendTime = 0;

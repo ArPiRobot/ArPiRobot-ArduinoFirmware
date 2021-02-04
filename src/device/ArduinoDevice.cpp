@@ -19,8 +19,8 @@
 
 #include <device/ArduinoDevice.hpp>
 
-ArduinoDevice::ArduinoDevice(uint16_t sendBufferSize, uint16_t sendRateMs) : 
-        sendBufferSize(sendBufferSize), sendRateMs(sendRateMs){
+ArduinoDevice::ArduinoDevice(uint16_t sendBufferSize) : 
+        sendBufferSize(sendBufferSize){
     sendBuffer = new uint8_t[sendBufferSize];
 }
 

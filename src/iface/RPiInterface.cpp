@@ -97,7 +97,7 @@ void RPiInterface::run(){
             ArduinoDevice *d = devices.get(i);
 
             // Service will return true if there is data to send
-            if(d->service()){
+            if(d->service(this)){
                 uint8_t *data;
                 uint16_t len;
                 d->getSendData(&data, &len);
