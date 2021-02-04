@@ -20,7 +20,7 @@ int16_t RPiInterface::addStaticDevice(ArduinoDevice *device){
     return device->deviceId;
 }
 
-int16_t RPiInterface::addDevice(uint8_t data, uint16_t len){
+int16_t RPiInterface::addDevice(){
     // TODO: Implement device drivers first
     return -1;
 }
@@ -37,7 +37,87 @@ void RPiInterface::reset(){
 }
 
 void RPiInterface::run(){
-    // TODO
+
+    // No longer allow static devices. 
+    // They must be added to the linked list before any dynamic devices (devices created by data from the pi)
+    canAddStatic = false;
+
+    writeData((uint8_t*)"START", 5);
+    while(true){
+        if(readData() && checkData()){
+            // Ignore CRC in the buffer now
+            readBufferLen -= 2;
+
+            if(dataDoesMatch(readBuffer, readBufferLen, (uint8_t*)"END", 3)){
+                break;
+            }else if(dataDoesMatch(readBuffer, readBufferLen, (uint8_t*)"RESET", 5)){
+                reset();
+                run();
+            }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADD", 3)){
+                int deviceId = addDevice();
+                if(deviceId == -1){
+                    writeData((uint8_t*)"ADDFAIL", 7);
+                }else{
+                    uint8_t buf[11] = "ADDSUCCESS";
+                    buf[10] = deviceId;
+                    writeData(buf, 11);
+                }
+            }
+
+            // Clear read buffer
+            readBufferLen = 0;
+        }
+    }
+
+    readBufferLen = 0;
+    writeData((uint8_t*)"END", 3);
+
+    while(true){
+        // Service devices and send data as needed
+        for(uint16_t i = 0; i < devices.size(); ++i){
+            ArduinoDevice *d = devices.get(i);
+
+            // Service will return true if there is data to send
+            if(d->service()){
+                uint8_t *data;
+                uint16_t len;
+                d->getSendData(&data, &len);
+            }
+        }
+
+        // Read available data
+        uint16_t count = available();
+        while(count > 0){
+
+            if(readData() && checkData()){
+                // Ignore CRC now
+                readBufferLen -= 2;
+
+                if(dataDoesMatch(readBuffer, readBufferLen, (uint8_t*)"RESET", 5)){
+                    reset();
+                    run();
+                    return;
+                }else if (dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"-", 1)){
+                    uint8_t id = readBuffer[1];
+                    for(uint8_t i = 0; i < devices.size(); ++i){
+                        // Iterating in forward order will not cause performance issues. get() method caches.
+                        ArduinoDevice *d = devices.get(i);
+                        if(d->deviceId == id){
+                            // Skip the '-' in the data given to the device
+                            d->handleMessage(&readBuffer[1], readBufferLen - 1);
+                            break;
+                        }
+                    }
+                }
+
+                // Clear buffer after handling data
+                readBufferLen = 0;
+            }
+
+            count--;
+        }
+    }
+
 }
 
 bool RPiInterface::readData(){
@@ -102,8 +182,9 @@ void RPiInterface::writeData(uint8_t *data, uint16_t len){
     write(END_BYTE);
 }
 
-bool RPiInterface::checkData(uint8_t *data, uint16_t len){
-    return Conversions::convertDataToInt16(&data[len - 2], false) == CRC16.ccitt(data, len - 2);
+bool RPiInterface::checkData(){
+    return Conversions::convertDataToInt16(&readBuffer[readBufferLen - 2], false) 
+            == CRC16.ccitt(readBuffer, readBufferLen - 2);
 }
 
 bool RPiInterface::dataStartsWith(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t len2){

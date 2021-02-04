@@ -45,7 +45,7 @@ public:
      * @param data Will be set to a pointer to the data to send
      * @param len Will be set to the length of the data to send
      */
-    virtual void getSendData(uint8_t **data, uint16_t *maxLen) = 0;
+    virtual void getSendData(uint8_t **data, uint16_t *len);
 
     /**
      * Handle periodic actions for this device
@@ -56,19 +56,19 @@ public:
     /**
      * Handle some data sent to this device by the Pi
      */
-    virtual void handleMessage(uint8_t *msg, uint16_t len);
+    virtual void handleMessage(uint8_t *msg, uint16_t len) = 0;
 
 protected:
+    // Buffer sensor data is written into to be sent to the Pi
+    uint8_t *sendBuffer;
+    uint16_t sendBufferLen = 0;  // Len is current number of items in buffer
+    uint16_t sendBufferSize;     // Size is max size
+
     // How often this device should send data back to the Pi (not how often this device should be serviced)
     uint16_t sendRateMs;
 
     // The next time to send data (calculated by getSendData function)
     unsigned long nextSendTime = 0;
-
-    // Buffer sensor data is written into to be sent to the Pi
-    uint8_t *sendBuffer;
-    uint16_t sendBufferLen = 0;  // Len is current number of items in buffer
-    uint16_t sendBufferSize;     // Size is max size
 
     int16_t deviceId = -1; // Device id is only an 8-bit int (unsigned), but is negative if invalid
 

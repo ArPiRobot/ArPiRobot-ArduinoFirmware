@@ -67,19 +67,17 @@ public:
 
     /**
      * Add a device to the pi from arduino code (not based on data received from the Pi)
-     * This device will always exist. This must be done before calling configure.
+     * This device will always exist. This must be done before calling run.
      * @param device A pointer to the device to add
      * @return The device id for the added device.
      */
     int16_t addStaticDevice(ArduinoDevice *device);
 
     /**
-     * Add a device to the Pi interface. Device will be created from command data.
-     * @param data The data to create the device with
-     * @param len The number of bytes in data
+     * Add a device to the Pi interface. Device will be created from readBuffer data.
      * @return The device ID of the created device
      */
-    int16_t addDevice(uint8_t data, uint16_t len);
+    int16_t addDevice();
 
     /**
      * Reset the Pi interface
@@ -153,12 +151,10 @@ private:
     void writeData(uint8_t *data, uint16_t len);
 
     /**
-     * Check that received data crc is valid
-     * @param data The received data to check
-     * @param len Length of data
+     * Check that received data crc is valid (checks readBuffer)
      * @return true if valid, else false
      */
-    bool checkData(uint8_t *data, uint16_t len);
+    bool checkData();
 
     /**
      * Checks if a set of data starts with another set of data
