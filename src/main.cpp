@@ -20,9 +20,14 @@
 #include <Arduino.h>
 #include <board.h>
 #include <iface/RPiUartInterface.hpp>
-
+#include <conversions.hpp>
 
 void setup() {
+
+    // NEVER REMOVE THIS LINE!
+    Conversions::checkBigEndian();
+
+    // Change this line to use different interface if necessary
     RPiUartInterface rpi(Serial, 57600);
 
     // Add any static devices here

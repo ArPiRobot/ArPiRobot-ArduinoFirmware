@@ -1,5 +1,4 @@
 {
-    "cmake.configureOnOpen": false,
     "files.associations": {
         "*.tcc": "cpp",
         "cctype": "cpp",

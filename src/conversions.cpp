@@ -47,15 +47,15 @@ void Conversions::convertInt32ToData(int32_t input, uint8_t *outBuffer, bool lit
 
 int32_t Conversions::convertDataToInt32(uint8_t *data, bool littleEndian){
     if(littleEndian){
-        return data[0] | 
-               data[1] << 8 | 
-               data[2] << 16 |
-               data[3] << 24;
+        return (int32_t)data[0] | 
+               (int32_t)data[1] << 8 | 
+               (int32_t)data[2] << 16 |
+               (int32_t)data[3] << 24;
     }else{
-        return data[0] << 24| 
-               data[1] << 16 | 
-               data[2] << 8 |
-               data[3];
+        return (int32_t)data[0] << 24| 
+               (int32_t)data[1] << 16 | 
+               (int32_t)data[2] << 8 |
+               (int32_t)data[3];
     }
 }
 

@@ -43,7 +43,7 @@ public:
      */
     SingleEncoder(uint8_t *data, uint16_t len);
 
-    uint16_t getSendData(uint8_t *data) = 0;
+    uint16_t getSendData(uint8_t *data) override;
 
     bool service(RPiInterface *rpi) override;
 
@@ -52,5 +52,5 @@ public:
 private:
     uint8_t pin;
     bool lastState;
-    uint16_t count = 0;
+    uint16_t count = 0, lastSentCount = 65535;
 };
