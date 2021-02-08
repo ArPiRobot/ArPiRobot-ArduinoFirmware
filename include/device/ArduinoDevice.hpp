@@ -32,7 +32,6 @@ public:
 
     /**
      * @param sendBufferSize How many bytes internal send buffer should be
-     * @param sendRateMs How frequently (in ms) data from this sensor should be sent to the pi
      */
     ArduinoDevice(uint16_t sendBufferSize);
 

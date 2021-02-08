@@ -20,6 +20,7 @@
 #include <iface/RPiInterface.hpp>
 #include <conversions.hpp>
 #include <sensor/SingleEncoder.hpp>
+#include <sensor/VoltageMonitor.hpp>
 
 FastCRC16 CRC16;
 
@@ -41,23 +42,26 @@ int16_t RPiInterface::addStaticDevice(ArduinoDevice *device){
 }
 
 int16_t RPiInterface::addDevice(){
-    int deviceId = -1;
+    ArduinoDevice *device = nullptr;
     if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDSENC", 7)){
         // Pass buffer without "ADDSENC" and without CRC
-        ArduinoDevice *device = new SingleEncoder(&readBuffer[7], readBufferLen - 9);
-        devices.add(device);
-        deviceId = devices.size() - 1;
-        device->deviceId = deviceId;
+        device = new SingleEncoder(&readBuffer[7], readBufferLen - 9);
+    }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDVMON", 7)){
+        // Pass buffer without "ADDVMON" and without CRC
+        device = new VoltageMonitor(&readBuffer[7], readBufferLen - 9);
     }
 
-    if(deviceId == -1){
-        writeData((uint8_t*)"ADDFAIL", 7);
-    }else{
+    if(device != nullptr){
+        devices.add(device);
+        device->deviceId = devices.size() - 1;
         uint8_t buf[11] = "ADDSUCCESS"; // 10 character string  + 1 for a device id
-        buf[10] = deviceId;
+        buf[10] = device->deviceId;
         writeData(buf, 11);
+        return device->deviceId;
+    }else{
+        writeData((uint8_t*)"ADDFAIL", 7);
+        return -1;
     }
-    return -1;
 }
 
 void RPiInterface::reset(){
