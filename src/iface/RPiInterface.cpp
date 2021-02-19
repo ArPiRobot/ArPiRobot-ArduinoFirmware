@@ -21,6 +21,7 @@
 #include <conversions.hpp>
 #include <sensor/SingleEncoder.hpp>
 #include <sensor/VoltageMonitor.hpp>
+#include <sensor/IRReflectorModule.hpp>
 
 FastCRC16 CRC16;
 
@@ -49,6 +50,9 @@ int16_t RPiInterface::addDevice(){
     }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDVMON", 7)){
         // Pass buffer without "ADDVMON" and without CRC
         device = new VoltageMonitor(&readBuffer[7], readBufferLen - 9);
+    }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDIRREFLECTOR", 14)){
+        // Pass buffer without "ADDIRREFLECTOR" and without CRC
+        device = new IRReflectorModule(&readBuffer[14], readBufferLen - 16);
     }
 
     if(device != nullptr){
