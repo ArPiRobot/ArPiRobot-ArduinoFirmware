@@ -53,6 +53,9 @@ int16_t RPiInterface::addDevice(){
     }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDIRREFLECTOR", 14)){
         // Pass buffer without "ADDIRREFLECTOR" and without CRC
         device = new IRReflectorModule(&readBuffer[14], readBufferLen - 16);
+    }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDUSONIC4", 10)){
+        // Pass buffer without "ADDUSONIC4" and without CRC
+        device = new IRReflectorModule(&readBuffer[10], readBufferLen - 12);
     }
 
     if(device != nullptr){

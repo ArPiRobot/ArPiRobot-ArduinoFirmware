@@ -24,8 +24,10 @@ IRReflectorModule::IRReflectorModule(uint8_t digitalPin, uint8_t analogPin) : Ar
         digitalPin(digitalPin), analogPin(analogPin){
     pinMode(digitalPin, INPUT);
     lastDigitalState = digitalRead(digitalPin);
-    if(analogPin != 255)
+    if(analogPin != 255){
+        pinMode(analogPin, INPUT);
         lastAnalogValue = analogRead(analogPin);
+    }
 }
 
 IRReflectorModule::IRReflectorModule(uint8_t *data, uint16_t len) : ArduinoDevice(3) {
@@ -34,6 +36,18 @@ IRReflectorModule::IRReflectorModule(uint8_t *data, uint16_t len) : ArduinoDevic
         digitalPin = analogInputToDigitalPin(data[1]);
     }else{
         digitalPin = data[1];
+    }
+    if(data[2] == 255){
+         analogPin = 255;
+    }else{
+        analogPin = analogInputToDigitalPin(data[2]);
+    }
+
+    pinMode(digitalPin, INPUT);
+    lastDigitalState = digitalRead(digitalPin);
+    if(analogPin != 255){
+        pinMode(analogPin, INPUT);
+        lastAnalogValue = analogRead(analogPin);
     }
 }
 
