@@ -22,6 +22,7 @@
 #include <sensor/SingleEncoder.hpp>
 #include <sensor/VoltageMonitor.hpp>
 #include <sensor/IRReflectorModule.hpp>
+#include <sensor/Ultrasonic4Pin.hpp>
 
 FastCRC16 CRC16;
 
@@ -55,7 +56,7 @@ int16_t RPiInterface::addDevice(){
         device = new IRReflectorModule(&readBuffer[14], readBufferLen - 16);
     }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDUSONIC4", 10)){
         // Pass buffer without "ADDUSONIC4" and without CRC
-        device = new IRReflectorModule(&readBuffer[10], readBufferLen - 12);
+        device = new Ultrasonic4Pin(&readBuffer[10], readBufferLen - 12);
     }
 
     if(device != nullptr){

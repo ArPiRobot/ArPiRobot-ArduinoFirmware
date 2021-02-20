@@ -32,7 +32,7 @@ VoltageMonitor::VoltageMonitor(uint8_t analogPin, float vboard, uint32_t r1, uin
     }
 
     // Don't need to send data frequently for this sensor
-    sendRateMs = 500;
+    sendRateMs = 150;
 }
 
 VoltageMonitor::VoltageMonitor(uint8_t *data, uint16_t len) : ArduinoDevice(5){
@@ -51,7 +51,7 @@ VoltageMonitor::VoltageMonitor(uint8_t *data, uint16_t len) : ArduinoDevice(5){
     }
 
     // Don't need to send data frequently for this sensor
-    sendRateMs = 500;
+    sendRateMs = 150;
 }
 
 uint16_t VoltageMonitor::getSendData(uint8_t *data){

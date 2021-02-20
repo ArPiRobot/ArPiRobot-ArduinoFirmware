@@ -24,6 +24,7 @@
 #include <device/ArduinoDevice.hpp>
 
 class Ultrasonic4Pin : public ArduinoDevice{
+public:
     /**
      * @param triggerPin Digital pin number to use for trigger
      * @param echoPin Digital pin number to use for echo

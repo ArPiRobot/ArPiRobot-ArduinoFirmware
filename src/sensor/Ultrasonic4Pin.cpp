@@ -26,7 +26,7 @@ Ultrasonic4Pin::Ultrasonic4Pin(uint8_t triggerPin, uint8_t echoPin) : ArduinoDev
     pinMode(echoPin, INPUT);
 
     // Don't need to send data frequently for this sensor
-    sendRateMs = 500;
+    sendRateMs = 150;
 }
 
 Ultrasonic4Pin::Ultrasonic4Pin(uint8_t *data, uint16_t len) : ArduinoDevice(2){
@@ -36,15 +36,15 @@ Ultrasonic4Pin::Ultrasonic4Pin(uint8_t *data, uint16_t len) : ArduinoDevice(2){
         triggerPin = data[1];
     }
     if(data[2]){
-        echoPin = analogInputToDigitalPin(data[2]);
+        echoPin = analogInputToDigitalPin(data[3]);
     }else{
-        echoPin = data[2];
+        echoPin = data[3];
     }
     pinMode(triggerPin, OUTPUT);
     pinMode(echoPin, INPUT);
 
     // Don't need to send data frequently for this sensor
-    sendRateMs = 500;
+    sendRateMs = 150;
 }
 
 uint16_t Ultrasonic4Pin::getSendData(uint8_t *data){
@@ -63,10 +63,10 @@ bool Ultrasonic4Pin::service(RPiInterface *rpi){
         // Wait at most 5ms for pulse to return.
         // Waiting too long for pulse can affect other sensors, such as IMUs, doing accumulation of rates
         // This limits max range to about 85cm
-        unsigned long duration = pulseIn(echoPin, HIGH, 5000);
+        uint16_t duration = pulseIn(echoPin, HIGH, 5000);
 
         if(duration > 0){
-            distance = duration * 0.017;
+            distance = duration * 0.0343 / 2;
         }else{
             distance = 999;
         }
