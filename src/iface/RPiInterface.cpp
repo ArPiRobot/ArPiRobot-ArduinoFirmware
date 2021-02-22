@@ -23,6 +23,7 @@
 #include <sensor/VoltageMonitor.hpp>
 #include <sensor/IRReflectorModule.hpp>
 #include <sensor/Ultrasonic4Pin.hpp>
+#include <sensor/OldAdafruit9Dof.hpp>
 
 FastCRC16 CRC16;
 
@@ -57,6 +58,9 @@ int16_t RPiInterface::addDevice(){
     }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDUSONIC4", 10)){
         // Pass buffer without "ADDUSONIC4" and without CRC
         device = new Ultrasonic4Pin(&readBuffer[10], readBufferLen - 12);
+    }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDOLDADA9DOF", 13)){
+        // Pass buffer without "ADDOLDADA9DOF" and without CRC
+        device = new OldAdafruit9Dof(&readBuffer[13], readBufferLen - 15);
     }
 
     if(device != nullptr){
