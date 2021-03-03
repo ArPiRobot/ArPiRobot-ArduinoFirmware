@@ -22,9 +22,6 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-#include <Adafruit_I2CDevice.h>
-#include <Adafruit_BusIO_Register.h>
-
 // Based on https://github.com/adafruit/Adafruit_LSM303_Accel
 // No magnetometer implementation because generally not useful on robots
 // Using custom implementations of these drivers for 2 reasons
@@ -50,8 +47,6 @@ public:
         LSM303_MODE_LOW_POWER = 2        // 8-bit
     };
 
-    ~LSM303();
-
     bool begin(uint8_t address = 0x19, TwoWire *wire = &Wire);
 
     Data getAccel();
@@ -67,7 +62,8 @@ private:
     float getLSB(AccelMode mode);
     uint8_t getShift(AccelMode mode);    
 
-    Adafruit_I2CDevice *dev = nullptr;
+    TwoWire *wire = nullptr;
+    uint8_t address;
 
     const int LSM303_REGISTER_ACCEL_WHO_AM_I = 0x0F;
     const int LSM303_REGISTER_ACCEL_CTRL_REG1_A = 0x20;

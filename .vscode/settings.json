@@ -19,6 +19,8 @@
         "cinttypes": "cpp",
         "utility": "cpp",
         "typeinfo": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "i2chelper.h": "c",
+        "wire.h": "c"
     }
 }

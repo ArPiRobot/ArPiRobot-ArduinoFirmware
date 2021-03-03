@@ -19,7 +19,12 @@
 
 #pragma once
 
-#include <Arduino.h>
 #include <Wire.h>
 
+namespace I2CHelper{
+    void writeByte(TwoWire *wire, uint8_t address, uint8_t reg, uint8_t value);
+    uint8_t readByte(TwoWire *wire, uint8_t address, uint8_t reg);
 
+    uint8_t replaceBits(uint8_t originalValue, uint8_t newValue, uint8_t width, uint8_t shift);
+    uint8_t getBits(uint8_t value, uint8_t width, uint8_t shift);
+}
