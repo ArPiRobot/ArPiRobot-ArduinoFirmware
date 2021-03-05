@@ -18,7 +18,7 @@
  */
 
 #include <sensor/VoltageMonitor.hpp>
-#include <conversions.hpp>
+#include <Conversions.hpp>
 
 VoltageMonitor::VoltageMonitor(uint8_t analogPin, float vboard, uint32_t r1, uint32_t r2) : 
         ArduinoDevice(5), analogPin(analogPin){  

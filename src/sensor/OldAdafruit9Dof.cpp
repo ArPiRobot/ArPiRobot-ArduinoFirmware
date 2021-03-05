@@ -18,7 +18,7 @@
  */
 
 #include <sensor/OldAdafruit9Dof.hpp>
-#include <conversions.hpp>
+#include <Conversions.hpp>
 
 bool OldAdafruit9Dof::locked = false;
 

@@ -18,7 +18,7 @@
  */
 
 #include <sensor/Ultrasonic4Pin.hpp>
-#include <conversions.hpp>
+#include <Conversions.hpp>
 
 Ultrasonic4Pin::Ultrasonic4Pin(uint8_t triggerPin, uint8_t echoPin) : ArduinoDevice(2), 
         triggerPin(triggerPin), echoPin(echoPin){

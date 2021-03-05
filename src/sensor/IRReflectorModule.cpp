@@ -18,7 +18,7 @@
  */
 
 #include <sensor/IRReflectorModule.hpp>
-#include <conversions.hpp>
+#include <Conversions.hpp>
 
 IRReflectorModule::IRReflectorModule(uint8_t digitalPin, uint8_t analogPin) : ArduinoDevice(3), 
         digitalPin(digitalPin), analogPin(analogPin){

@@ -18,7 +18,7 @@
  */
 
 #include <iface/RPiInterface.hpp>
-#include <conversions.hpp>
+#include <Conversions.hpp>
 #include <sensor/SingleEncoder.hpp>
 #include <sensor/VoltageMonitor.hpp>
 #include <sensor/IRReflectorModule.hpp>

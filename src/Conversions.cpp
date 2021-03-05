@@ -17,7 +17,7 @@
  * along with ArPiRobot-ArduinoFirmware.  If not, see <https://www.gnu.org/licenses/>. 
  */
 
-#include <conversions.hpp>
+#include <Conversions.hpp>
 
 bool Conversions::isBigEndian = false;
 

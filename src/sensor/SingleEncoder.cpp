@@ -18,7 +18,7 @@
  */
 
 #include <sensor/SingleEncoder.hpp>
-#include <conversions.hpp>
+#include <Conversions.hpp>
 
 SingleEncoder::SingleEncoder(uint8_t pin, bool pullup) : ArduinoDevice(2), pin(pin){
     pinMode(pin, pullup ? INPUT_PULLUP : INPUT);
