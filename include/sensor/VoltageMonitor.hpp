@@ -63,5 +63,5 @@ private:
     uint16_t readingRunningSum = 0;
     uint8_t readingIndex = 0;
 
-    float voltage;
+    float voltage = 0;
 };
