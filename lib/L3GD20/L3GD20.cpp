@@ -133,7 +133,7 @@ L3GD20::Data L3GD20::getRates(){
     data.y = (int16_t)(ylo | (yhi << 8));
     data.z = (int16_t)(zlo | (zhi << 8));
 
-    float scale;
+    float scale = 0;
     switch(getRange()){
     case GyroRange::GYRO_RANGE_250DPS:
         scale = GYRO_SENSITIVITY_250DPS;
