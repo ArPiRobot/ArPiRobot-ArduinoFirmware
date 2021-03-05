@@ -24,6 +24,7 @@
 #include <device/ArduinoDevice.hpp>
 
 #include <LSM303.hpp>
+#include <L3GD20.hpp>
 
 /**
  * Old Adafruit 9DOF (now discontinued) L3GD20 + LSM303
@@ -47,6 +48,10 @@ public:
 private:
     
     LSM303 accel;
+    L3GD20 gyro;
+    bool valid = false;
+    float ax = 0, ay = 0, az = 0, gx = 0, gy = 0, gz = 0;
+    unsigned long lastSample = 0;
 
     static bool locked;
 };

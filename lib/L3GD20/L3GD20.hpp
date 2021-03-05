@@ -52,9 +52,9 @@ private:
     const static int L3GD20_ID = 0xD4;
     const static int L3GD20H_ID = 0xD7;
 
-    const static float GYRO_SENSITIVITY_250DPS = 0.00875F;
-    const static float GYRO_SENSITIVITY_500DPS = 0.0175F;
-    const static float GYRO_SENSITIVITY_2000DPS = 0.070F;
+    constexpr static float GYRO_SENSITIVITY_250DPS = 0.00875F;
+    constexpr static float GYRO_SENSITIVITY_500DPS = 0.0175F;
+    constexpr static float GYRO_SENSITIVITY_2000DPS = 0.070F;
 
     const static int GYRO_REGISTER_WHO_AM_I = 0x0F;
     const static int GYRO_REGISTER_CTRL_REG1 = 0x20;
