@@ -31,7 +31,7 @@ bool L3GD20::begin(uint8_t address, TwoWire *wire, GyroRange range){
     wire->write(GYRO_REGISTER_WHO_AM_I);
     if(wire->endTransmission() != 0)
         return false;
-    if(wire->requestFrom(address, (byte)1) != 1)
+    if(wire->requestFrom(address, (size_t)1) != 1)
         return false;
     uint8_t id = wire->read();
     
@@ -83,7 +83,7 @@ L3GD20::GyroRange L3GD20::getRange(){
     if(wire->endTransmission() != 0){
         return GyroRange::GYRO_RANGE_250DPS;
     }
-    if(wire->requestFrom(address, (byte)1) != 1){
+    if(wire->requestFrom(address, (size_t)1) != 1){
         return GyroRange::GYRO_RANGE_250DPS;
     }
     uint8_t r = wire->read();
@@ -101,15 +101,21 @@ L3GD20::GyroRange L3GD20::getRange(){
 L3GD20::Data L3GD20::getRates(){
     Data data;
     
-    while(true){
+    // Retry until success (max 10 tries)
+    for(uint8_t i = 0; i < 10; ++i){
         wire->beginTransmission(address);
         wire->write(GYRO_REGISTER_OUT_X_L | 0x80);
 
-        // Retry until success
-        if(wire->endTransmission() == 0)
+        if(wire->endTransmission() == 0){
             break;
+        }else if(i == 9){
+            data.x = 0;
+            data.y = 0;
+            data.z = 0;
+            return data; // Failed on last try
+        }
     }
-    if(wire->requestFrom(address, (byte)6) != 6){
+    if(wire->requestFrom(address, (size_t)6) != 6){
         data.x = 0;
         data.y = 0;
         data.z = 0;
@@ -123,9 +129,9 @@ L3GD20::Data L3GD20::getRates(){
     uint8_t zlo = wire->read();
     uint8_t zhi = wire->read();
 
-    float x = (int16_t)(xlo | (xhi << 8));
-    float y = (int16_t)(ylo | (yhi << 8));
-    float z = (int16_t)(zlo | (zhi << 8));
+    data.x = (int16_t)(xlo | (xhi << 8));
+    data.y = (int16_t)(ylo | (yhi << 8));
+    data.z = (int16_t)(zlo | (zhi << 8));
 
     float scale;
     switch(getRange()){
@@ -141,9 +147,9 @@ L3GD20::Data L3GD20::getRates(){
     }
 
     // Rates in Deg / Sec
-    data.x = x * scale;
-    data.y = y * scale;
-    data.z = z * scale;
+    data.x *= scale;
+    data.y *= scale;
+    data.z *= scale;
 
     return data;
 }

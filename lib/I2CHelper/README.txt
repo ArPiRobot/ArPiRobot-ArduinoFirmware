@@ -1,1 +1,0 @@
-Custom I2C helper library for ArPiRobot-Firmware. Used by custom Gyro and Accelerometer drivers.

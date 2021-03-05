@@ -59,6 +59,9 @@ public:
 
 private:
 
+    uint8_t replaceBits(uint8_t originalValue, uint8_t newValue, uint8_t width, uint8_t shift);
+    uint8_t getBits(uint8_t value, uint8_t width, uint8_t shift);
+
     float getLSB(AccelMode mode);
     uint8_t getShift(AccelMode mode);    
 
