@@ -28,7 +28,7 @@ NxpAdafruit9Dof::NxpAdafruit9Dof() : ArduinoDevice(24){
 
     locked = true;
 
-    bool success = accel.begin() && gyro.begin();
+    bool success = accel.begin(FXOS8700::AccelRange::RANGE_2G) && gyro.begin(FXAS2100::GyroRange::RANGE_500DPS);
     if(!success){
         locked = false;
     }

@@ -28,7 +28,7 @@ OldAdafruit9Dof::OldAdafruit9Dof() : ArduinoDevice(24){
 
     locked = true;
 
-    bool success = accel.begin() && gyro.begin();
+    bool success = accel.begin(LSM303::AccelRange::RANGE_2G) && gyro.begin(L3GD20::GyroRange::RANGE_500DPS);
     if(!success){
         locked = false;
     }
@@ -45,7 +45,7 @@ OldAdafruit9Dof::OldAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24
 
     locked = true;
 
-    bool success = accel.begin() && gyro.begin();
+    bool success = accel.begin(LSM303::AccelRange::RANGE_2G) && gyro.begin(L3GD20::GyroRange::RANGE_500DPS);
     if(!success){
         locked = false;
     }

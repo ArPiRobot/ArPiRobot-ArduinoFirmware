@@ -85,7 +85,6 @@ L3GD20::Data L3GD20::getRates(){
     data.y = (int16_t)(rawData[2] | (rawData[3] << 8));
     data.z = (int16_t)(rawData[4] | (rawData[5] << 8));
 
-    float scale = 0;
     switch(range){
     case GyroRange::RANGE_250DPS:
         data.x *= GYRO_SENSITIVITY_250DPS;

@@ -35,13 +35,13 @@ public:
     };
 
     enum class AccelRange {
-        LSM303_RANGE_2G = 0,  // -2G to +2G
-        LSM303_RANGE_4G = 1,  // -4G to +4G
-        LSM303_RANGE_8G = 2,  // -8G to +8G
-        LSM303_RANGE_16G = 3  // -16G to +16G
+        RANGE_2G = 0,  // -2G to +2G
+        RANGE_4G = 1,  // -4G to +4G
+        RANGE_8G = 2,  // -8G to +8G
+        RANGE_16G = 3  // -16G to +16G
     };
 
-    bool begin(AccelRange range = AccelRange::LSM303_RANGE_2G, uint8_t address = 0x19, TwoWire *wire = &Wire);
+    bool begin(AccelRange range = AccelRange::RANGE_2G, uint8_t address = 0x19, TwoWire *wire = &Wire);
 
     Data getAccel();
 
@@ -49,7 +49,7 @@ private:
 
     TwoWire *wire = nullptr;
     uint8_t address;
-    AccelRange range = AccelRange::LSM303_RANGE_2G;
+    AccelRange range = AccelRange::RANGE_2G;
 
     const uint8_t LSM303_REGISTER_ACCEL_WHO_AM_I = 0x0F;
     const uint8_t LSM303_REGISTER_ACCEL_CTRL_REG1_A = 0x20;
