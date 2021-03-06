@@ -93,57 +93,81 @@ bool MPU6050::begin(Configuration config, uint8_t address, TwoWire *wire){
     return true;
 }
 
-MPU6050::Data MPU6050::getAccel(){
-    Data data;
+MPU6050::Data MPU6050::getData(){
+    Data data; // Data starts with all values zeroed
 
     // Request read 6 bytes from accel out register
     // Can read up to 14 bytes. Each value is 16 bits high byte, low byte.
     // accelX, accelY, accelZ, temp, gyroX, gyroY, gyroZ
     I2CHelper::write(wire, address, MPU6050_ACCEL_OUT);
 
-    uint8_t rawData[6];
-    if(I2CHelper::readBytes(wire, address, rawData, 6) != 6){
-        data.x = 0;
-        data.y = 0;
-        data.z = 0;
+    uint8_t rawData[14];
+    if(I2CHelper::readBytes(wire, address, rawData, 14) != 14){
         return data;
     }
 
-    data.x = rawData[0] << 8 | rawData[1];
-    data.y = rawData[2] << 8 | rawData[1];
-    data.z = rawData[4] << 8 | rawData[1];
+    data.accelX = rawData[0] << 8 | rawData[1];
+    data.accelY = rawData[2] << 8 | rawData[1];
+    data.accelZ = rawData[4] << 8 | rawData[1];
 
+    // Temperature is bytes 6 and 7
+    data.gyroX = rawData[8] << 8 | rawData[9];
+    data.gyroY = rawData[10] << 8 | rawData[11];
+    data.gyroZ = rawData[12] << 8 | rawData[13];
+
+
+    // Scaling of acceleration values
     switch(config.arange){
     case AccelRange::RANGE_2G:
-        data.x /= 16384;
-        data.y /= 16384;
-        data.z /= 16384;
+        data.accelX /= 16384;
+        data.accelY /= 16384;
+        data.accelZ /= 16384;
         break;
     case AccelRange::RANGE_4G:
-        data.x /= 8192;
-        data.y /= 8192;
-        data.z /= 8192;
+        data.accelX /= 8192;
+        data.accelY /= 8192;
+        data.accelZ /= 8192;
         break;
     case AccelRange::RANGE_8G:
-        data.x /= 4096;
-        data.y /= 4096;
-        data.z /= 4096;
+        data.accelX /= 4096;
+        data.accelY /= 4096;
+        data.accelZ /= 4096;
         break;
     case AccelRange::RANGE_16G:
-        data.x /= 2048;
-        data.y /= 2048;
-        data.z /= 2048;
+        data.accelX /= 2048;
+        data.accelY /= 2048;
+        data.accelZ /= 2048;
+        break;
+    }
+    data.accelX *= 9.80665f;
+    data.accelY *= 9.80665f;
+    data.accelZ *= 9.80665f;
+
+    // Scaling of gyro values
+    switch(config.grange){
+    case GyroRange::RANGE_250DPS:
+        data.gyroX /= 131;
+        data.gyroY /= 131;
+        data.gyroZ /= 131;
+        break;
+    case GyroRange::RANGE_500DPS:
+        data.gyroX /= 65.5;
+        data.gyroY /= 65.5;
+        data.gyroZ /= 65.5;
+        break;
+    case GyroRange::RANGE_1000DPS:
+        data.gyroX /= 32.8;
+        data.gyroY /= 32.8;
+        data.gyroZ /= 32.8;
+        break;
+    case GyroRange::RANGE_2000DPS:
+        data.gyroX /= 16.4;
+        data.gyroY /= 16.4;
+        data.gyroZ /= 16.4;
         break;
     }
 
-    data.x *= 9.80665f;
-    data.y *= 9.80665f;
-    data.z *= 9.80665f;
-
-    // m / s^2
+    // Accel: m / s^2
+    // Gyro: deg / sec
     return data;
-}
-
-MPU6050::Data MPU6050::getRates(){
-
 }

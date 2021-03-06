@@ -61,14 +61,13 @@ public:
     };
 
     struct Data{
-        float x, y, z;
+        float gyroX = 0, gyroY = 0, gyroZ = 0;
+        float accelX = 0, accelY = 0, accelZ = 0;
     };
 
     bool begin(Configuration config = Configuration(), uint8_t address = MPU6050_I2CADDR, TwoWire *wire = &Wire);
 
-    Data getAccel();
-
-    Data getRates();
+    Data getData();
 
 private:
     TwoWire *wire;
