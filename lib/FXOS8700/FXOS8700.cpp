@@ -28,14 +28,15 @@ bool FXOS8700::begin(uint8_t address, TwoWire *wire){
 
     wire->beginTransmission(address);
     wire->write(FXOS8700_REGISTER_WHO_AM_I);
-    if(wire->endTransmission() != 0){
+    if (Wire.endTransmission(false) != 0){
         return false;
     }
     if(wire->requestFrom(address, (size_t)1) != 1){
         return false;
     }
-    uint8_t id = wire->read();
-    if (id != FXOS8700_ID) {
+    uint8_t sensorId = Wire.read();
+    
+    if (sensorId != FXOS8700_ID) {
         return false;
     }
 

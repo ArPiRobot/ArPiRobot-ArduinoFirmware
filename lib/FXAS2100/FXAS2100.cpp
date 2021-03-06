@@ -29,17 +29,19 @@ bool FXAS2100::begin(uint8_t address, TwoWire *wire, GyroRange range){
 
     wire->beginTransmission(address);
     wire->write(GYRO_REGISTER_WHO_AM_I);
-    if(wire->endTransmission() != 0){
+    if (Wire.endTransmission(false) != 0){
         return false;
     }
-    if(wire->requestFrom(address, (size_t)1) !=1){
+    if(wire->requestFrom(address, (size_t)1) != 1){
+        return false;
+    }
+    uint8_t sensorId = Wire.read();
+    
+    if (sensorId != FXAS21002C_ID) {
         return false;
     }
 
-    uint8_t id = wire->read();
-    if (id != FXAS21002C_ID) {
-        return false;
-    }
+    setRange(GyroRange::GYRO_RANGE_250DPS);
 
     return true;
 }

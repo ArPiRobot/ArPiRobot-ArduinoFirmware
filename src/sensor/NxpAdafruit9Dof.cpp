@@ -17,12 +17,12 @@
  * along with ArPiRobot-ArduinoFirmware.  If not, see <https://www.gnu.org/licenses/>. 
  */
 
-#include <sensor/OldAdafruit9Dof.hpp>
+#include <sensor/NxpAdafruit9Dof.hpp>
 #include <Conversions.hpp>
 
-bool OldAdafruit9Dof::locked = false;
+bool NxpAdafruit9Dof::locked = false;
 
-OldAdafruit9Dof::OldAdafruit9Dof() : ArduinoDevice(24){
+NxpAdafruit9Dof::NxpAdafruit9Dof() : ArduinoDevice(24){
     if(locked)
         return;
 
@@ -36,7 +36,7 @@ OldAdafruit9Dof::OldAdafruit9Dof() : ArduinoDevice(24){
     valid = true;
 }
 
-OldAdafruit9Dof::OldAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24){
+NxpAdafruit9Dof::NxpAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24){
 
     // No arguments passed when creating this device so data is ignored
 
@@ -53,7 +53,7 @@ OldAdafruit9Dof::OldAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24
     valid = true;
 }
 
-uint16_t OldAdafruit9Dof::getSendData(uint8_t *data){
+uint16_t NxpAdafruit9Dof::getSendData(uint8_t *data){
     // This will never be called if not valid because service returns false
     Conversions::convertFloatToData(gx, &data[0], true);
     Conversions::convertFloatToData(gy, &data[4], true);
@@ -64,7 +64,7 @@ uint16_t OldAdafruit9Dof::getSendData(uint8_t *data){
     return 24;
 }
 
-bool OldAdafruit9Dof::service(RPiInterface *rpi){
+bool NxpAdafruit9Dof::service(RPiInterface *rpi){
     if(!valid) return false;
 
     unsigned long now = micros();
@@ -93,6 +93,6 @@ bool OldAdafruit9Dof::service(RPiInterface *rpi){
     return millis() >= nextSendTime;
 }
 
-void OldAdafruit9Dof::handleMessage(uint8_t *data, uint16_t len){
+void NxpAdafruit9Dof::handleMessage(uint8_t *data, uint16_t len){
     if(!valid) return;
 }

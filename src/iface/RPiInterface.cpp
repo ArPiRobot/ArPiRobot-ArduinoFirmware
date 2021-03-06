@@ -24,6 +24,7 @@
 #include <sensor/IRReflectorModule.hpp>
 #include <sensor/Ultrasonic4Pin.hpp>
 #include <sensor/OldAdafruit9Dof.hpp>
+#include <sensor/NxpAdafruit9Dof.hpp>
 
 FastCRC16 CRC16;
 
@@ -61,6 +62,9 @@ int16_t RPiInterface::addDevice(){
     }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDOLDADA9DOF", 13)){
         // Pass buffer without "ADDOLDADA9DOF" and without CRC
         device = new OldAdafruit9Dof(&readBuffer[13], readBufferLen - 15);
+    }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDNXPADA9DOF", 13)){
+        // Pass buffer without "ADDNXPADA9DOF" and without CRC
+        device = new NxpAdafruit9Dof(&readBuffer[13], readBufferLen - 15);
     }
 
     if(device != nullptr){
