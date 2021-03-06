@@ -18,95 +18,52 @@
  */
 
 #include "L3GD20.hpp"
+#include <I2CHelper.hpp>
 
-bool L3GD20::begin(uint8_t address, TwoWire *wire, GyroRange range){
-    if(this->wire != nullptr)
+bool L3GD20::begin(GyroRange range, uint8_t address, TwoWire *wire){
+    // If this has already been started or if given wire is null don't do anything
+    if(this->wire != nullptr || wire == nullptr)
         return false;
+
     this->address = address;
     this->wire = wire;
+    this->range = range;
     wire->begin();
 
-    // Read one byte from WHO_AM_I register
-    wire->beginTransmission(address);
-    wire->write(GYRO_REGISTER_WHO_AM_I);
-    if(wire->endTransmission() != 0)
-        return false;
-    if(wire->requestFrom(address, (size_t)1) != 1)
-        return false;
-    uint8_t id = wire->read();
-    
-    // Verify valid device
+    // Verify correct device
+    uint8_t id = I2CHelper::readByte(wire, address, GYRO_REGISTER_WHO_AM_I);
     if(id != L3GD20_ID && id != L3GD20H_ID){
         return false;
     }
 
-    // Set initial range. This also resets gyro and enables all three axes
-    setRange(range);
+    // Reset
+    I2CHelper::writeByte(wire, address, GYRO_REGISTER_CTRL_REG1, 0x00);
+
+    // Switch to normal mode (enable X, Y, Z axes)
+    I2CHelper::writeByte(wire, address, GYRO_REGISTER_CTRL_REG1, 0x0F);
+   
+    // Set range
+    switch(range){
+    case GyroRange::RANGE_250DPS:
+        I2CHelper::writeByte(wire, address, GYRO_REGISTER_CTRL_REG4, 0x00);
+        break;
+    case GyroRange::RANGE_500DPS:
+        I2CHelper::writeByte(wire, address, GYRO_REGISTER_CTRL_REG4, 0x10);
+        break;
+    case GyroRange::RANGE_2000DPS:
+        I2CHelper::writeByte(wire, address, GYRO_REGISTER_CTRL_REG4, 0x20);
+        break;
+    }
 
     return true;
 }
 
-void L3GD20::setRange(GyroRange range){
-    // Reset 
-    wire->beginTransmission(address);
-    wire->write(GYRO_REGISTER_CTRL_REG1);
-    wire->write(0x00);
-    wire->endTransmission();
-
-    // Then switch to normal mode (enable X, Y, Z axes)
-    wire->beginTransmission(address);
-    wire->write(GYRO_REGISTER_CTRL_REG1);
-    wire->write(0x0F);
-    wire->endTransmission();    
-
-    // Set range
-    wire->beginTransmission(address);
-    wire->write(GYRO_REGISTER_CTRL_REG4);
-    switch (range) {
-    case GyroRange::GYRO_RANGE_500DPS:
-        wire->write(0x10);
-        break;
-    case GyroRange::GYRO_RANGE_2000DPS:
-        wire->write(0x20);
-        break;
-    case GyroRange::GYRO_RANGE_250DPS:
-    default:
-        wire->write(0x00);
-        break;
-    }
-    wire->endTransmission();
-}
-
-L3GD20::GyroRange L3GD20::getRange(){
-    wire->beginTransmission(address);
-    wire->write(GYRO_REGISTER_CTRL_REG4);
-    if(wire->endTransmission() != 0){
-        return GyroRange::GYRO_RANGE_250DPS;
-    }
-    if(wire->requestFrom(address, (size_t)1) != 1){
-        return GyroRange::GYRO_RANGE_250DPS;
-    }
-    uint8_t r = wire->read();
-    switch(r){
-    case 0x10:
-        return GyroRange::GYRO_RANGE_500DPS;
-    case 0x20:
-        return GyroRange::GYRO_RANGE_2000DPS;
-    case 0x00:
-    default:
-        return GyroRange::GYRO_RANGE_250DPS;
-    }
-}
-
 L3GD20::Data L3GD20::getRates(){
     Data data;
-    
+
     // Retry until success (max 10 tries)
     for(uint8_t i = 0; i < 10; ++i){
-        wire->beginTransmission(address);
-        wire->write(GYRO_REGISTER_OUT_X_L | 0x80);
-
-        if(wire->endTransmission() == 0){
+        if(I2CHelper::write(wire, address, GYRO_REGISTER_OUT_X_L | 0x80) == 0){
             break;
         }else if(i == 9){
             data.x = 0;
@@ -115,41 +72,38 @@ L3GD20::Data L3GD20::getRates(){
             return data; // Failed on last try
         }
     }
-    if(wire->requestFrom(address, (size_t)6) != 6){
+
+    uint8_t rawData[6];
+    if(I2CHelper::readBytes(wire, address, rawData, 6) != 6){
         data.x = 0;
         data.y = 0;
         data.z = 0;
         return data;
     }
-    
-    uint8_t xlo = wire->read();
-    uint8_t xhi = wire->read();
-    uint8_t ylo = wire->read();
-    uint8_t yhi = wire->read();
-    uint8_t zlo = wire->read();
-    uint8_t zhi = wire->read();
 
-    data.x = (int16_t)(xlo | (xhi << 8));
-    data.y = (int16_t)(ylo | (yhi << 8));
-    data.z = (int16_t)(zlo | (zhi << 8));
+    data.x = (int16_t)(rawData[0] | (rawData[1] << 8));
+    data.y = (int16_t)(rawData[2] | (rawData[3] << 8));
+    data.z = (int16_t)(rawData[4] | (rawData[5] << 8));
 
     float scale = 0;
-    switch(getRange()){
-    case GyroRange::GYRO_RANGE_250DPS:
-        scale = GYRO_SENSITIVITY_250DPS;
+    switch(range){
+    case GyroRange::RANGE_250DPS:
+        data.x *= GYRO_SENSITIVITY_250DPS;
+        data.y *= GYRO_SENSITIVITY_250DPS;
+        data.z *= GYRO_SENSITIVITY_250DPS;
         break;
-    case GyroRange::GYRO_RANGE_500DPS:
-        scale = GYRO_SENSITIVITY_500DPS;
+    case GyroRange::RANGE_500DPS:
+        data.x *= GYRO_SENSITIVITY_500DPS;
+        data.y *= GYRO_SENSITIVITY_500DPS;
+        data.z *= GYRO_SENSITIVITY_500DPS;
         break;
-    case GyroRange::GYRO_RANGE_2000DPS:
-        scale = GYRO_SENSITIVITY_2000DPS;
+    case GyroRange::RANGE_2000DPS:
+        data.x *= GYRO_SENSITIVITY_2000DPS;
+        data.y *= GYRO_SENSITIVITY_2000DPS;
+        data.z *= GYRO_SENSITIVITY_2000DPS;
         break;
     }
 
-    // Rates in Deg / Sec
-    data.x *= scale;
-    data.y *= scale;
-    data.z *= scale;
-
+    // Rates in deg / sec
     return data;
 }

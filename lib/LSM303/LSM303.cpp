@@ -32,12 +32,12 @@ bool LSM303::begin(AccelRange range, uint8_t address, TwoWire *wire){
     wire->begin();
 
     // Verify correct device
-    uint8_t id = I2CHelper::readByte(wire, address, LSM303_REGISTER_ACCEL_WHO_AM_I);
+    int16_t id = I2CHelper::readByte(wire, address, LSM303_REGISTER_ACCEL_WHO_AM_I);
     if(id != 0x33)
         return false;
 
     // Enable accelerometer at 100Hz
-    if(!I2CHelper::writeByte(wire, address, LSM303_REGISTER_ACCEL_CTRL_REG1_A, 0x57))
+    if(I2CHelper::writeByte(wire, address, LSM303_REGISTER_ACCEL_CTRL_REG1_A, 0x57) != 0)
         return false;
 
     // Set range
@@ -61,7 +61,7 @@ LSM303::Data LSM303::getAccel(){
 
     // Retry until success (max 10 tries)
     for(uint8_t i = 0; i < 10; ++i){
-        if(I2CHelper::write(wire, address, LSM303_REGISTER_ACCEL_OUT_X_L_A | 0x80)){
+        if(I2CHelper::write(wire, address, LSM303_REGISTER_ACCEL_OUT_X_L_A | 0x80) == 0){
             break;
         }else if(i == 9){
             data.x = 0;
