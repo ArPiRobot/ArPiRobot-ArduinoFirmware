@@ -19,7 +19,7 @@
 
 #include "FXOS8700.hpp"
 
-bool FXOS8700::begin(uint8_t address = FXOS8700_ADDRESS, TwoWire *wire = &Wire){
+bool FXOS8700::begin(uint8_t address, TwoWire *wire){
     if(this->wire != nullptr)
         return false;
     this->wire = wire;
@@ -41,6 +41,8 @@ bool FXOS8700::begin(uint8_t address = FXOS8700_ADDRESS, TwoWire *wire = &Wire){
 
     // Default to +/- 2G range
     setRange(AccelRange::ACCEL_RANGE_2G);
+
+    return true;
 }
 
 FXOS8700::Data FXOS8700::getAccel(){

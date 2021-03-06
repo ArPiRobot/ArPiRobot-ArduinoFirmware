@@ -32,10 +32,6 @@ OldAdafruit9Dof::OldAdafruit9Dof() : ArduinoDevice(24){
     if(!success){
         locked = false;
     }
-
-    accel.setRange(LSM303::AccelRange::LSM303_RANGE_4G);
-    accel.setMode(LSM303::AccelMode::LSM303_MODE_NORMAL);
-    gyro.setRange(L3GD20::GyroRange::GYRO_RANGE_500DPS);
 }
 
 OldAdafruit9Dof::OldAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24){
