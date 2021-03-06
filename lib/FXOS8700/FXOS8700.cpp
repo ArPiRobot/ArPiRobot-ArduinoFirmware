@@ -97,5 +97,6 @@ FXOS8700::Data FXOS8700::getAccel(){
         break;
     }
 
+    // m / s^2
     return data;
 }
