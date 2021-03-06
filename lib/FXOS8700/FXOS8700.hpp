@@ -31,45 +31,40 @@ class FXOS8700{
 public:
 
     enum class AccelRange {
-        ACCEL_RANGE_2G = 0x00,
-        ACCEL_RANGE_4G = 0x01,
-        ACCEL_RANGE_8G = 0x02
+        RANGE_2G = 0x00,
+        RANGE_4G = 0x01,
+        RANGE_8G = 0x02
     };
 
     struct Data{
         float x, y, z;
     };
 
-    bool begin(uint8_t address = FXOS8700_ADDRESS, TwoWire *wire = &Wire);
+    bool begin(AccelRange range = AccelRange::RANGE_2G, uint8_t address = FXOS8700_ADDRESS, TwoWire *wire = &Wire);
 
     Data getAccel();
 
-    void setRange(AccelRange range);
-    AccelRange getRange();
-
 private:
-
     TwoWire *wire = nullptr;
     uint8_t address;
+    AccelRange range = AccelRange::RANGE_2G;
 
-    AccelRange _range = AccelRange::ACCEL_RANGE_2G;
-
-    const static int FXOS8700_ADDRESS = 0x1F;
-    const static int FXOS8700_ID = 0xC7;
-    const static int FXOS8700_REGISTER_STATUS = 0x00;
-    const static int FXOS8700_REGISTER_OUT_X_MSB = 0x01;
-    const static int FXOS8700_REGISTER_OUT_X_LSB = 0x02;
-    const static int FXOS8700_REGISTER_OUT_Y_MSB = 0x03;
-    const static int FXOS8700_REGISTER_OUT_Y_LSB = 0x04;
-    const static int FXOS8700_REGISTER_OUT_Z_MSB = 0x05;
-    const static int FXOS8700_REGISTER_OUT_Z_LSB = 0x06;
-    const static int FXOS8700_REGISTER_WHO_AM_I = 0x0D;
-    const static int FXOS8700_REGISTER_XYZ_DATA_CFG = 0x0E;
-    const static int FXOS8700_REGISTER_CTRL_REG1 = 0x2A;
-    const static int FXOS8700_REGISTER_CTRL_REG2 = 0x2B;
-    const static int FXOS8700_REGISTER_CTRL_REG3 = 0x2C;
-    const static int FXOS8700_REGISTER_CTRL_REG4 = 0x2D;
-    const static int FXOS8700_REGISTER_CTRL_REG5 = 0x2E;
+    const static uint8_t FXOS8700_ADDRESS = 0x1F;
+    const static uint8_t FXOS8700_ID = 0xC7;
+    const static uint8_t FXOS8700_REGISTER_STATUS = 0x00;
+    const static uint8_t FXOS8700_REGISTER_OUT_X_MSB = 0x01;
+    const static uint8_t FXOS8700_REGISTER_OUT_X_LSB = 0x02;
+    const static uint8_t FXOS8700_REGISTER_OUT_Y_MSB = 0x03;
+    const static uint8_t FXOS8700_REGISTER_OUT_Y_LSB = 0x04;
+    const static uint8_t FXOS8700_REGISTER_OUT_Z_MSB = 0x05;
+    const static uint8_t FXOS8700_REGISTER_OUT_Z_LSB = 0x06;
+    const static uint8_t FXOS8700_REGISTER_WHO_AM_I = 0x0D;
+    const static uint8_t FXOS8700_REGISTER_XYZ_DATA_CFG = 0x0E;
+    const static uint8_t FXOS8700_REGISTER_CTRL_REG1 = 0x2A;
+    const static uint8_t FXOS8700_REGISTER_CTRL_REG2 = 0x2B;
+    const static uint8_t FXOS8700_REGISTER_CTRL_REG3 = 0x2C;
+    const static uint8_t FXOS8700_REGISTER_CTRL_REG4 = 0x2D;
+    const static uint8_t FXOS8700_REGISTER_CTRL_REG5 = 0x2E;
 
     constexpr static float ACCEL_MG_LSB_2G = 0.000244F;
     constexpr static float ACCEL_MG_LSB_4G = 0.000488F;

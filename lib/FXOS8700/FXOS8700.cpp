@@ -18,30 +18,34 @@
  */
 
 #include "FXOS8700.hpp"
+#include <I2CHelper.hpp>
 
-bool FXOS8700::begin(uint8_t address, TwoWire *wire){
-    if(this->wire != nullptr)
+bool FXOS8700::begin(AccelRange range, uint8_t address, TwoWire *wire){
+    // If this has already been started or if given wire is null don't do anything
+    if(this->wire != nullptr || wire == nullptr)
         return false;
-    this->wire = wire;
+    
     this->address = address;
+    this->wire = wire;
+    this->range = range;
     wire->begin();
 
-    wire->beginTransmission(address);
-    wire->write(FXOS8700_REGISTER_WHO_AM_I);
-    if (Wire.endTransmission(false) != 0){
+    // Verify correct device
+    int16_t id = I2CHelper::readByte(wire, address, FXOS8700_REGISTER_WHO_AM_I);
+    if(id != FXOS8700_ID)
         return false;
-    }
-    if(wire->requestFrom(address, (size_t)1) != 1){
-        return false;
-    }
-    uint8_t sensorId = Wire.read();
-    
-    if (sensorId != FXOS8700_ID) {
-        return false;
-    }
 
-    // Default to +/- 2G range
-    setRange(AccelRange::ACCEL_RANGE_2G);
+    // Put in standby mode before configuring
+    I2CHelper::writeByte(wire, address, FXOS8700_REGISTER_CTRL_REG1, 0x00);
+
+    // Set range
+    I2CHelper::writeByte(wire, address, FXOS8700_REGISTER_XYZ_DATA_CFG, static_cast<uint8_t>(range));
+
+    // High resolution mode
+    I2CHelper::writeByte(wire, address, FXOS8700_REGISTER_CTRL_REG2, 0x02);
+
+    // Enabled, normal mode, 100Hz
+    I2CHelper::writeByte(wire, address, FXOS8700_REGISTER_CTRL_REG1, 0x15);
 
     return true;
 }
@@ -51,10 +55,8 @@ FXOS8700::Data FXOS8700::getAccel(){
 
     // Retry until success (max 10 tries)
     for(uint8_t i = 0; i < 10; ++i){
-        wire->beginTransmission(address);
-        wire->write(FXOS8700_REGISTER_OUT_X_MSB | 0x80);
-        if(wire->endTransmission() == 0){
-            break;  // Success
+        if(I2CHelper::write(wire, address, FXOS8700_REGISTER_OUT_X_MSB | 0x80) == 0){
+            break;
         }else if(i == 9){
             data.x = 0;
             data.y = 0;
@@ -63,85 +65,37 @@ FXOS8700::Data FXOS8700::getAccel(){
         }
     }
 
-    if(wire->requestFrom(address, (size_t)6) != 6){
+    uint8_t rawData[6];
+    if(I2CHelper::readBytes(wire, address, rawData, 6) != 6){
         data.x = 0;
         data.y = 0;
         data.z = 0;
         return data;
     }
 
-    uint8_t xlo = Wire.read();
-    uint8_t xhi = Wire.read();
-    uint8_t ylo = Wire.read();
-    uint8_t yhi = Wire.read();
-    uint8_t zlo = Wire.read();
-    uint8_t zhi = Wire.read();
-
     // Right shift b/c data is left aligned and only 14 bits wide
-    int16_t x = (int16_t)((xhi << 8) | xlo) >> 2;
-    int16_t y = (int16_t)((yhi << 8) | ylo) >> 2;
-    int16_t z = (int16_t)((zhi << 8) | zlo) >> 2;
+    data.x = (int16_t)((rawData[1] << 8) | rawData[0]) >> 2;
+    data.y = (int16_t)((rawData[3] << 8) | rawData[2]) >> 2;
+    data.z = (int16_t)((rawData[5] << 8) | rawData[4]) >> 2;
 
-    float lsb = 0;
-    switch(getRange()){
-    case AccelRange::ACCEL_RANGE_4G:
-        lsb = ACCEL_MG_LSB_4G;
+    switch(range){
+    case AccelRange::RANGE_2G:
+        data.x *= ACCEL_MG_LSB_2G * 9.80665f;
+        data.y *= ACCEL_MG_LSB_2G * 9.80665f;
+        data.z *= ACCEL_MG_LSB_2G * 9.80665f;
         break;
-    case AccelRange::ACCEL_RANGE_8G:
-        lsb = ACCEL_MG_LSB_8G;
+    case AccelRange::RANGE_4G:
+        data.x *= ACCEL_MG_LSB_4G * 9.80665f;
+        data.y *= ACCEL_MG_LSB_4G * 9.80665f;
+        data.z *= ACCEL_MG_LSB_4G * 9.80665f;
         break;
-    case AccelRange::ACCEL_RANGE_2G:
+    case AccelRange::RANGE_8G:
     default:
-        lsb = ACCEL_MG_LSB_2G;
+        data.x *= ACCEL_MG_LSB_8G * 9.80665f;
+        data.y *= ACCEL_MG_LSB_8G * 9.80665f;
+        data.z *= ACCEL_MG_LSB_8G * 9.80665f;
         break;
     }
-
-    data.x = (float)(x) * lsb * 9.80665f;
-    data.y = (float)(y) * lsb * 9.80665f;
-    data.z = (float)(z) * lsb * 9.80665f;
 
     return data;
-}
-
-void FXOS8700::setRange(AccelRange range){
-
-    // Put in standby mode before chaning range
-    wire->beginTransmission(address);
-    wire->write(FXOS8700_REGISTER_CTRL_REG1);
-    wire->write(0);
-    wire->endTransmission();
-
-    // Set range
-    wire->beginTransmission(address);
-    wire->write(FXOS8700_REGISTER_XYZ_DATA_CFG);
-    switch (range) {
-    case (AccelRange::ACCEL_RANGE_2G):
-        wire->write(0x00);
-        break;
-    case (AccelRange::ACCEL_RANGE_4G):
-        wire->write(0x01);
-        break;
-    case (AccelRange::ACCEL_RANGE_8G):
-        wire->write(0x02);
-        break;
-    }
-    wire->endTransmission();
-
-    _range = range;
-
-    // High resolution
-    wire->beginTransmission(address);
-    wire->write(FXOS8700_REGISTER_CTRL_REG2);
-    wire->write(0x02);
-    wire->endTransmission();
-
-    // Take out of standby (Active, normal mode, low noise, 100Hz)
-    wire->beginTransmission(address);
-    wire->write(FXOS8700_REGISTER_CTRL_REG1);
-    wire->write(0x15);
-    wire->endTransmission();
-}
-
-FXOS8700::AccelRange FXOS8700::getRange(){
-    return _range;
 }
