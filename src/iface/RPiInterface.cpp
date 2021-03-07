@@ -19,6 +19,7 @@
 
 #include <iface/RPiInterface.hpp>
 #include <Conversions.hpp>
+#include <settings.h>
 #include <sensor/SingleEncoder.hpp>
 #include <sensor/VoltageMonitor.hpp>
 #include <sensor/IRReflectorModule.hpp>
@@ -49,26 +50,40 @@ int16_t RPiInterface::addStaticDevice(ArduinoDevice *device){
 int16_t RPiInterface::addDevice(){
     ArduinoDevice *device = nullptr;
     if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDSENC", 7)){
+        #ifdef SingleEncoder_ENABLE
         // Pass buffer without "ADDSENC" and without CRC
         device = new SingleEncoder(&readBuffer[7], readBufferLen - 9);
+        #endif
     }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDVMON", 7)){
+        #ifdef VoltageMonitor_ENABLE
         // Pass buffer without "ADDVMON" and without CRC
         device = new VoltageMonitor(&readBuffer[7], readBufferLen - 9);
+        #endif
     }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDIRREFLECTOR", 14)){
+        #ifdef IRReflectorModule_ENABLE
         // Pass buffer without "ADDIRREFLECTOR" and without CRC
         device = new IRReflectorModule(&readBuffer[14], readBufferLen - 16);
+        #endif
     }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDUSONIC4", 10)){
+        #ifdef Ultrasonic4Pin_ENABLE
         // Pass buffer without "ADDUSONIC4" and without CRC
         device = new Ultrasonic4Pin(&readBuffer[10], readBufferLen - 12);
+        #endif
     }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDOLDADA9DOF", 13)){
+        #ifdef OldAdafruit9Dof_ENABLE
         // Pass buffer without "ADDOLDADA9DOF" and without CRC
         device = new OldAdafruit9Dof(&readBuffer[13], readBufferLen - 15);
+        #endif
     }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDNXPADA9DOF", 13)){
+        #ifdef NxpAdafruit9Dof_ENABLE
         // Pass buffer without "ADDNXPADA9DOF" and without CRC
         device = new NxpAdafruit9Dof(&readBuffer[13], readBufferLen - 15);
+        #endif
     }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDMPU6050", 10)){
+        #ifdef Mpu6050Imu_ENABLE
         // Pass buffer without "ADDMPU6050" and without CRC
         device = new Mpu6050Imu(&readBuffer[10], readBufferLen - 12);
+        #endif
     }
 
     if(device != nullptr){

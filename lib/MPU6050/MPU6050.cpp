@@ -20,8 +20,7 @@
 #include "MPU6050.hpp"
 #include <I2CHelper.hpp>
 
-bool MPU6050::begin(AccelRange arange = AccelRange::RANGE_2G, GyroRange grange = GyroRange::RANGE_250DPS, 
-            uint8_t address = MPU6050_I2CADDR_DEFAULT, TwoWire *wire = &Wire){
+bool MPU6050::begin(AccelRange arange, GyroRange grange, uint8_t address, TwoWire *wire){
     // If this has already been started or if given wire is null don't do anything
     if(this->wire != nullptr || wire == nullptr)
         return false;
