@@ -60,7 +60,7 @@ uint16_t VoltageMonitor::getSendData(uint8_t *data){
     return 4;
 }
 
-bool VoltageMonitor::service(RPiInterface *rpi){
+bool VoltageMonitor::service(){
     readingRunningSum -= readings[readingIndex];
     readings[readingIndex] = analogRead(analogPin);
     readingRunningSum += readings[readingIndex];

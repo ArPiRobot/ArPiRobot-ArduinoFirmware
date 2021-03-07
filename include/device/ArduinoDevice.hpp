@@ -61,7 +61,7 @@ public:
      * Handle periodic actions for this device
      * @return true if data should be sent from this device to the Pi
      */
-    virtual bool service(RPiInterface *rpi) = 0;
+    virtual bool service() = 0;
 
     /**
      * Handle some data sent to this device by the Pi
@@ -74,7 +74,7 @@ protected:
     // How often this device should send data back to the Pi (not how often this device should be serviced)
     uint16_t sendRateMs = 50;
 
-    // The next time to send data (calculated by getSendData function)
+    // The next time to send data (calculated by updateNextSendTime function)
     unsigned long nextSendTime = 0;
 
     int16_t deviceId = -1; // Device id is only an 8-bit int (unsigned), but is negative if invalid

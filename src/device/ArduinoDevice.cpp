@@ -27,7 +27,7 @@ ArduinoDevice::~ArduinoDevice(){
 }
 
 uint16_t ArduinoDevice::getSendBufferSize(){
-    return sendBufferSize;;
+    return sendBufferSize;
 }
 
 void ArduinoDevice::updateNextSendTime(){

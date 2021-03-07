@@ -68,7 +68,7 @@ uint16_t IRReflectorModule::getSendData(uint8_t *data){
     return 1;
 }
 
-bool IRReflectorModule::service(RPiInterface *rpi){
+bool IRReflectorModule::service(){
     uint8_t state = digitalRead(digitalPin);
     if(state != lastDigitalState){
         changedSinceLastSend = true;

@@ -65,6 +65,9 @@ int16_t RPiInterface::addDevice(){
     }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDNXPADA9DOF", 13)){
         // Pass buffer without "ADDNXPADA9DOF" and without CRC
         device = new NxpAdafruit9Dof(&readBuffer[13], readBufferLen - 15);
+    }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDMPU6050", 10)){
+        // Pass buffer without "ADDMPU6050" and without CRC
+        //device = new MPU6050IMU(&readBuffer[10], readBufferLen - 12);
     }
 
     if(device != nullptr){
@@ -84,6 +87,8 @@ void RPiInterface::reset(){
     // Delete non-static devices ((deviceCount - statiDeviceCount) devices removed from the front)
     // Non-static devices added to the front of the linked list after static devices
     for(int i = staticDeviceCount; i < devices.size(); ++i){
+        ArduinoDevice *d = devices.get(0);
+        delete d;
         devices.remove(0);
     }
     
@@ -111,14 +116,7 @@ void RPiInterface::run(){
                 reset();
                 writeData((uint8_t*)"START", 5);                
             }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADD", 3)){
-                int deviceId = addDevice();
-                if(deviceId == -1){
-                    writeData((uint8_t*)"ADDFAIL", 7);
-                }else{
-                    uint8_t buf[11] = "ADDSUCCESS";
-                    buf[10] = deviceId;
-                    writeData(buf, 11);
-                }
+                addDevice();
             }
 
             // Clear read buffer
@@ -128,6 +126,7 @@ void RPiInterface::run(){
 
     readBufferLen = 0;
     writeData((uint8_t*)"END", 3);
+    flush();
 
     while(true){
         // Service devices and send data as needed
@@ -135,7 +134,7 @@ void RPiInterface::run(){
             ArduinoDevice *d = devices.get(i);
 
             // Service will return true if there is data to send
-            if(d->service(this)){
+            if(d->service()){
                 uint8_t data[d->getSendBufferSize() + 1];
                 data[0] = d->deviceId;
                 uint16_t len = d->getSendData(&data[1]);

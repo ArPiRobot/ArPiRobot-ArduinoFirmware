@@ -64,7 +64,7 @@ uint16_t OldAdafruit9Dof::getSendData(uint8_t *data){
     return 24;
 }
 
-bool OldAdafruit9Dof::service(RPiInterface *rpi){
+bool OldAdafruit9Dof::service(){
     if(!valid) return false;
 
     unsigned long now = micros();

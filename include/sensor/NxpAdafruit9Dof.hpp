@@ -34,14 +34,14 @@ public:
     NxpAdafruit9Dof ();
 
     /**
-     * Construct a SingleEncoder from command data
+     * Construct the IMU from command data
      * Data format: ADDNXPADA9DOF
      */
     NxpAdafruit9Dof (uint8_t *data, uint16_t len);
 
     uint16_t getSendData(uint8_t *data) override;
 
-    bool service(RPiInterface *rpi) override;
+    bool service() override;
 
     void handleMessage(uint8_t *data, uint16_t len) override;
 

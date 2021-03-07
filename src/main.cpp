@@ -23,7 +23,6 @@
 #include <Conversions.hpp>
 
 void setup() {
-
     // NEVER REMOVE THIS LINE!
     Conversions::checkBigEndian();
 
@@ -36,5 +35,5 @@ void setup() {
 }
 
 void loop() {
-
+    
 }

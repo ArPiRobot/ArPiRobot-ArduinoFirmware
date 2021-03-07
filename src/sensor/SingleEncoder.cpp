@@ -42,7 +42,7 @@ uint16_t SingleEncoder::getSendData(uint8_t *data){
     return 2;
 }
 
-bool SingleEncoder::service(RPiInterface *rpi){
+bool SingleEncoder::service(){
     bool state = digitalRead(pin);
     if(state != lastState){
         count++;

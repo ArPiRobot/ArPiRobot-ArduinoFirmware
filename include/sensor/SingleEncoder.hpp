@@ -45,7 +45,7 @@ public:
 
     uint16_t getSendData(uint8_t *data) override;
 
-    bool service(RPiInterface *rpi) override;
+    bool service() override;
 
     void handleMessage(uint8_t *data, uint16_t len) override;
 

@@ -37,7 +37,7 @@ public:
     VoltageMonitor(uint8_t analogPin, float vboard, uint32_t r1, uint32_t r2);
 
     /**
-     * Construct a SingleEncoder from command data
+     * Construct a VoltageMonitor from command data
      * Data format: ADDSENC[ANALOG][PIN][PULLUP]
      *      ANALOG: 1 = analog pin #, 0 = digital pin #
      *      PIN: Pin number (unsigned 8-bit int)
@@ -47,7 +47,7 @@ public:
 
     uint16_t getSendData(uint8_t *data) override;
 
-    bool service(RPiInterface *rpi) override;
+    bool service() override;
 
     void handleMessage(uint8_t *data, uint16_t len) override;
 
