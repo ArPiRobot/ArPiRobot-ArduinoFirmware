@@ -31,6 +31,7 @@ NxpAdafruit9Dof::NxpAdafruit9Dof() : ArduinoDevice(24){
     bool success = accel.begin(FXOS8700::AccelRange::RANGE_2G) && gyro.begin(FXAS2100::GyroRange::RANGE_500DPS);
     if(!success){
         locked = false;
+        return;
     }
 
     valid = true;
@@ -48,6 +49,7 @@ NxpAdafruit9Dof::NxpAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24
     bool success = accel.begin() && gyro.begin();
     if(!success){
         locked = false;
+        return;
     }
 
     valid = true;

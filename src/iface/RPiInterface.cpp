@@ -25,6 +25,7 @@
 #include <sensor/Ultrasonic4Pin.hpp>
 #include <sensor/OldAdafruit9Dof.hpp>
 #include <sensor/NxpAdafruit9Dof.hpp>
+#include <sensor/Mpu6050Imu.hpp>
 
 FastCRC16 CRC16;
 
@@ -67,7 +68,7 @@ int16_t RPiInterface::addDevice(){
         device = new NxpAdafruit9Dof(&readBuffer[13], readBufferLen - 15);
     }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDMPU6050", 10)){
         // Pass buffer without "ADDMPU6050" and without CRC
-        //device = new MPU6050IMU(&readBuffer[10], readBufferLen - 12);
+        device = new Mpu6050Imu(&readBuffer[10], readBufferLen - 12);
     }
 
     if(device != nullptr){

@@ -17,18 +17,18 @@
  * along with ArPiRobot-ArduinoFirmware.  If not, see <https://www.gnu.org/licenses/>. 
  */
 
-#include <sensor/OldAdafruit9Dof.hpp>
+#include <sensor/Mpu6050Imu.hpp>
 #include <Conversions.hpp>
 
-bool OldAdafruit9Dof::locked = false;
+bool Mpu6050Imu::locked = false;
 
-OldAdafruit9Dof::OldAdafruit9Dof() : ArduinoDevice(24){
+Mpu6050Imu::Mpu6050Imu() : ArduinoDevice(24){
     if(locked)
         return;
 
     locked = true;
 
-    bool success = accel.begin(LSM303::AccelRange::RANGE_2G) && gyro.begin(L3GD20::GyroRange::RANGE_500DPS);
+    bool success = imu.begin(MPU6050::AccelRange::RANGE_2G, MPU6050::GyroRange::RANGE_500DPS);
     if(!success){
         locked = false;
         return;
@@ -37,7 +37,7 @@ OldAdafruit9Dof::OldAdafruit9Dof() : ArduinoDevice(24){
     valid = true;
 }
 
-OldAdafruit9Dof::OldAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24){
+Mpu6050Imu::Mpu6050Imu(uint8_t *data, uint16_t len) : ArduinoDevice(24){
 
     // No arguments passed when creating this device so data is ignored
 
@@ -46,7 +46,7 @@ OldAdafruit9Dof::OldAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24
 
     locked = true;
 
-    bool success = accel.begin(LSM303::AccelRange::RANGE_2G) && gyro.begin(L3GD20::GyroRange::RANGE_500DPS);
+    bool success = imu.begin(MPU6050::AccelRange::RANGE_2G, MPU6050::GyroRange::RANGE_500DPS);
     if(!success){
         locked = false;
         return;
@@ -55,7 +55,7 @@ OldAdafruit9Dof::OldAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24
     valid = true;
 }
 
-uint16_t OldAdafruit9Dof::getSendData(uint8_t *data){
+uint16_t Mpu6050Imu::getSendData(uint8_t *data){
     // This will never be called if not valid because service returns false
     Conversions::convertFloatToData(gx, &data[0], true);
     Conversions::convertFloatToData(gy, &data[4], true);
@@ -66,7 +66,7 @@ uint16_t OldAdafruit9Dof::getSendData(uint8_t *data){
     return 24;
 }
 
-bool OldAdafruit9Dof::service(){
+bool Mpu6050Imu::service(){
     if(!valid) return false;
 
     unsigned long now = micros();
@@ -79,22 +79,19 @@ bool OldAdafruit9Dof::service(){
     }
 
     // m/s^2
-    auto a = accel.getAccel();
-    ax = a.x;
-    ay = a.y;
-    az = a.z;
-
-    // deg / sec
-    auto g = gyro.getRates();
+    auto data = imu.getData();
+    ax = data.accelX;
+    ay = data.accelY;
+    az = data.accelZ;
 
     // Deg (accumulated)
-    gx += g.x * dt;
-    gy += g.y * dt;
-    gz += g.z * dt;
+    gx += data.gyroX * dt;
+    gy += data.gyroY * dt;
+    gz += data.gyroZ * dt;
 
     return millis() >= nextSendTime;
 }
 
-void OldAdafruit9Dof::handleMessage(uint8_t *data, uint16_t len){
+void Mpu6050Imu::handleMessage(uint8_t *data, uint16_t len){
     if(!valid) return;
 }
