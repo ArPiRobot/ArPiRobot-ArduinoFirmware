@@ -178,8 +178,8 @@ void RPiInterface::run(){
                         // Iterating in forward order will not cause performance issues. get() method caches.
                         ArduinoDevice *d = devices.get(i);
                         if(d->deviceId == id){
-                            // Skip the '-' in the data given to the device
-                            d->handleMessage(&readBuffer[1], readBufferLen - 1);
+                            // Skip the '-' in the data given to the device as well as device id
+                            d->handleMessage(&readBuffer[2], readBufferLen - 2);
                             break;
                         }
                     }
