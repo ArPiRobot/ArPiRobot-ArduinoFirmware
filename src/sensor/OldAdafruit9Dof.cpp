@@ -80,21 +80,68 @@ bool OldAdafruit9Dof::service(){
 
     // m/s^2
     auto a = accel.getAccel();
-    ax = a.x;
-    ay = a.y;
-    az = a.z;
+    ax = a.x - axCal;
+    ay = a.y - ayCal;
+    az = a.z - azCal;
 
     // deg / sec
     auto g = gyro.getRates();
 
     // Deg (accumulated)
-    gx += g.x * dt;
-    gy += g.y * dt;
-    gz += g.z * dt;
+    gx += (g.x - gxCal) * dt;
+    gy += (g.y - gyCal) * dt;
+    gz += (g.z - gzCal) * dt;
 
     return millis() >= nextSendTime;
 }
 
 void OldAdafruit9Dof::handleMessage(uint8_t *data, uint16_t len){
     if(!valid) return;
+
+    // Only one valid message 'C', samples
+    // 'C' = Calibrate, samples is 16 bit little endian # samples
+    if(data[0] == 'C' && len >= 3){
+        uint16_t samples = Conversions::convertDataToInt16(&data[1], true);
+        calibrate(samples);
+    }
+}
+
+void OldAdafruit9Dof::calibrate(uint16_t samples){
+    // Calibration is performed by taking given number of samples 1ms apart each
+    // Values for each are averaged and subtracted from accepted values for each measurement
+    // Calibration assumes device is stationary and gravity is along z axis (device is level)
+
+    // Wait 100ms before starting calibration
+    delay(100);
+
+    gxCal = 0;
+    gyCal = 0;
+    gzCal = 0;
+    axCal = 0;
+    ayCal = 0;
+    azCal = 0;
+
+    for(uint16_t i = 0; i < samples; ++i){
+        auto a = accel.getAccel();
+        auto g = gyro.getRates();
+        gxCal += g.x;
+        gyCal += g.y;
+        gzCal += g.z;
+        axCal += a.x;
+        ayCal += a.x;
+        azCal += a.x;
+        delay(1);
+    }
+
+    gxCal /= samples;
+    gyCal /= samples;
+    gzCal /= samples;
+    axCal /= samples;
+    ayCal /= samples;
+    azCal /= samples;
+
+    // When stationary Z axis reads -g not zero
+    azCal -= 9.80665;
+
+    // The cal variables now contain values that should be subtracted from each value read from imu
 }

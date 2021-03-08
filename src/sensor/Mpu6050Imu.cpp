@@ -140,5 +140,4 @@ void Mpu6050Imu::calibrate(uint16_t samples){
     azCal -= 9.80665;
 
     // The cal variables now contain values that should be subtracted from each value read from imu
-
 }
