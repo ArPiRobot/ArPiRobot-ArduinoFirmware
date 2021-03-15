@@ -85,3 +85,19 @@ void doAnaRead(const char *args){
   itoa(analogRead(pin), &buf[strlen(MSG_SUCCESS) + 1], 10);
   writeData(buf, strlen(buf));
 }
+
+void doAnaToDig(const char *args){
+  // GPAD,pin(#)
+  char *ptr = strtok(args, ",");
+  if(ptr == NULL){
+    writeData(MSG_FAILURE, strlen(MSG_FAILURE));
+    return;
+  }
+  uint8_t pin = atoi(ptr);
+  // SUCCESS,res\0 = SUCCESS + 5 bytes (comma, res(3 bytes max = 3 digits), null)
+  char buf[strlen(MSG_SUCCESS) + 5];
+  strcpy(buf, MSG_SUCCESS);
+  buf[strlen(MSG_SUCCESS)] = ',';
+  itoa(analogInputToDigitalPin(pin), &buf[strlen(MSG_SUCCESS) + 1], 10);
+  writeData(buf, strlen(buf));
+}
