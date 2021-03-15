@@ -67,6 +67,9 @@ class ArduinoInterface:
                         buffer = buffer + c
         return buffer[0:-2]
 
+    ############################################################################
+    # Core GPIO methods
+    ############################################################################
 
     def pinMode(self, pin: int, mode: bytes):
         self.write_data(b'GPPM,' + str(pin).encode() + b',' + mode)
@@ -108,6 +111,14 @@ class ArduinoInterface:
         self.write_data(b'GPAW,' + str(pin).encode() + b',' + str(value).encode())
         if(self.read_response() != b'SUCCESS'):
             self.analogWrite(pin, value)
+    
+    
+    ############################################################################
+    # GPIO automatic data acquisition
+    ############################################################################
+
+    def startAutoDigitalRead(self, pin: int):
+        self.write_data(b'GPADR')
 
 
 arduino = ArduinoInterface("COM3", 115200)

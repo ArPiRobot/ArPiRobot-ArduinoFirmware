@@ -9,12 +9,12 @@
 #define READ_BUFFER_SIZE 64
 
 // Commands
-#define CMD_PINMODE  "GPPM"
-#define CMD_DIGWRITE "GPDW"
-#define CMD_DIGREAD  "GPDR"
-#define CMD_ANAREAD  "GPAR"
-#define CMD_ANATODIG "GPAD"
-#define CMD_ANAWRITE "GPAW"
+#define CMD_PINMODE  "GPPM,"
+#define CMD_DIGWRITE "GPDW,"
+#define CMD_DIGREAD  "GPDR,"
+#define CMD_ANAREAD  "GPAR,"
+#define CMD_ANATODIG "GPAD,"
+#define CMD_ANAWRITE "GPAW,"
 
 // Messages
 #define MSG_READY    "READY"

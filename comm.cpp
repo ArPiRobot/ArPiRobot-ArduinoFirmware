@@ -31,21 +31,21 @@ void handleIncomingData(){
 void handleCommand(){
   // Make buffer a valid null terminated string, excluding the CRC
   // When passing cmd string to functions, remove the command and the first comma
-  // Second null terminator in case no comma after command 
+  // Second null terminator in case no data after command 
   readBuffer[readBufferLen - 2] = '\0';
   readBuffer[readBufferLen - 1] = '\0'; 
   if(dataStartsWith(readBuffer, readBufferLen, CMD_PINMODE, strlen(CMD_PINMODE))){
-    doPinMode(&readBuffer[strlen(CMD_PINMODE) + 1]);
+    doPinMode(&readBuffer[strlen(CMD_PINMODE)]);
   }else if(dataStartsWith(readBuffer, readBufferLen, CMD_DIGWRITE, strlen(CMD_DIGWRITE))){
-    doDigWrite(&readBuffer[strlen(CMD_DIGWRITE) + 1]);
+    doDigWrite(&readBuffer[strlen(CMD_DIGWRITE)]);
   }else if(dataStartsWith(readBuffer, readBufferLen, CMD_DIGREAD, strlen(CMD_DIGREAD))){
-    doDigRead(&readBuffer[strlen(CMD_DIGREAD) + 1]);
+    doDigRead(&readBuffer[strlen(CMD_DIGREAD)]);
   }else if(dataStartsWith(readBuffer, readBufferLen, CMD_ANAREAD, strlen(CMD_ANAREAD))){
-    doAnaRead(&readBuffer[strlen(CMD_ANAREAD) + 1]);
+    doAnaRead(&readBuffer[strlen(CMD_ANAREAD)]);
   }else if(dataStartsWith(readBuffer, readBufferLen, CMD_ANATODIG, strlen(CMD_ANATODIG))){
-    doAnaToDig(&readBuffer[strlen(CMD_ANATODIG) + 1]);
+    doAnaToDig(&readBuffer[strlen(CMD_ANATODIG)]);
   }else if(dataStartsWith(readBuffer, readBufferLen, CMD_ANAWRITE, strlen(CMD_ANAWRITE))){
-    doAnaWrite(&readBuffer[strlen(CMD_ANAWRITE) + 1]);
+    doAnaWrite(&readBuffer[strlen(CMD_ANAWRITE)]);
   }else{
     writeData(MSG_FAILURE, strlen(MSG_FAILURE));
   }
