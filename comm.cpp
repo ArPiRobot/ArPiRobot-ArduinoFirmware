@@ -44,6 +44,8 @@ void handleCommand(){
     doAnaRead(&readBuffer[strlen(CMD_ANAREAD) + 1]);
   }else if(dataStartsWith(readBuffer, readBufferLen, CMD_ANATODIG, strlen(CMD_ANATODIG))){
     doAnaToDig(&readBuffer[strlen(CMD_ANATODIG) + 1]);
+  }else if(dataStartsWith(readBuffer, readBufferLen, CMD_ANAWRITE, strlen(CMD_ANAWRITE))){
+    doAnaWrite(&readBuffer[strlen(CMD_ANAWRITE) + 1]);
   }else{
     writeData(MSG_FAILURE, strlen(MSG_FAILURE));
   }

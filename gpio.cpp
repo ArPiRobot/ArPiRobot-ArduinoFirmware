@@ -101,3 +101,21 @@ void doAnaToDig(const char *args){
   itoa(analogInputToDigitalPin(pin), &buf[strlen(MSG_SUCCESS) + 1], 10);
   writeData(buf, strlen(buf));
 }
+
+void doAnaWrite(const char *args){
+  // GPAW,pin(#),value
+  uint8_t pin;
+  char *ptr = strtok(args, ",");
+  if(ptr == NULL){
+    writeData(MSG_FAILURE, strlen(MSG_FAILURE));
+    return;
+  }
+  pin = atoi(ptr);
+  ptr = strtok(NULL, ",");
+  if(ptr == NULL){
+    writeData(MSG_FAILURE, strlen(MSG_FAILURE));
+    return;
+  }
+  analogWrite(pin, atoi(ptr));
+  writeData(MSG_SUCCESS, strlen(MSG_SUCCESS));
+}

@@ -103,15 +103,17 @@ class ArduinoInterface:
             return int(res[8:].decode())
         else:
             return self.analogInputToDigitalPin(pin)
+    
+    def analogWrite(self, pin: int, value: int):
+        self.write_data(b'GPAW,' + str(pin).encode() + b',' + str(value).encode())
+        if(self.read_response() != b'SUCCESS'):
+            self.analogWrite(pin, value)
 
 
 arduino = ArduinoInterface("COM3", 115200)
 
-arduino.pinMode(13, arduino.OUTPUT)
-arduino.pinMode(2, arduino.INPUT)
-time.sleep(1)
+arduino.pinMode(3, arduino.OUTPUT)
+arduino.analogWrite(3, 128)
 while True:
-    arduino.digitalWrite(13, arduino.HIGH)
-    time.sleep(1)
-    arduino.digitalWrite(13, arduino.LOW)
-    time.sleep(1)
+    print(arduino.analogRead(arduino.analogInputToDigitalPin(1)))
+    time.sleep(0.1)

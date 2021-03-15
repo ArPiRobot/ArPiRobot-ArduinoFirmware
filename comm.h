@@ -14,6 +14,7 @@
 #define CMD_DIGREAD  "GPDR"
 #define CMD_ANAREAD  "GPAR"
 #define CMD_ANATODIG "GPAD"
+#define CMD_ANAWRITE "GPAW"
 
 // Messages
 #define MSG_READY    "READY"
