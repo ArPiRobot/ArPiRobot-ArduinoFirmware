@@ -65,7 +65,23 @@ void doDigRead(const char *args){
   char buf[strlen(MSG_SUCCESS) + 3];
   strcpy(buf, MSG_SUCCESS);
   buf[strlen(MSG_SUCCESS)] = ',';
-  buf[strlen(MSG_SUCCESS) + 2] = '\0';
+  // itoa adds null terminator
   itoa(digitalRead(pin), &buf[strlen(MSG_SUCCESS) + 1], 10);
+  writeData(buf, strlen(buf));
+}
+
+void doAnaRead(const char *args){
+  // GPAR,pin(#)
+  char *ptr = strtok(args, ",");
+  if(ptr == NULL){
+    writeData(MSG_FAILURE, strlen(MSG_FAILURE));
+    return;
+  }
+  uint8_t pin = atoi(ptr);
+  // SUCCESS,res\0 = SUCCESS + 6 bytes (comma, res(4 bytes max = 4 digits), null)
+  char buf[strlen(MSG_SUCCESS) + 6];
+  strcpy(buf, MSG_SUCCESS);
+  buf[strlen(MSG_SUCCESS)] = ',';
+  itoa(analogRead(pin), &buf[strlen(MSG_SUCCESS) + 1], 10);
   writeData(buf, strlen(buf));
 }

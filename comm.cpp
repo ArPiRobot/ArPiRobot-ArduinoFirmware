@@ -38,8 +38,10 @@ void handleCommand(){
     doPinMode(&readBuffer[strlen(CMD_PINMODE) + 1]);
   }else if(dataStartsWith(readBuffer, readBufferLen, CMD_DIGWRITE, strlen(CMD_DIGWRITE))){
     doDigWrite(&readBuffer[strlen(CMD_DIGWRITE) + 1]);
-  }else if(dataStartsWith(readBuffer, readBufferLen, GMD_DIGREAD, strlen(GMD_DIGREAD))){
-    doDigRead(&readBuffer[strlen(GMD_DIGREAD) + 1]);
+  }else if(dataStartsWith(readBuffer, readBufferLen, CMD_DIGREAD, strlen(CMD_DIGREAD))){
+    doDigRead(&readBuffer[strlen(CMD_DIGREAD) + 1]);
+  }else if(dataStartsWith(readBuffer, readBufferLen, CMD_ANAREAD, strlen(CMD_ANAREAD))){
+    doAnaRead(&readBuffer[strlen(CMD_ANAREAD) + 1]);
   }else{
     writeData(MSG_FAILURE, strlen(MSG_FAILURE));
   }

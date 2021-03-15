@@ -11,7 +11,8 @@
 // Commands
 #define CMD_PINMODE  "GPPM"
 #define CMD_DIGWRITE "GPDW"
-#define GMD_DIGREAD  "GPDR"
+#define CMD_DIGREAD  "GPDR"
+#define CMD_ANAREAD  "GPAR"
 
 // Messages
 #define MSG_READY    "READY"
