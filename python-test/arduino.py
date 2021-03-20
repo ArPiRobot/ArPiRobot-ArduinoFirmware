@@ -65,6 +65,14 @@ class ArduinoInterface(ABC):
         self.__read_buffer = bytearray()
         self.open()
 
+        # Wait for "READY" message from arduino
+        while True:
+            if self.read_data():
+                if self.check_data():
+                    if self.__read_buffer[0:-2] == b'READY':
+                        break
+                self.__read_buffer.clear()
+
     def __del__(self):
         self.close()
     

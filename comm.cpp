@@ -28,6 +28,7 @@ BaseComm::~BaseComm(){
 
 void BaseComm::begin(){
   open();
+  writeData("READY", 5);
 }
 
 void BaseComm::end(){

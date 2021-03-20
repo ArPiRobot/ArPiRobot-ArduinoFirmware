@@ -3,9 +3,7 @@ import time
 
 
 arduino = ArduinoUartInterface("COM5", 115200)
-
-# TODO: Implement a READY message
-time.sleep(5)
+print("ARDUINO READY")
 
 arduino.pinMode(13, PinMode.OUTPUT)
 while True:
