@@ -1,17 +1,6 @@
-#include "comm.h"
+#include "comm.hpp"
 
-#include "gpio.h"
-
-const FastCRC16 CRC16;
-const uint8_t startByte = 253;
-const uint8_t endByte = 254;
-const uint8_t escapeByte = 255;
-bool parse_started = false;
-bool parse_escaped = false;
-uint8_t readBuffer[READ_BUFFER_SIZE];
-uint8_t readBufferLen = 0;
-
-void startComm(){
+/*void startComm(){
   SER.begin(SER_BAUD);
   writeData(MSG_READY, strlen(MSG_READY));
 }
@@ -52,12 +41,20 @@ void handleCommand(){
 }
 
 // Read one byte and add (as necessary) to read buffer
+// NOTE: Buffer overflow is not handled.
 bool readData(){
   int16_t c;
   if(SER.available() > 0){
     c = SER.read();
   }else{
     return false;
+  }
+
+  // If buffer is full, empty the buffer.
+  // Not ideal, as data is lost, but cannot overfill
+  // buffer and this ensures future data is still handled.
+  if(readBufferLen == READ_BUFFER_SIZE){
+    readBufferLen = 0;
   }
 
   if(parse_escaped){
@@ -123,26 +120,9 @@ void writeData(uint8_t *data, uint8_t len){
   SER.write(endByte);
 }
 
-bool checkData(uint8_t *data, uint8_t len){
+// Check the data in the read buffer to determine if it is valid
+bool checkData(){
   // Big endian CRC at end of data
-  return ((data[len - 2] << 8) | data[len - 1]) == CRC16.ccitt(data, len - 2);
-}
-
-// Does data 1 start with data 2
-bool dataStartsWith(uint8_t *data1, uint8_t len1, uint8_t *data2, uint8_t len2){
-  if(len2 > len1) return false;
-  for(uint8_t i = 0; i < len2; ++i){
-    if(data1[i] != data2[i]) return false;
-  }
-  return true;
-}
-
-// Does data 1 match data 2
-bool dataDoesMatch(uint8_t *data1, uint8_t len1, uint8_t *data2, uint8_t len2){
-  if(len1 != len2) return false;
-
-  for(uint8_t i = 0; i < len1; ++i){
-    if(data1[i] != data2[i]) return false;
-  }
-  return true;
-}
+  return ((readBuffer[readBufferLen - 2] << 8) | readBuffer[readBuffer - 1]) 
+      == CRC16.ccitt(readBuffer, readBuffer - 2);
+}*/

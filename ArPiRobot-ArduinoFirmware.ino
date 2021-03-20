@@ -1,11 +1,13 @@
-#include "comm.h"
+#include "comm.hpp"
+
+UartComm<HardwareSerial> comm(Serial, 115200);
 
 void setup() {
-  startComm();
+  // startComm();
 }
 
 void loop() {
-  handleIncomingData();
+  // handleIncomingData();
 
   // handlePeriodicDigitalReads() = periodically read digital pins
   // hanlePeriodicAnalogReads() = periodically read analog pins
