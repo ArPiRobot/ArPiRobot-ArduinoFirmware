@@ -24,7 +24,7 @@
   #define analogInputToDigitalPin(pin) (pin + 14)
 #endif // ARDUINO_AVR_NANO_EVERY
 
-#define DEBUG
+//#define DEBUG
 #ifdef DEBUG
   #include <SoftwareSerial.h>
   extern SoftwareSerial debugSerial;

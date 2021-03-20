@@ -113,6 +113,7 @@ class ArduinoInterface(ABC):
         if res.error_code != 0:
             self.print_error(sys._getframe().f_code.co_name, res.error_code)
             return PinState.LOW
+        print(res.response_data)
         return PinState(res.response_data[0])
 
     def analogWrite(self, pin: int, pwm: int):
@@ -199,7 +200,7 @@ class ArduinoInterface(ABC):
                 self.__read_buffer.clear()
 
     def get_response(self) -> Response:
-        return Response(self.__read_buffer[1], self.__read_buffer[2:])
+        return Response(self.__read_buffer[1], self.__read_buffer[2:-2])
 
     def write_data(self, data: bytearray):
         self.write(self.START_BYTE)

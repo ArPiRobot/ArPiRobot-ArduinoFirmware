@@ -5,9 +5,8 @@ import time
 arduino = ArduinoUartInterface("COM5", 115200)
 print("ARDUINO READY")
 
-arduino.pinMode(13, PinMode.OUTPUT)
+arduino.pinMode(10, PinMode.INPUT_PULLUP)
 while True:
-    arduino.digitalWrite(13, PinState.HIGH)
-    time.sleep(1)
-    arduino.digitalWrite(13, PinState.LOW)
+    res = arduino.digitalRead(10)
+    print(res)
     time.sleep(1)

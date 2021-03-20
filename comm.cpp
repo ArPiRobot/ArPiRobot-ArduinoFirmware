@@ -55,6 +55,8 @@ void BaseComm::handleCommand(){
     return GpioHelper::pinModeHelper(*this, readBuffer + 2, readBufferLen - 2);
   case Command::DIGITAL_WRITE:
     return GpioHelper::digitalWriteHelper(*this, readBuffer + 2, readBufferLen - 2);
+  case Command::DIGITAL_READ:
+    return GpioHelper::digitalReadHelper(*this, readBuffer + 2, readBufferLen - 2);
   default:
     return respond(ErrorCode::UNKNOWN_COMMAND, nullptr, 0);
   }
