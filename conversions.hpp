@@ -19,20 +19,24 @@
 
 #pragma once
 
-#if defined(ARDUINO_AVR_NANO_EVERY) && !defined(analogInputToDigitalPin)
-  // For some reason this is not defined for the arduino nano every...
-  #define analogInputToDigitalPin(pin) (pin + 14)
-#endif // ARDUINO_AVR_NANO_EVERY
+#include <Arduino.h>
+#include "board.hpp"
 
-#define DEBUG
-#ifdef DEBUG
-  #include <SoftwareSerial.h>
-  extern SoftwareSerial debugSerial;
-  #define DBG_INIT() debugSerial.begin(9600)
-  #define LOG(msg) debugSerial.print(msg)
-  #define LOGLN(msg) debugSerial.println(msg)
-#else
-  #define DBG_INIT()
-  #define LOG(msg)
-  #define LOGLN(msg)
-#endif
+
+namespace Conversions{
+    void checkBigEndian();
+
+    void convertInt32ToData(int32_t input, uint8_t *outBuffer, bool littleEndian);
+
+    int32_t convertDataToInt32(uint8_t *data, bool littleEndian);
+
+    void convertInt16ToData(int16_t input, uint8_t *outBuffer, bool littleEndian);
+
+    int16_t convertDataToInt16(uint8_t *data, bool littleEndian);
+
+    void convertFloatToData(float input, uint8_t *outBuffer, bool littleEndian);
+
+    float convertDataToFloat(uint8_t *data, bool littleEndian);
+
+    extern bool isBigEndian;
+};

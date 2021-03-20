@@ -1,55 +1,88 @@
-#include "comm.hpp"
+/*
+ * Copyright 2021 Marcus Behel
+ *
+ * This file is part of ArPiRobot-ArduinoFirmware.
+ * 
+ * ArPiRobot-ArduinoFirmware is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * ArPiRobot-ArduinoFirmware is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with ArPiRobot-ArduinoFirmware.  If not, see <https://www.gnu.org/licenses/>. 
+ */
 
-/*void startComm(){
-  SER.begin(SER_BAUD);
-  writeData(MSG_READY, strlen(MSG_READY));
+#include "comm.hpp"
+#include "gpio.hpp"
+
+const static FastCRC16 BaseComm::CRC16;
+
+BaseComm::~BaseComm(){
+  end();
 }
 
-void handleIncomingData(){
-  uint8_t count = SER.available();
+void BaseComm::begin(){
+  open();
+}
+
+void BaseComm::end(){
+  close();
+}
+
+void BaseComm::service(){
+  uint8_t count = Serial.available();
   for(uint8_t i = 0; i < count; ++i){
     if(readData()){
-      if(checkData(readBuffer, readBufferLen)){
-        handleCommand();
+      if(checkData()){
+        if(readBuffer[0] == static_cast<uint8_t>(MessageType::COMMAND)){
+          handleCommand();
+        }
       }
       readBufferLen = 0;
     }
   }
 }
 
-void handleCommand(){
-  // Make buffer a valid null terminated string, excluding the CRC
-  // When passing cmd string to functions, remove the command and the first comma
-  // Second null terminator in case no data after command 
-  readBuffer[readBufferLen - 2] = '\0';
-  readBuffer[readBufferLen - 1] = '\0'; 
-  if(dataStartsWith(readBuffer, readBufferLen, CMD_PINMODE, strlen(CMD_PINMODE))){
-    doPinMode(&readBuffer[strlen(CMD_PINMODE)]);
-  }else if(dataStartsWith(readBuffer, readBufferLen, CMD_DIGWRITE, strlen(CMD_DIGWRITE))){
-    doDigWrite(&readBuffer[strlen(CMD_DIGWRITE)]);
-  }else if(dataStartsWith(readBuffer, readBufferLen, CMD_DIGREAD, strlen(CMD_DIGREAD))){
-    doDigRead(&readBuffer[strlen(CMD_DIGREAD)]);
-  }else if(dataStartsWith(readBuffer, readBufferLen, CMD_ANAREAD, strlen(CMD_ANAREAD))){
-    doAnaRead(&readBuffer[strlen(CMD_ANAREAD)]);
-  }else if(dataStartsWith(readBuffer, readBufferLen, CMD_ANATODIG, strlen(CMD_ANATODIG))){
-    doAnaToDig(&readBuffer[strlen(CMD_ANATODIG)]);
-  }else if(dataStartsWith(readBuffer, readBufferLen, CMD_ANAWRITE, strlen(CMD_ANAWRITE))){
-    doAnaWrite(&readBuffer[strlen(CMD_ANAWRITE)]);
-  }else{
-    writeData(MSG_FAILURE, strlen(MSG_FAILURE));
+void BaseComm::handleCommand(){
+  switch(static_cast<Command>(readBuffer[1])){
+  case Command::PIN_MODE:
+    return GpioHelper::pinModeHelper(*this, readBuffer + 2, readBufferLen - 2);
+  case Command::DIGITAL_WRITE:
+    return GpioHelper::digitalWriteHelper(*this, readBuffer + 2, readBufferLen - 2);
+  default:
+    return respond(ErrorCode::UNKNOWN_COMMAND, nullptr, 0);
   }
 }
 
+void BaseComm::respond(ErrorCode errorCode, uint8_t *data, uint8_t len){
+  uint8_t *fullMessage = new uint8_t[len + 2];
+  fullMessage[0] = static_cast<uint8_t>(MessageType::RESPONSE);
+  fullMessage[1] = static_cast<uint8_t>(errorCode);
+  for(uint8_t i = 0; i < len; ++i){
+    fullMessage[i + 2] = data[i];
+  }
+  writeData(fullMessage, len + 2);
+  delete[] fullMessage;
+}
+
+BaseComm::BaseComm(){
+  
+}
+
 // Read one byte and add (as necessary) to read buffer
-// NOTE: Buffer overflow is not handled.
-bool readData(){
+bool BaseComm::readData(){
   int16_t c;
-  if(SER.available() > 0){
-    c = SER.read();
+  if(available() > 0){
+    c = read();
   }else{
     return false;
   }
-
+  
   // If buffer is full, empty the buffer.
   // Not ideal, as data is lost, but cannot overfill
   // buffer and this ensures future data is still handled.
@@ -59,21 +92,21 @@ bool readData(){
 
   if(parse_escaped){
     // Ignore invalid escaped data
-    if(c == startByte || c == endByte || c == escapeByte){
+    if(c == START_BYTE || c == END_BYTE || c == ESCAPE_BYTE){
       readBuffer[readBufferLen++] = c;
     }
     parse_escaped = false; // Past the next byte. No longer escaped
   }else{
-    if(c == startByte){
+    if(c == START_BYTE){
       if(parse_started){
         // Got a second start byte. Trash what is already in the buffer
         readBufferLen = 0;
       }
       parse_started = true;
-    }else if(c == endByte && parse_started){
+    }else if(c == END_BYTE && parse_started){
       parse_started = false;
       return true; // Have complete data set
-    }else if(c == escapeByte && parse_started){
+    }else if(c == ESCAPE_BYTE && parse_started){
       parse_escaped = true;
     }else if(parse_started){
       readBuffer[readBufferLen++] = c;
@@ -83,20 +116,27 @@ bool readData(){
   return false; // Not complete data set
 }
 
-void writeData(uint8_t *data, uint8_t len){
-  SER.write(startByte);
+// Check the data in the read buffer to determine if it is valid
+bool BaseComm::checkData(){
+  // Big endian CRC at end of data
+  return ((readBuffer[readBufferLen - 2] << 8) | readBuffer[readBufferLen - 1]) 
+      == CRC16.ccitt(readBuffer, readBufferLen - 2);
+}
+
+void BaseComm::writeData(uint8_t *data, uint8_t len){
+  write(START_BYTE);
   for(uint8_t i = 0; i < len; ++i){
-    if(data[i] == endByte){
-      SER.write(escapeByte);
-      SER.write(endByte);
-    }else if(data[i] == startByte){
-      SER.write(escapeByte);
-      SER.write(startByte);
-    }else if(data[i] == escapeByte){
-      SER.write(escapeByte);
-      SER.write(escapeByte);
+    if(data[i] == END_BYTE){
+      write(ESCAPE_BYTE);
+      write(END_BYTE);
+    }else if(data[i] == START_BYTE){
+      write(ESCAPE_BYTE);
+      write(START_BYTE);
+    }else if(data[i] == ESCAPE_BYTE){
+      write(ESCAPE_BYTE);
+      write(ESCAPE_BYTE);
     }else{
-      SER.write(data[i]);
+      write(data[i]);
     }
   }
 
@@ -106,23 +146,16 @@ void writeData(uint8_t *data, uint8_t len){
   uint8_t crcLow = (crc & 0xFF);
 
   // High byte
-  if(crcHigh == startByte || crcHigh == endByte || crcHigh == escapeByte){
-    SER.write(escapeByte);
+  if(crcHigh == START_BYTE || crcHigh == END_BYTE || crcHigh == ESCAPE_BYTE){
+    write(ESCAPE_BYTE);
   }
-  SER.write(crcHigh);
+  write(crcHigh);
 
   // Low byte
-  if(crcLow == startByte || crcLow == endByte || crcLow == escapeByte){
-    SER.write(escapeByte);
+  if(crcLow == START_BYTE || crcLow == END_BYTE || crcLow == ESCAPE_BYTE){
+    write(ESCAPE_BYTE);
   }
-  SER.write(crcLow);
+  write(crcLow);
 
-  SER.write(endByte);
+  write(END_BYTE);
 }
-
-// Check the data in the read buffer to determine if it is valid
-bool checkData(){
-  // Big endian CRC at end of data
-  return ((readBuffer[readBufferLen - 2] << 8) | readBuffer[readBuffer - 1]) 
-      == CRC16.ccitt(readBuffer, readBuffer - 2);
-}*/

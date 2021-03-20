@@ -66,9 +66,10 @@ enum class Command{
 
 enum class ErrorCode{
   NONE = 0,
-  ERR_INVALID_ARG = 1,
-  ERR_NOT_ENOUGH_ARGS = 2,
-  ERR_EXECUTION = 3
+  INVALID_ARG = 1,
+  NOT_ENOUGH_ARGS = 2,
+  EXECUTION = 3,
+  UNKNOWN_COMMAND = 4
 };
 
 class BaseComm{
@@ -80,10 +81,13 @@ public:
   void begin();
   void end();
   void service();
+  void handleCommand();
+
+  void respond(ErrorCode errorCode, uint8_t *data, uint8_t len);
 
 protected:
 
-  BaseComm(){}
+  BaseComm();
   
   // Communication bus specific functions
   virtual void open() = 0;
@@ -95,7 +99,7 @@ protected:
 private:
   bool readData();
   bool checkData();
-  void writeData();
+  void writeData(uint8_t *data, uint8_t len);
 
   // Constaints, static objects
   const static uint8_t START_BYTE = 253;
@@ -114,12 +118,9 @@ private:
 template <class SERIAL_T>
 class UartComm : public BaseComm{
 public:
-  UartComm(SERIAL_T &serial, int baud) : serial(serial), baud(baud){}
+  UartComm(SERIAL_T &serial, unsigned long baud) : serial(serial), baud(baud){}
   UartComm(const UartComm &other) = delete;
   UartComm& operator=(const UartComm& other) = delete;
-  virtual ~UartComm(){
-    close();
-  }
 protected:
   void open() override{
     serial.begin(baud);
@@ -138,5 +139,5 @@ protected:
   }
 private:
   SERIAL_T &serial;
-  int baud;
+  unsigned long baud;
 };

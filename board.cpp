@@ -17,22 +17,8 @@
  * along with ArPiRobot-ArduinoFirmware.  If not, see <https://www.gnu.org/licenses/>. 
  */
 
-#pragma once
+#include "board.hpp"
 
-#if defined(ARDUINO_AVR_NANO_EVERY) && !defined(analogInputToDigitalPin)
-  // For some reason this is not defined for the arduino nano every...
-  #define analogInputToDigitalPin(pin) (pin + 14)
-#endif // ARDUINO_AVR_NANO_EVERY
-
-#define DEBUG
 #ifdef DEBUG
-  #include <SoftwareSerial.h>
-  extern SoftwareSerial debugSerial;
-  #define DBG_INIT() debugSerial.begin(9600)
-  #define LOG(msg) debugSerial.print(msg)
-  #define LOGLN(msg) debugSerial.println(msg)
-#else
-  #define DBG_INIT()
-  #define LOG(msg)
-  #define LOGLN(msg)
+  SoftwareSerial debugSerial(2, 3); // RX, TX
 #endif

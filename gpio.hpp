@@ -18,3 +18,14 @@
  */
 
 #pragma once
+
+#include "comm.hpp"
+
+namespace GpioHelper{
+  void pinModeHelper(BaseComm &comm, uint8_t *data, uint8_t len);
+  void digitalWriteHelper(BaseComm &comm, uint8_t *data, uint8_t len);
+  void digitalReadHelper(BaseComm &comm, uint8_t *data, uint8_t len);
+  void analogWriteHelper(BaseComm &comm, uint8_t *data, uint8_t len);
+  void analogReadHelper(BaseComm &comm, uint8_t *data, uint8_t len);
+  void analogInputToDigitalPinHelper(BaseComm &comm, uint8_t *data, uint8_t len);
+}
