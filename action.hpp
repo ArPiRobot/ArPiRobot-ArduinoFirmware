@@ -17,22 +17,36 @@
  * along with ArPiRobot-ArduinoFirmware.  If not, see <https://www.gnu.org/licenses/>. 
  */
 
-#include "comm.hpp"
+#pragma once
+
+#include <stdint.h>
+
+// Forward declare
+class BaseComm;
 
 class AutoAction{
 public:
+  AutoAction();
+
   virtual bool service() = 0;
-  virtual void sendData(uint8_t actionId, BaseComm &comm) = 0;
+  virtual void sendData(BaseComm &comm) = 0;
+
+protected:
+  uint8_t actionId;
+
+private:
+  static uint8_t nextActionId;
 };
 
 // Sends status message when change occurs on polled pin
 class AutoDigitalRead : public AutoAction{
 public:
+  bool configure(uint8_t pin);
   bool service() override;
-  void sendData(uint8_t actionId, BaseComm &comm) override;
+  void sendData(BaseComm &comm) override;
 private:
-  uint8_t lastState = 255;
   uint8_t pin;
+  uint8_t lastState = 255;
   unsigned long lastChange = 0;  // Time of last pin change
   unsigned long dt = 0;          // Time since last pin change
 };

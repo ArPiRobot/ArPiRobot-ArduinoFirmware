@@ -47,6 +47,13 @@ void BaseComm::service(){
       readBufferLen = 0;
     }
   }
+
+  for(uint8_t i = 0; i < autoActions.size(); ++i){
+    auto it = autoActions.get(i);
+    if(it->service()){
+      it->sendData(*this);
+    }
+  }
 }
 
 void BaseComm::handleCommand(){
@@ -63,6 +70,30 @@ void BaseComm::handleCommand(){
     return GpioHelper::analogReadHelper(*this, readBuffer + 2, readBufferLen - 2);
   case Command::ANALOG_INPUT_TO_DIGITAL_PIN:
     return GpioHelper::analogInputToDigitalPinHelper(*this, readBuffer + 2, readBufferLen - 2);
+  case Command::STOP_AUTO_ACTION:
+    // Args: ActionId (uint8_t) = index in list
+    if(readBufferLen < 3){
+      respond(ErrorCode::NOT_ENOUGH_ARGS, nullptr, 0);
+      return;
+    }
+    if(readBuffer[2] >= autoActions.size()){
+      respond(ErrorCode::EXECUTION, nullptr, 0);
+      return;
+    }
+    auto it = autoActions.remove(readBuffer[2]);
+    delete it;
+    respond(ErrorCode::NONE, nullptr, 0);
+    return;
+  case Command::POLL_DIG_READ:
+    // Args: pin(uint8_t)
+    if(readBufferLen < 3){
+      respond(ErrorCode::NOT_ENOUGH_ARGS, nullptr, 0);
+      return;
+    }
+    auto autoDigRead = new AutoDigitalRead();
+    autoDigRead->configure(readBuffer[2]);
+    autoActions.add(autoDigRead);
+    return;
   default:
     return respond(ErrorCode::UNKNOWN_COMMAND, nullptr, 0);
   }

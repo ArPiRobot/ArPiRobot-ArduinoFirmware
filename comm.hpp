@@ -22,7 +22,9 @@
 
 #include <FastCRC.h>
 #include <Arduino.h>
+#include <LinkedList.h>
 #include "board.hpp"
+#include "action.hpp"
 
 /**
  * Communications with the Raspberry Pi can occur over one of many communication buses. 
@@ -75,7 +77,10 @@ enum class Command{
   DIGITAL_READ = 2,
   ANALOG_READ = 3,
   ANALOG_WRITE = 4,
-  ANALOG_INPUT_TO_DIGITAL_PIN = 5
+  ANALOG_INPUT_TO_DIGITAL_PIN = 5,
+  
+  STOP_AUTO_ACTION = 6, // Stop an auto action (auto actions send data using status messages)
+  POLL_DIG_READ = 7     // Start auto action to digitalRead a pin (polling)
 };
 
 enum class ErrorCode{
@@ -129,6 +134,8 @@ private:
   bool parse_escaped = false;
   uint8_t readBuffer[BaseComm::READ_BUFFER_SIZE];
   uint8_t readBufferLen = 0;
+
+  LinkedList<AutoAction*> autoActions;
 };
 
 template <class SERIAL_T>

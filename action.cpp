@@ -19,6 +19,19 @@
 
 #include "action.hpp"
 #include "conversions.hpp"
+#include "comm.hpp"
+
+uint8_t AutoAction::nextActionId = 0;
+
+AutoAction::AutoAction(){
+  actionId = nextActionId;
+  nextActionId++;  
+}
+
+bool AutoDigitalRead::configure(uint8_t pin){
+  this->pin = pin;
+  return true; // Any pin is valid
+}
 
 bool AutoDigitalRead::service(){
   uint8_t state = digitalRead(pin);
@@ -31,7 +44,7 @@ bool AutoDigitalRead::service(){
   return res;
 }
 
-void AutoDigitalRead::sendData(uint8_t actionId, BaseComm &comm){
+void AutoDigitalRead::sendData(BaseComm &comm){
   // source is actionId is uint8_t
   // dt is uint32_t
   // state is uint8_t

@@ -18,6 +18,10 @@ With a simple but powerful caching algorithm, you can get subsequent objects muc
 
 **If you are here, because another Library requires this class, just don't waste time reading bellow. Install and ready.**
 
+## Tests
+
+`cd` to this directory and run `g++ -std=c++14 tests.cpp -o tests && ./tests`
+
 -------------------------
 
 ## Getting started
@@ -117,6 +121,12 @@ myDeletedObject = myList.shift();
 myList.clear();
 ```
 
+#### Sorting elements
+```c++
+// Sort using a comparator function
+myList.sort(myComparator);
+```
+
 ------------------------
 
 ## Library Reference
@@ -154,6 +164,8 @@ myList.clear();
 - `T` `LinkedList<T>::get(int index)` - Return the element at `index`.
 
 - `void` `LinkedList<T>::clear()` - Removes all elements. Does not free pointer memory.
+
+- `void` `LinkedList<T>::sort(int (*cmp)(T &, T &))` - Sorts the linked list according to a comparator funcrion. The comparator should return < 0 if the first argument should be sorted before the second, and > 0 if the first argument should be sorted after the first element. (Same as how `strcmp()` works.)
 
 - **protected** `int` `LinkedList<T>::_size` - Holds the cached size of the list.
 
