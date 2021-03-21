@@ -1,6 +1,7 @@
 import serial
 import struct
 import sys
+from threading import Thread, Event, Lock
 from enum import IntEnum
 from abc import ABC, abstractmethod
 
@@ -48,6 +49,11 @@ class Response:
 
 class ArduinoInterface(ABC):
 
+    # TODO: Thread safety
+    # Lock mutex before sending command
+    # Unlock mutex after receiving result
+    # Internal data read thread would ignore this lock
+
     OUTPUT = 0
     INPUT = 1
     INPUT_PULLUP = 2
@@ -72,6 +78,15 @@ class ArduinoInterface(ABC):
                     if self.__read_buffer[0:-2] == b'READY':
                         break
                 self.__read_buffer.clear()
+        self.__read_buffer.clear()
+        
+        self.__last_response = None
+        self.__response_ready = Event()
+        self.__read_thread = Thread(target=self.run_forever, daemon=True)
+        self.__read_thread.start()
+
+        # Not ok to have multiple threads running commands at the same time
+        self.__cmd_lock = Lock()
 
     def __del__(self):
         self.close()
@@ -82,78 +97,106 @@ class ArduinoInterface(ABC):
     ############################################################################
 
     def pinMode(self, pin: int, mode: PinMode):
-        msg = bytearray()
-        msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
-        msg.extend(int(Command.PIN_MODE).to_bytes(1, 'big'))
-        msg.extend(pin.to_bytes(1, 'big'))
-        msg.extend(int(mode).to_bytes(1, 'big'))
-        self.write_data(msg)
-        res = self.wait_for_response()
-        if res.error_code != 0:
-            self.print_error(sys._getframe().f_code.co_name, res.error_code)
+        with self.__cmd_lock:
+            msg = bytearray()
+            msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
+            msg.extend(int(Command.PIN_MODE).to_bytes(1, 'big'))
+            msg.extend(pin.to_bytes(1, 'big'))
+            msg.extend(int(mode).to_bytes(1, 'big'))
+            self.write_data(msg)
+            res = self.wait_for_response()
+            if res.error_code != 0:
+                self.print_error(sys._getframe().f_code.co_name, res.error_code)
     
     def digitalWrite(self, pin: int, state: PinState):
-        msg = bytearray()
-        msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
-        msg.extend(int(Command.DIGITAL_WRITE).to_bytes(1, 'big'))
-        msg.extend(pin.to_bytes(1, 'big'))
-        msg.extend(int(state).to_bytes(1, 'big'))
-        self.write_data(msg)
-        res = self.wait_for_response()
-        if res.error_code != 0:
-            self.print_error(sys._getframe().f_code.co_name, res.error_code)
+        with self.__cmd_lock:
+            msg = bytearray()
+            msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
+            msg.extend(int(Command.DIGITAL_WRITE).to_bytes(1, 'big'))
+            msg.extend(pin.to_bytes(1, 'big'))
+            msg.extend(int(state).to_bytes(1, 'big'))
+            self.write_data(msg)
+            res = self.wait_for_response()
+            if res.error_code != 0:
+                self.print_error(sys._getframe().f_code.co_name, res.error_code)
     
     def digitalRead(self, pin: int) -> PinState:
-        msg = bytearray()
-        msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
-        msg.extend(int(Command.DIGITAL_READ).to_bytes(1, 'big'))
-        msg.extend(pin.to_bytes(1, 'big'))
-        self.write_data(msg)
-        res = self.wait_for_response()
-        if res.error_code != 0:
-            self.print_error(sys._getframe().f_code.co_name, res.error_code)
-            return PinState.LOW
-        print(res.response_data)
-        return PinState(res.response_data[0])
+        with self.__cmd_lock:
+            msg = bytearray()
+            msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
+            msg.extend(int(Command.DIGITAL_READ).to_bytes(1, 'big'))
+            msg.extend(pin.to_bytes(1, 'big'))
+            self.write_data(msg)
+            res = self.wait_for_response()
+            if res.error_code != 0:
+                self.print_error(sys._getframe().f_code.co_name, res.error_code)
+                return PinState.LOW
+            print(res.response_data)
+            return PinState(res.response_data[0])
 
     def analogWrite(self, pin: int, pwm: int):
-        msg = bytearray()
-        msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
-        msg.extend(int(Command.ANALOG_WRITE).to_bytes(1, 'big'))
-        msg.extend(pin.to_bytes(1, 'big'))
-        msg.extend(int(pwm).to_bytes(1, 'big'))
-        self.write_data(msg)
-        res = self.wait_for_response()
-        if res.error_code != 0:
-            self.print_error(sys._getframe().f_code.co_name, res.error_code)
+        with self.__cmd_lock:
+            msg = bytearray()
+            msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
+            msg.extend(int(Command.ANALOG_WRITE).to_bytes(1, 'big'))
+            msg.extend(pin.to_bytes(1, 'big'))
+            msg.extend(int(pwm).to_bytes(1, 'big'))
+            self.write_data(msg)
+            res = self.wait_for_response()
+            if res.error_code != 0:
+                self.print_error(sys._getframe().f_code.co_name, res.error_code)
     
     def analogRead(self, pin: int) -> int:
-        msg = bytearray()
-        msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
-        msg.extend(int(Command.ANALOG_READ).to_bytes(1, 'big'))
-        msg.extend(pin.to_bytes(1, 'big'))
-        self.write_data(msg)
-        res = self.wait_for_response()
-        if res.error_code != 0:
-            self.print_error(sys._getframe().f_code.co_name, res.error_code)
-            return 0
-        return struct.unpack_from('>H', res.response_data)[0]
+        with self.__cmd_lock:
+            msg = bytearray()
+            msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
+            msg.extend(int(Command.ANALOG_READ).to_bytes(1, 'big'))
+            msg.extend(pin.to_bytes(1, 'big'))
+            self.write_data(msg)
+            res = self.wait_for_response()
+            if res.error_code != 0:
+                self.print_error(sys._getframe().f_code.co_name, res.error_code)
+                return 0
+            return struct.unpack_from('>H', res.response_data)[0]
     
     def analogInputToDigitalPin(self, pin: int) -> int:
-        msg = bytearray()
-        msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
-        msg.extend(int(Command.ANALOG_INPUT_TO_DIGITAL_PIN).to_bytes(1, 'big'))
-        msg.extend(pin.to_bytes(1, 'big'))
-        self.write_data(msg)
-        res = self.wait_for_response()
-        if res.error_code != 0:
-            self.print_error(sys._getframe().f_code.co_name, res.error_code)
-            return PinState.LOW
-        return res.response_data[0]
+        with self.__cmd_lock:
+            msg = bytearray()
+            msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
+            msg.extend(int(Command.ANALOG_INPUT_TO_DIGITAL_PIN).to_bytes(1, 'big'))
+            msg.extend(pin.to_bytes(1, 'big'))
+            self.write_data(msg)
+            res = self.wait_for_response()
+            if res.error_code != 0:
+                self.print_error(sys._getframe().f_code.co_name, res.error_code)
+                return PinState.LOW
+            return res.response_data[0]
 
     ############################################################################
     # Communication functions
     ############################################################################
+
+    def run_forever(self):
+        while True:
+            # read_data is blocking (I/O)
+            if self.read_data():
+                if self.check_data():
+                    if(self.__read_buffer[0] == MessageType.RESPONSE):
+                        self.__last_response = self.get_response()
+                        self.__response_ready.set()
+                    else:
+                        # TODO: Handle status messages
+                        pass
+                self.__read_buffer.clear()
+
+    def clear_response(self):
+        self.__response_ready.clear()
+    
+    def wait_for_response(self, timeout_sec: float = 1):
+        # Wait for last response to be set (using a threading Event to avoid busy loop)
+        if self.__response_ready.wait(timeout_sec):
+            return self.__last_response
+        return Response(ErrorCode.TIMEOUT, b'')
 
     def print_error(self, fcn: str, error_code: ErrorCode):
         if error_code == ErrorCode.TIMEOUT:
@@ -181,23 +224,6 @@ class ArduinoInterface(ABC):
                 else:
                     crc = crc << 1
         return crc & 0xFFFF
-
-    # TODO: Periodic polling for status messages
-
-    def wait_for_response(self) -> Response:
-        # TODO: This method won't work when a periodic read thread is implemented
-        # TODO: When re-implementing this to work with the periodic thread, add a timeout
-        #       Timeout is necessary in case message gets corrupted (bad CRC). 
-        while True:
-            if self.read_data():
-                if self.check_data():
-                    if(self.__read_buffer[0] == MessageType.RESPONSE):
-                        return self.get_response()
-                    else:
-                        # TODO: Handle status messages if any are received while waiting for response
-                        # This could happen if one was in the buffer, but not processed before waiting for response
-                        pass
-                self.__read_buffer.clear()
 
     def get_response(self) -> Response:
         return Response(self.__read_buffer[1], self.__read_buffer[2:-2])
