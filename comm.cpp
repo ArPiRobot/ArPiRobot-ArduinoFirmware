@@ -59,6 +59,10 @@ void BaseComm::handleCommand(){
     return GpioHelper::digitalReadHelper(*this, readBuffer + 2, readBufferLen - 2);
   case Command::ANALOG_WRITE:
     return GpioHelper::analogWriteHelper(*this, readBuffer + 2, readBufferLen - 2);
+  case Command::ANALOG_READ:
+    return GpioHelper::analogReadHelper(*this, readBuffer + 2, readBufferLen - 2);
+  case Command::ANALOG_INPUT_TO_DIGITAL_PIN:
+    return GpioHelper::analogInputToDigitalPinHelper(*this, readBuffer + 2, readBufferLen - 2);
   default:
     return respond(ErrorCode::UNKNOWN_COMMAND, nullptr, 0);
   }
@@ -126,10 +130,6 @@ bool BaseComm::checkData(){
   // Big endian CRC at end of data
   uint16_t readCrc = (readBuffer[readBufferLen - 2] << 8) | readBuffer[readBufferLen - 1];
   uint16_t calcCrc = CRC16.ccitt(readBuffer, readBufferLen - 2);
-  LOG("ReadCRC: ");
-  LOGLN(readCrc);
-  LOG("CalcCRC: ");
-  LOGLN(calcCrc);
   return readCrc == calcCrc;
 }
 

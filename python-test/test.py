@@ -5,6 +5,8 @@ import time
 arduino = ArduinoUartInterface("COM5", 115200)
 print("ARDUINO READY")
 
-# arduino.pinMode(10, PinMode.OUTPUT)
-arduino.analogWrite(10, 253)
-print("HERE")
+A0 = arduino.analogInputToDigitalPin(0)
+
+while True:
+    print("Read: {0}".format(arduino.analogRead(A0)))
+    time.sleep(1)

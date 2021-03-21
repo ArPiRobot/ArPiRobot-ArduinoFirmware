@@ -130,19 +130,19 @@ class ArduinoInterface(ABC):
     def analogRead(self, pin: int) -> int:
         msg = bytearray()
         msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
-        msg.extend(int(Command.DIGITAL_READ).to_bytes(1, 'big'))
+        msg.extend(int(Command.ANALOG_READ).to_bytes(1, 'big'))
         msg.extend(pin.to_bytes(1, 'big'))
         self.write_data(msg)
         res = self.wait_for_response()
         if res.error_code != 0:
             self.print_error(sys._getframe().f_code.co_name, res.error_code)
             return 0
-        return struct.unpack_from('>H', res.response_data)
+        return struct.unpack_from('>H', res.response_data)[0]
     
     def analogInputToDigitalPin(self, pin: int) -> int:
         msg = bytearray()
         msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
-        msg.extend(int(Command.DIGITAL_READ).to_bytes(1, 'big'))
+        msg.extend(int(Command.ANALOG_INPUT_TO_DIGITAL_PIN).to_bytes(1, 'big'))
         msg.extend(pin.to_bytes(1, 'big'))
         self.write_data(msg)
         res = self.wait_for_response()
@@ -285,7 +285,6 @@ class ArduinoUartInterface(ArduinoInterface):
         return self.__serial.read()
 
     def write(self, b: bytes):
-        print("Write: {0}".format(b))
         self.__serial.write(b)
     
 

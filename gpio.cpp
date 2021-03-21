@@ -71,8 +71,6 @@ void GpioHelper::analogWriteHelper(BaseComm &comm, uint8_t *data, uint8_t len){
   if(len < 2){
     return comm.respond(ErrorCode::NOT_ENOUGH_ARGS, nullptr, 0);
   }
-  LOG("PWM: ");
-  LOGLN((int)data[1]);
   analogWrite(data[0], data[1]);
   return comm.respond(ErrorCode::NONE, nullptr, 0);
 }
