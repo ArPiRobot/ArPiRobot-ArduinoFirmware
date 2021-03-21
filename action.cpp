@@ -101,3 +101,41 @@ void AutoAnalogRead::sendData(BaseComm &comm){
   Conversions::convertInt16ToData(lastState, data + 5, false);
   comm.sendStatus(data, 7);
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// AutoDigitalCounter
+////////////////////////////////////////////////////////////////////////////////
+
+bool AutoDigitalCounter::configure(uint8_t pin, uint16_t changeThreshold, uint16_t sendRate){
+  this->pin = pin;
+  this->changeThreshold = changeThreshold;
+  this->sendRate = sendRate * 1000;
+}
+
+bool AutoDigitalCounter::service(){
+  uint16_t state = digitalRead(pin);
+  if(lastState != state){
+    newCounts++;
+  }
+  lastState = state;
+  bool res = (newCounts > changeThreshold);
+  dt = micros() - lastChange;
+  res |= ((dt >= sendRate) && (newCounts != 0));
+  if(res){
+    lastChange += dt;
+  }
+  return res;
+}
+
+void AutoDigitalCounter::sendData(BaseComm &comm){
+  // source is actionId is uint8_t
+  // dt is uint32_t
+  // counts is uint8_t
+  uint8_t data[6];
+  data[0] = actionId;
+  Conversions::convertInt32ToData(dt, data + 1, false);
+  data[5] = newCounts;
+  comm.sendStatus(data, 6);
+  newCounts = 0;
+}

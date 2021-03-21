@@ -71,3 +71,24 @@ private:
   unsigned long lastChange = 0;  // Time of last pin change
   unsigned long dt = 0;          // Time since last pin change
 };
+
+
+// Sends status message containing number of counts (pin state changes)
+//    since last message.
+// Will send updates when one of the following is true:
+//     - New counts exceed changeThreshold
+//     - Any change occurs and dt excedes sendRate (millis)
+class AutoDigitalCounter : public AutoAction{
+public:
+  bool configure(uint8_t pin, uint16_t changeThreshold, uint16_t sendRate);
+  bool service() override;
+  void sendData(BaseComm &comm) override;
+private:
+  uint8_t pin;
+  uint16_t changeThreshold;
+  unsigned long sendRate;
+  uint8_t newCounts = 0;
+  uint8_t lastState = 255;
+  unsigned long lastChange = 0;  // Time of last count send
+  unsigned long dt = 0;          // Time since last count send
+};

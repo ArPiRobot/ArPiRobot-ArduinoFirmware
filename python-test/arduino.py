@@ -1,3 +1,4 @@
+from typing import Callable, Tuple
 import serial
 import struct
 import sys
@@ -23,6 +24,7 @@ class Command(IntEnum):
     STOP_AUTO_ACTION = 6  # Stop an auto action (auto actions send data using status messages)
     POLL_DIG_READ = 7     # Start auto action to digitalRead a pin (polling)
     POLL_ANA_READ = 8     # Start auto action to analogRead a pin (polling)
+    POLL_DIG_COUNT = 9    # Start auto action to count pin changes (polling)
 
 
 class ErrorCode(IntEnum):
@@ -105,12 +107,6 @@ class AutoAnalogRead(AutoAction):
 
 
 class ArduinoInterface(ABC):
-
-    # TODO: Thread safety
-    # Lock mutex before sending command
-    # Unlock mutex after receiving result
-    # Internal data read thread would ignore this lock
-
     OUTPUT = 0
     INPUT = 1
     INPUT_PULLUP = 2
@@ -251,7 +247,7 @@ class ArduinoInterface(ABC):
             if res.error_code != 0:
                 self.print_error(sys._getframe().f_code.co_name, res.error_code)
 
-    def startAutoDigitalRead(self, pin: int) -> AutoDigitalRead:
+    def startAutoDigitalRead(self, pin: int, callback: Callable[[bytearray], None]) -> int:
         with self.__cmd_lock:
             self.clear_response()
             msg = bytearray()
@@ -262,12 +258,12 @@ class ArduinoInterface(ABC):
             res = self.wait_for_response()
             if res.error_code != 0:
                 self.print_error(sys._getframe().f_code.co_name, res.error_code)
-                return None
+                return -1
             action_id = res.response_data[0]
-            self.__auto_actions[action_id] = AutoDigitalRead()
-            return self.__auto_actions[action_id]
+            self.__auto_actions[action_id] = callback
+            return action_id
 
-    def startAutoAnalogRead(self, pin: int, change_threshold: int, send_rate: int) -> AutoDigitalRead:
+    def startAutoAnalogRead(self, pin: int, change_threshold: int, send_rate: int, callback: Callable[[bytearray], None]) -> int:
         with self.__cmd_lock:
             self.clear_response()
             msg = bytearray()
@@ -280,10 +276,33 @@ class ArduinoInterface(ABC):
             res = self.wait_for_response()
             if res.error_code != 0:
                 self.print_error(sys._getframe().f_code.co_name, res.error_code)
-                return None
+                return -1
             action_id = res.response_data[0]
-            self.__auto_actions[action_id] = AutoAnalogRead()
-            return self.__auto_actions[action_id]
+            self.__auto_actions[action_id] = callback
+            return action_id
+    
+    ############################################################################
+    # Functions to help parsing status messages
+    ############################################################################
+
+    def parse_dig_read_status(self, data: bytearray) -> Tuple[PinState, int]:
+        # dt(4), state(1)
+        if(len(data) < 5):
+            return PinState.LOW, 0
+        state = PinState.LOW
+        if data[4] == 1:
+            state = PinState.HIGH
+        dt = struct.unpack_from(">I", data, offset=0)[0]
+        return state, dt
+
+    def parse_ana_read_status(self, data: bytearray) -> Tuple[int, int]:
+        # dt(4), state(2)
+        if(len(data) < 6):
+            return 0, 0
+        state = struct.unpack_from(">H", data, offset=4)[0]
+        dt = struct.unpack_from(">I", data, offset=0)[0]
+        return state, dt
+
 
     ############################################################################
     # Communication functions
@@ -299,9 +318,9 @@ class ArduinoInterface(ABC):
                         self.__response_ready.set()
                     elif(self.__read_buffer[0] == MessageType.STATUS):
                         action_id = self.__read_buffer[1]
-                        for id, act in self.__auto_actions.items():
+                        for id, callback in self.__auto_actions.items():
                             if(action_id == id):
-                                act.parse_message(self.__read_buffer[1:])
+                                callback(self.__read_buffer[2:-2])
                 self.__read_buffer.clear()
 
     def clear_response(self):
