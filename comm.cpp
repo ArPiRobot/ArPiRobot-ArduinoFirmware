@@ -19,6 +19,7 @@
 
 #include "comm.hpp"
 #include "gpio.hpp"
+#include "conversions.hpp"
 
 const static FastCRC16 BaseComm::CRC16;
 
@@ -90,6 +91,21 @@ void BaseComm::handleCommand(){
     autoDigRead->configure(readBuffer[2]);
     autoActions.add(autoDigRead);
     uint8_t actionId = autoDigRead->getActionId();
+    respond(ErrorCode::NONE, &actionId, 1);
+    return;
+  }else if(cmd == Command::POLL_ANA_READ){
+    // Args: pin(uint8_t),changeThreshold(uint16_t),sendRate(uint16_t)
+    if(readBufferLen < 7){
+      respond(ErrorCode::NOT_ENOUGH_ARGS, nullptr, 0);
+      return;
+    }
+    uint16_t changeThreshold = Conversions::convertDataToInt16(readBuffer + 3, false);
+    uint16_t sendRate = Conversions::convertDataToInt16(readBuffer + 5, false);
+    
+    AutoAnalogRead *autoAnaRead = new AutoAnalogRead();
+    autoAnaRead->configure(readBuffer[2], changeThreshold, sendRate);
+    autoActions.add(autoAnaRead);
+    uint8_t actionId = autoAnaRead->getActionId();
     respond(ErrorCode::NONE, &actionId, 1);
     return;
   }

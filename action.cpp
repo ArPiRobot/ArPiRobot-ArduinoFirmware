@@ -21,6 +21,10 @@
 #include "conversions.hpp"
 #include "comm.hpp"
 
+////////////////////////////////////////////////////////////////////////////////
+/// AutoAction
+////////////////////////////////////////////////////////////////////////////////
+
 uint8_t AutoAction::nextActionId = 0;
 
 AutoAction::AutoAction(){
@@ -31,6 +35,11 @@ AutoAction::AutoAction(){
 uint8_t AutoAction::getActionId(){
   return actionId;
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// AutoDigitalRead
+////////////////////////////////////////////////////////////////////////////////
 
 bool AutoDigitalRead::configure(uint8_t pin){
   this->pin = pin;
@@ -57,4 +66,38 @@ void AutoDigitalRead::sendData(BaseComm &comm){
   Conversions::convertInt32ToData(dt, data + 1, false);
   data[5] = (lastState == HIGH);
   comm.sendStatus(data, 6);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// AutoAnalogRead
+////////////////////////////////////////////////////////////////////////////////
+
+bool AutoAnalogRead::configure(uint8_t pin, uint16_t changeThreshold, uint16_t sendRate){
+  this->pin = pin;
+  this->changeThreshold = changeThreshold;
+  this->sendRate = sendRate * 1000;
+}
+
+bool AutoAnalogRead::service(){
+  uint16_t state = analogRead(pin);
+  bool res = (abs(state - lastState) > changeThreshold);
+  dt = micros() - lastChange;
+  res |= ((dt >= sendRate) && (state != lastState));
+  if(res){
+    lastState = state;
+    lastChange += dt;
+  }
+  return res;
+}
+
+void AutoAnalogRead::sendData(BaseComm &comm){
+  // source is actionId is uint8_t
+  // dt is uint32_t
+  // state is uint16_t
+  uint8_t data[7];
+  data[0] = actionId;
+  Conversions::convertInt32ToData(dt, data + 1, false);
+  Conversions::convertInt16ToData(lastState, data + 5, false);
+  comm.sendStatus(data, 7);
 }

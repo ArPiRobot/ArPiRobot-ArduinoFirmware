@@ -40,6 +40,7 @@ private:
   static uint8_t nextActionId;
 };
 
+
 // Sends status message when change occurs on polled pin
 class AutoDigitalRead : public AutoAction{
 public:
@@ -49,6 +50,24 @@ public:
 private:
   uint8_t pin;
   uint8_t lastState = 255;
+  unsigned long lastChange = 0;  // Time of last pin change
+  unsigned long dt = 0;          // Time since last pin change
+};
+
+
+// Sends status message when one of the following is true of the polled pin
+//     - Change greater than change threshold occurs
+//     - Any change occurs and dt excedes sendRate (millis)
+class AutoAnalogRead : public AutoAction{
+public:
+  bool configure(uint8_t pin, uint16_t changeThreshold, uint16_t sendRate);
+  bool service() override;
+  void sendData(BaseComm &comm) override;
+private:
+  uint8_t pin;
+  uint16_t changeThreshold;
+  unsigned long sendRate;
+  uint16_t lastState = 2000;
   unsigned long lastChange = 0;  // Time of last pin change
   unsigned long dt = 0;          // Time since last pin change
 };

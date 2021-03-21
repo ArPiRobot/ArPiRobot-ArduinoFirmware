@@ -22,6 +22,7 @@ class Command(IntEnum):
 
     STOP_AUTO_ACTION = 6  # Stop an auto action (auto actions send data using status messages)
     POLL_DIG_READ = 7     # Start auto action to digitalRead a pin (polling)
+    POLL_ANA_READ = 8     # Start auto action to analogRead a pin (polling)
 
 
 class ErrorCode(IntEnum):
@@ -64,12 +65,34 @@ class AutoDigitalRead(AutoAction):
     
     def parse_message(self, data: bytes):
         # Data: actionId(1), dt(4), state(1)
-        if(len(data) >= 5):
+        if(len(data) >= 6):
             if data[5] == 1:
                 self.__current_state = PinState.HIGH
             else:
                 self.__current_state = PinState.LOW
-            self.__time_since_last_change = struct.unpack_from(">I", data, offset=1)
+            self.__time_since_last_change = struct.unpack_from(">I", data, offset=1)[0]
+
+    @property
+    def current_state(self) -> PinState:
+        return self.__current_state
+
+    @property
+    def time_since_last_change(self) -> int:
+        # Time in micro sec
+        return self.__time_since_last_change
+
+
+class AutoAnalogRead(AutoAction):
+    def __init__(self):
+        super().__init__()
+        self.__current_state = 0
+        self.__time_since_last_change: int = 0 # micros
+    
+    def parse_message(self, data: bytes):
+        # Data: actionId(1), dt(4), state(2)
+        if(len(data) >= 7):
+            self.__time_since_last_change = struct.unpack_from(">I", data, offset=1)[0]
+            self.__current_state = struct.unpack_from(">H", data, offset=5)[0]
 
     @property
     def current_state(self) -> PinState:
@@ -214,8 +237,10 @@ class ArduinoInterface(ABC):
                 return PinState.LOW
             return res.response_data[0]
     
-    def stopAutoAction(self, action_id: int):
+    def stopAutoAction(self, action: AutoAction):
         with self.__cmd_lock:
+            pos = list(self.__auto_actions.values()).index(action)
+            action_id = list(self.__auto_actions.keys())[pos]
             self.clear_response()
             msg = bytearray()
             msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
@@ -240,6 +265,24 @@ class ArduinoInterface(ABC):
                 return None
             action_id = res.response_data[0]
             self.__auto_actions[action_id] = AutoDigitalRead()
+            return self.__auto_actions[action_id]
+
+    def startAutoAnalogRead(self, pin: int, change_threshold: int, send_rate: int) -> AutoDigitalRead:
+        with self.__cmd_lock:
+            self.clear_response()
+            msg = bytearray()
+            msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
+            msg.extend(int(Command.POLL_ANA_READ).to_bytes(1, 'big'))
+            msg.extend(pin.to_bytes(1, 'big'))
+            msg.extend(change_threshold.to_bytes(2, 'big'))
+            msg.extend(send_rate.to_bytes(2, 'big'))
+            self.write_data(msg)
+            res = self.wait_for_response()
+            if res.error_code != 0:
+                self.print_error(sys._getframe().f_code.co_name, res.error_code)
+                return None
+            action_id = res.response_data[0]
+            self.__auto_actions[action_id] = AutoAnalogRead()
             return self.__auto_actions[action_id]
 
     ############################################################################

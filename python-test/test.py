@@ -5,9 +5,11 @@ import time
 arduino = ArduinoUartInterface("COM5", 115200)
 print("ARDUINO READY")
 
-arduino.pinMode(10, PinMode.INPUT_PULLUP)
+arduino.pinMode(13, PinMode.OUTPUT)
+arduino.digitalWrite(13, PinState.LOW)
 
-obj = arduino.startAutoDigitalRead(10)
+A0 = arduino.analogInputToDigitalPin(0)
+obj = arduino.startAutoAnalogRead(A0, 10, 50)
 
 if obj == None:
     print("FAILED TO START")
@@ -16,5 +18,8 @@ if obj == None:
 print("STARTED")
 
 while True:
-    print(obj.current_state)
-    time.sleep(1)
+    if(obj.current_state >= 500):
+        arduino.digitalWrite(13, PinState.HIGH)
+    else:
+        arduino.digitalWrite(13, PinState.LOW)
+    time.sleep(0.05)
