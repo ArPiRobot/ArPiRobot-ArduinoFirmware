@@ -47,7 +47,6 @@ void BaseComm::service(){
       readBufferLen = 0;
     }
   }
-
   for(uint8_t i = 0; i < autoActions.size(); ++i){
     auto it = autoActions.get(i);
     if(it->service()){
@@ -57,46 +56,44 @@ void BaseComm::service(){
 }
 
 void BaseComm::handleCommand(){
-  switch(static_cast<Command>(readBuffer[1])){
-  case Command::PIN_MODE:
+  Command cmd = static_cast<Command>(readBuffer[1]);
+  if(cmd == Command::PIN_MODE){
     return GpioHelper::pinModeHelper(*this, readBuffer + 2, readBufferLen - 2);
-  case Command::DIGITAL_WRITE:
+  }else if(cmd == Command::DIGITAL_WRITE){
     return GpioHelper::digitalWriteHelper(*this, readBuffer + 2, readBufferLen - 2);
-  case Command::DIGITAL_READ:
+  }else if(cmd == Command::DIGITAL_READ){
     return GpioHelper::digitalReadHelper(*this, readBuffer + 2, readBufferLen - 2);
-  case Command::ANALOG_WRITE:
+  }else if(cmd == Command::ANALOG_WRITE){
     return GpioHelper::analogWriteHelper(*this, readBuffer + 2, readBufferLen - 2);
-  case Command::ANALOG_READ:
+  }else if(cmd == Command::ANALOG_READ){
     return GpioHelper::analogReadHelper(*this, readBuffer + 2, readBufferLen - 2);
-  case Command::ANALOG_INPUT_TO_DIGITAL_PIN:
+  }else if(cmd == Command::ANALOG_INPUT_TO_DIGITAL_PIN){
     return GpioHelper::analogInputToDigitalPinHelper(*this, readBuffer + 2, readBufferLen - 2);
-  case Command::STOP_AUTO_ACTION:
+  }else if(cmd == Command::STOP_AUTO_ACTION){
     // Args: ActionId (uint8_t) = index in list
     if(readBufferLen < 3){
-      respond(ErrorCode::NOT_ENOUGH_ARGS, nullptr, 0);
-      return;
+      return respond(ErrorCode::NOT_ENOUGH_ARGS, nullptr, 0);
     }
     if(readBuffer[2] >= autoActions.size()){
-      respond(ErrorCode::EXECUTION, nullptr, 0);
-      return;
+      return respond(ErrorCode::EXECUTION, nullptr, 0);
     }
-    auto it = autoActions.remove(readBuffer[2]);
-    delete it;
-    respond(ErrorCode::NONE, nullptr, 0);
-    return;
-  case Command::POLL_DIG_READ:
+    AutoAction *action = autoActions.remove(readBuffer[2]);
+    delete action;
+    return respond(ErrorCode::NONE, nullptr, 0);
+  }else if(cmd == Command::POLL_DIG_READ){
     // Args: pin(uint8_t)
     if(readBufferLen < 3){
       respond(ErrorCode::NOT_ENOUGH_ARGS, nullptr, 0);
       return;
     }
-    auto autoDigRead = new AutoDigitalRead();
+    AutoDigitalRead *autoDigRead = new AutoDigitalRead();
     autoDigRead->configure(readBuffer[2]);
     autoActions.add(autoDigRead);
+    uint8_t actionId = autoDigRead->getActionId();
+    respond(ErrorCode::NONE, &actionId, 1);
     return;
-  default:
-    return respond(ErrorCode::UNKNOWN_COMMAND, nullptr, 0);
   }
+  return respond(ErrorCode::UNKNOWN_COMMAND, nullptr, 0);
 }
 
 void BaseComm::respond(ErrorCode errorCode, uint8_t *data, uint8_t len){

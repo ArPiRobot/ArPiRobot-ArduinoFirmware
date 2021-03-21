@@ -28,6 +28,10 @@ AutoAction::AutoAction(){
   nextActionId++;  
 }
 
+uint8_t AutoAction::getActionId(){
+  return actionId;
+}
+
 bool AutoDigitalRead::configure(uint8_t pin){
   this->pin = pin;
   return true; // Any pin is valid

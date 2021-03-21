@@ -31,6 +31,8 @@ public:
   virtual bool service() = 0;
   virtual void sendData(BaseComm &comm) = 0;
 
+  uint8_t getActionId();
+
 protected:
   uint8_t actionId;
 

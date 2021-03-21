@@ -20,6 +20,9 @@ class Command(IntEnum):
     ANALOG_WRITE = 4
     ANALOG_INPUT_TO_DIGITAL_PIN = 5
 
+    STOP_AUTO_ACTION = 6  # Stop an auto action (auto actions send data using status messages)
+    POLL_DIG_READ = 7     # Start auto action to digitalRead a pin (polling)
+
 
 class ErrorCode(IntEnum):
     TIMEOUT = -1
@@ -45,6 +48,37 @@ class Response:
     def __init__(self, error_code: int, response_data: bytearray):
         self.error_code = error_code
         self.response_data = response_data
+
+
+class AutoAction(ABC):
+    @abstractmethod
+    def parse_message(self, data: bytes):
+        pass
+
+
+class AutoDigitalRead(AutoAction):
+    def __init__(self):
+        super().__init__()
+        self.__current_state = PinState.LOW
+        self.__time_since_last_change: int = 0 # micros
+    
+    def parse_message(self, data: bytes):
+        # Data: actionId(1), dt(4), state(1)
+        if(len(data) >= 5):
+            if data[5] == 1:
+                self.__current_state = PinState.HIGH
+            else:
+                self.__current_state = PinState.LOW
+            self.__time_since_last_change = struct.unpack_from(">I", data, offset=1)
+
+    @property
+    def current_state(self) -> PinState:
+        return self.__current_state
+
+    @property
+    def time_since_last_change(self) -> int:
+        # Time in micro sec
+        return self.__time_since_last_change
 
 
 class ArduinoInterface(ABC):
@@ -88,6 +122,8 @@ class ArduinoInterface(ABC):
         # Not ok to have multiple threads running commands at the same time
         self.__cmd_lock = Lock()
 
+        self.__auto_actions = {}
+
     def __del__(self):
         self.close()
     
@@ -98,6 +134,7 @@ class ArduinoInterface(ABC):
 
     def pinMode(self, pin: int, mode: PinMode):
         with self.__cmd_lock:
+            self.clear_response()
             msg = bytearray()
             msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
             msg.extend(int(Command.PIN_MODE).to_bytes(1, 'big'))
@@ -110,6 +147,7 @@ class ArduinoInterface(ABC):
     
     def digitalWrite(self, pin: int, state: PinState):
         with self.__cmd_lock:
+            self.clear_response()
             msg = bytearray()
             msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
             msg.extend(int(Command.DIGITAL_WRITE).to_bytes(1, 'big'))
@@ -122,6 +160,7 @@ class ArduinoInterface(ABC):
     
     def digitalRead(self, pin: int) -> PinState:
         with self.__cmd_lock:
+            self.clear_response()
             msg = bytearray()
             msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
             msg.extend(int(Command.DIGITAL_READ).to_bytes(1, 'big'))
@@ -136,6 +175,7 @@ class ArduinoInterface(ABC):
 
     def analogWrite(self, pin: int, pwm: int):
         with self.__cmd_lock:
+            self.clear_response()
             msg = bytearray()
             msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
             msg.extend(int(Command.ANALOG_WRITE).to_bytes(1, 'big'))
@@ -148,6 +188,7 @@ class ArduinoInterface(ABC):
     
     def analogRead(self, pin: int) -> int:
         with self.__cmd_lock:
+            self.clear_response()
             msg = bytearray()
             msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
             msg.extend(int(Command.ANALOG_READ).to_bytes(1, 'big'))
@@ -161,6 +202,7 @@ class ArduinoInterface(ABC):
     
     def analogInputToDigitalPin(self, pin: int) -> int:
         with self.__cmd_lock:
+            self.clear_response()
             msg = bytearray()
             msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
             msg.extend(int(Command.ANALOG_INPUT_TO_DIGITAL_PIN).to_bytes(1, 'big'))
@@ -171,6 +213,34 @@ class ArduinoInterface(ABC):
                 self.print_error(sys._getframe().f_code.co_name, res.error_code)
                 return PinState.LOW
             return res.response_data[0]
+    
+    def stopAutoAction(self, action_id: int):
+        with self.__cmd_lock:
+            self.clear_response()
+            msg = bytearray()
+            msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
+            msg.extend(int(Command.STOP_AUTO_ACTION).to_bytes(1, 'big'))
+            msg.extend(action_id.to_bytes(1, 'big'))
+            self.write_data(msg)
+            res = self.wait_for_response()
+            if res.error_code != 0:
+                self.print_error(sys._getframe().f_code.co_name, res.error_code)
+
+    def startAutoDigitalRead(self, pin: int) -> AutoDigitalRead:
+        with self.__cmd_lock:
+            self.clear_response()
+            msg = bytearray()
+            msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
+            msg.extend(int(Command.POLL_DIG_READ).to_bytes(1, 'big'))
+            msg.extend(pin.to_bytes(1, 'big'))
+            self.write_data(msg)
+            res = self.wait_for_response()
+            if res.error_code != 0:
+                self.print_error(sys._getframe().f_code.co_name, res.error_code)
+                return None
+            action_id = res.response_data[0]
+            self.__auto_actions[action_id] = AutoDigitalRead()
+            return self.__auto_actions[action_id]
 
     ############################################################################
     # Communication functions
@@ -184,9 +254,11 @@ class ArduinoInterface(ABC):
                     if(self.__read_buffer[0] == MessageType.RESPONSE):
                         self.__last_response = self.get_response()
                         self.__response_ready.set()
-                    else:
-                        # TODO: Handle status messages
-                        pass
+                    elif(self.__read_buffer[0] == MessageType.STATUS):
+                        action_id = self.__read_buffer[1]
+                        for id, act in self.__auto_actions.items():
+                            if(action_id == id):
+                                act.parse_message(self.__read_buffer[1:])
                 self.__read_buffer.clear()
 
     def clear_response(self):
