@@ -79,6 +79,16 @@ void BaseComm::respond(ErrorCode errorCode, uint8_t *data, uint8_t len){
   delete[] fullMessage;
 }
 
+void BaseComm::sendStatus(uint8_t *data, uint8_t len){
+  uint8_t *fullMessage = new uint8_t[len + 1];
+  fullMessage[0] = static_cast<uint8_t>(MessageType::STATUS);
+  for(uint8_t i = 0; i < len; ++i){
+    fullMessage[i + 1] = data[i];
+  }
+  writeData(fullMessage, len + 1);
+  delete[] fullMessage;
+}
+
 BaseComm::BaseComm(){
   
 }

@@ -39,6 +39,7 @@
  *  Commands:  FLAG_COMMAND, COMMAND_NUM, [COMMAND_ARGS]
  *  Responses: FLAG_RESPONSE, ERROR_CODE, [RESPONSE_DATA]
  *  Status:    FLAG_STATUS, STATUS_DATA
+ *             The first byte of STATUS_DATA is the STATUS_SOURCE, which is an ID for the auto action
  *  
  * The actual message data is sent in a packet of the following format
  * START_BYTE, [data], crc16_high, crc16_low, END_BYTE
@@ -54,6 +55,19 @@ enum class MessageType{
   RESPONSE = 1,
   STATUS = 2
 };
+
+// TODO: Periodic digitalRead (including dt micros)
+// TODO: Periodic analogRead (including dt micros)
+// TODO: Polling digital counter (state change)
+// TODO: Periodic write and pulseIn timing
+// TODO: I2CWrite
+// TODO: I2CRead
+// TODO: I2CRequest
+// TODO: I2CAvailable
+// TODO: Periodic read register (including dt micros)
+
+// TODO: Interrupt digital counter (state change)
+// TODO: Interrupt write and pulseIn timing
 
 enum class Command{
   PIN_MODE = 0,
@@ -84,6 +98,8 @@ public:
   void handleCommand();
 
   void respond(ErrorCode errorCode, uint8_t *data, uint8_t len);
+
+  void sendStatus(uint8_t *data, uint8_t len);
 
 protected:
 

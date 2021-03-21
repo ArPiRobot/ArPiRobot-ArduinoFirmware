@@ -17,15 +17,22 @@
  * along with ArPiRobot-ArduinoFirmware.  If not, see <https://www.gnu.org/licenses/>. 
  */
 
-#pragma once
-
 #include "comm.hpp"
 
-namespace GpioHelper{  
-  void pinModeHelper(BaseComm &comm, uint8_t *data, uint8_t len);
-  void digitalWriteHelper(BaseComm &comm, uint8_t *data, uint8_t len);
-  void digitalReadHelper(BaseComm &comm, uint8_t *data, uint8_t len);
-  void analogWriteHelper(BaseComm &comm, uint8_t *data, uint8_t len);
-  void analogReadHelper(BaseComm &comm, uint8_t *data, uint8_t len);
-  void analogInputToDigitalPinHelper(BaseComm &comm, uint8_t *data, uint8_t len);
-}
+class AutoAction{
+public:
+  virtual bool service() = 0;
+  virtual void sendData(uint8_t actionId, BaseComm &comm) = 0;
+};
+
+// Sends status message when change occurs on polled pin
+class AutoDigitalRead : public AutoAction{
+public:
+  bool service() override;
+  void sendData(uint8_t actionId, BaseComm &comm) override;
+private:
+  uint8_t lastState = 255;
+  uint8_t pin;
+  unsigned long lastChange = 0;  // Time of last pin change
+  unsigned long dt = 0;          // Time since last pin change
+};

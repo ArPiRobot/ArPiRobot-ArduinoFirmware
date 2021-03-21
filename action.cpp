@@ -17,15 +17,27 @@
  * along with ArPiRobot-ArduinoFirmware.  If not, see <https://www.gnu.org/licenses/>. 
  */
 
-#pragma once
+#include "action.hpp"
+#include "conversions.hpp"
 
-#include "comm.hpp"
+bool AutoDigitalRead::service(){
+  uint8_t state = digitalRead(pin);
+  bool res = (state != lastState);
+  lastState = state;
+  if(res){
+    dt = micros() - lastChange;
+    lastChange += dt;
+  }
+  return res;
+}
 
-namespace GpioHelper{  
-  void pinModeHelper(BaseComm &comm, uint8_t *data, uint8_t len);
-  void digitalWriteHelper(BaseComm &comm, uint8_t *data, uint8_t len);
-  void digitalReadHelper(BaseComm &comm, uint8_t *data, uint8_t len);
-  void analogWriteHelper(BaseComm &comm, uint8_t *data, uint8_t len);
-  void analogReadHelper(BaseComm &comm, uint8_t *data, uint8_t len);
-  void analogInputToDigitalPinHelper(BaseComm &comm, uint8_t *data, uint8_t len);
+void AutoDigitalRead::sendData(uint8_t actionId, BaseComm &comm){
+  // source is actionId is uint8_t
+  // dt is uint32_t
+  // state is uint8_t
+  uint8_t data[6];
+  data[0] = actionId;
+  Conversions::convertInt32ToData(dt, data + 1, false);
+  data[5] = (lastState == HIGH);
+  comm.sendStatus(data, 6);
 }
