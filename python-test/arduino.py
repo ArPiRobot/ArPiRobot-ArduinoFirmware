@@ -204,15 +204,17 @@ class ArduinoInterface(ABC):
 
     def write_data(self, data: bytearray):
         self.write(self.START_BYTE)
-        for b in data:
+        for i in range(len(data)):
+            b = data[i:i+1]
             if b == self.START_BYTE or b == self.END_BYTE or b == self.ESCAPE_BYTE:
                 self.write(self.ESCAPE_BYTE)
-            self.write(b.to_bytes(1, 'big'))
+            self.write(b)
         crc = self.crc16(data, 0, len(data)).to_bytes(2, 'big')
-        for b in crc:
+        for i in range(len(crc)):
+            b = crc[i:i+1]
             if b == self.START_BYTE or b == self.END_BYTE or b == self.ESCAPE_BYTE:
                 self.write(self.ESCAPE_BYTE)
-            self.write(b.to_bytes(1, 'big'))
+            self.write(b)
         self.write(self.END_BYTE)
     
     def read_data(self) -> bool:
@@ -283,6 +285,7 @@ class ArduinoUartInterface(ArduinoInterface):
         return self.__serial.read()
 
     def write(self, b: bytes):
+        print("Write: {0}".format(b))
         self.__serial.write(b)
     
 

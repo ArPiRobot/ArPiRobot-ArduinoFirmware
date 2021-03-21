@@ -57,6 +57,8 @@ void BaseComm::handleCommand(){
     return GpioHelper::digitalWriteHelper(*this, readBuffer + 2, readBufferLen - 2);
   case Command::DIGITAL_READ:
     return GpioHelper::digitalReadHelper(*this, readBuffer + 2, readBufferLen - 2);
+  case Command::ANALOG_WRITE:
+    return GpioHelper::analogWriteHelper(*this, readBuffer + 2, readBufferLen - 2);
   default:
     return respond(ErrorCode::UNKNOWN_COMMAND, nullptr, 0);
   }
@@ -122,8 +124,13 @@ bool BaseComm::readData(){
 // Check the data in the read buffer to determine if it is valid
 bool BaseComm::checkData(){
   // Big endian CRC at end of data
-  return ((readBuffer[readBufferLen - 2] << 8) | readBuffer[readBufferLen - 1]) 
-      == CRC16.ccitt(readBuffer, readBufferLen - 2);
+  uint16_t readCrc = (readBuffer[readBufferLen - 2] << 8) | readBuffer[readBufferLen - 1];
+  uint16_t calcCrc = CRC16.ccitt(readBuffer, readBufferLen - 2);
+  LOG("ReadCRC: ");
+  LOGLN(readCrc);
+  LOG("CalcCRC: ");
+  LOGLN(calcCrc);
+  return readCrc == calcCrc;
 }
 
 void BaseComm::writeData(uint8_t *data, uint8_t len){

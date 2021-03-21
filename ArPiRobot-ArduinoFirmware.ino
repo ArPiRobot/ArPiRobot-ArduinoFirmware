@@ -19,6 +19,7 @@
 
 #include "comm.hpp"
 #include "conversions.hpp"
+#include <Arduino.h>
 
 UartComm<HardwareSerial> comm(Serial, 115200);
 
