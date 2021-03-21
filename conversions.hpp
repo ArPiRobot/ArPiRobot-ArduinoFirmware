@@ -24,19 +24,19 @@
 
 
 namespace Conversions{
-    void checkBigEndian();
+  void checkBigEndian();
 
-    void convertInt32ToData(int32_t input, uint8_t *outBuffer, bool littleEndian);
+  void convertInt32ToData(int32_t input, uint8_t *outBuffer, bool littleEndian);
 
-    int32_t convertDataToInt32(uint8_t *data, bool littleEndian);
+  int32_t convertDataToInt32(uint8_t *data, bool littleEndian);
 
-    void convertInt16ToData(int16_t input, uint8_t *outBuffer, bool littleEndian);
+  void convertInt16ToData(int16_t input, uint8_t *outBuffer, bool littleEndian);
 
-    int16_t convertDataToInt16(uint8_t *data, bool littleEndian);
+  int16_t convertDataToInt16(uint8_t *data, bool littleEndian);
 
-    void convertFloatToData(float input, uint8_t *outBuffer, bool littleEndian);
+  void convertFloatToData(float input, uint8_t *outBuffer, bool littleEndian);
 
-    float convertDataToFloat(uint8_t *data, bool littleEndian);
+  float convertDataToFloat(uint8_t *data, bool littleEndian);
 
-    extern bool isBigEndian;
+  extern bool isBigEndian;
 };
