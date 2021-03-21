@@ -108,6 +108,21 @@ void BaseComm::handleCommand(){
     uint8_t actionId = autoAnaRead->getActionId();
     respond(ErrorCode::NONE, &actionId, 1);
     return;
+  }else if(cmd == Command::POLL_DIG_COUNT){
+    // Args: pin(uint8_t),changeThreshold(uint16_t),sendRate(uint16_t)
+    if(readBufferLen < 7){
+      respond(ErrorCode::NOT_ENOUGH_ARGS, nullptr, 0);
+      return;
+    }
+    uint16_t changeThreshold = Conversions::convertDataToInt16(readBuffer + 3, false);
+    uint16_t sendRate = Conversions::convertDataToInt16(readBuffer + 5, false);
+    
+    AutoDigitalCounter *autoDigCount = new AutoDigitalCounter();
+    autoDigCount->configure(readBuffer[2], changeThreshold, sendRate);
+    autoActions.add(autoDigCount);
+    uint8_t actionId = autoDigCount->getActionId();
+    respond(ErrorCode::NONE, &actionId, 1);
+    return;
   }
   return respond(ErrorCode::UNKNOWN_COMMAND, nullptr, 0);
 }

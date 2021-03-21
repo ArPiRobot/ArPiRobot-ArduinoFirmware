@@ -53,59 +53,6 @@ class Response:
         self.response_data = response_data
 
 
-class AutoAction(ABC):
-    @abstractmethod
-    def parse_message(self, data: bytes):
-        pass
-
-
-class AutoDigitalRead(AutoAction):
-    def __init__(self):
-        super().__init__()
-        self.__current_state = PinState.LOW
-        self.__time_since_last_change: int = 0 # micros
-    
-    def parse_message(self, data: bytes):
-        # Data: actionId(1), dt(4), state(1)
-        if(len(data) >= 6):
-            if data[5] == 1:
-                self.__current_state = PinState.HIGH
-            else:
-                self.__current_state = PinState.LOW
-            self.__time_since_last_change = struct.unpack_from(">I", data, offset=1)[0]
-
-    @property
-    def current_state(self) -> PinState:
-        return self.__current_state
-
-    @property
-    def time_since_last_change(self) -> int:
-        # Time in micro sec
-        return self.__time_since_last_change
-
-
-class AutoAnalogRead(AutoAction):
-    def __init__(self):
-        super().__init__()
-        self.__current_state = 0
-        self.__time_since_last_change: int = 0 # micros
-    
-    def parse_message(self, data: bytes):
-        # Data: actionId(1), dt(4), state(2)
-        if(len(data) >= 7):
-            self.__time_since_last_change = struct.unpack_from(">I", data, offset=1)[0]
-            self.__current_state = struct.unpack_from(">H", data, offset=5)[0]
-
-    @property
-    def current_state(self) -> PinState:
-        return self.__current_state
-
-    @property
-    def time_since_last_change(self) -> int:
-        # Time in micro sec
-        return self.__time_since_last_change
-
-
 class ArduinoInterface(ABC):
     OUTPUT = 0
     INPUT = 1
@@ -233,10 +180,8 @@ class ArduinoInterface(ABC):
                 return PinState.LOW
             return res.response_data[0]
     
-    def stopAutoAction(self, action: AutoAction):
+    def stopAutoAction(self, action_id: int):
         with self.__cmd_lock:
-            pos = list(self.__auto_actions.values()).index(action)
-            action_id = list(self.__auto_actions.keys())[pos]
             self.clear_response()
             msg = bytearray()
             msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
@@ -281,6 +226,24 @@ class ArduinoInterface(ABC):
             self.__auto_actions[action_id] = callback
             return action_id
     
+    def startAutoPollingDigitalCount(self, pin: int, change_threshold: int, send_rate: int, callback: Callable[[bytearray], None]) -> int:
+        with self.__cmd_lock:
+            self.clear_response()
+            msg = bytearray()
+            msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
+            msg.extend(int(Command.POLL_DIG_COUNT).to_bytes(1, 'big'))
+            msg.extend(pin.to_bytes(1, 'big'))
+            msg.extend(change_threshold.to_bytes(2, 'big'))
+            msg.extend(send_rate.to_bytes(2, 'big'))
+            self.write_data(msg)
+            res = self.wait_for_response()
+            if res.error_code != 0:
+                self.print_error(sys._getframe().f_code.co_name, res.error_code)
+                return -1
+            action_id = res.response_data[0]
+            self.__auto_actions[action_id] = callback
+            return action_id
+
     ############################################################################
     # Functions to help parsing status messages
     ############################################################################
@@ -302,6 +265,14 @@ class ArduinoInterface(ABC):
         state = struct.unpack_from(">H", data, offset=4)[0]
         dt = struct.unpack_from(">I", data, offset=0)[0]
         return state, dt
+    
+    def parse_poll_dig_count_status(self, data: bytearray) -> Tuple[int, int]:
+        # dt(4), newCounts(1)
+        if(len(data) < 5):
+            return 0, 0
+        counts = data[4]
+        dt = struct.unpack_from(">I", data, offset=0)[0]
+        return counts, dt
 
 
     ############################################################################

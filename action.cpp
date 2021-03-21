@@ -76,7 +76,7 @@ void AutoDigitalRead::sendData(BaseComm &comm){
 bool AutoAnalogRead::configure(uint8_t pin, uint16_t changeThreshold, uint16_t sendRate){
   this->pin = pin;
   this->changeThreshold = changeThreshold;
-  this->sendRate = sendRate * 1000;
+  this->sendRate = (unsigned long)sendRate * 1000;
 }
 
 bool AutoAnalogRead::service(){
@@ -110,7 +110,7 @@ void AutoAnalogRead::sendData(BaseComm &comm){
 bool AutoDigitalCounter::configure(uint8_t pin, uint16_t changeThreshold, uint16_t sendRate){
   this->pin = pin;
   this->changeThreshold = changeThreshold;
-  this->sendRate = sendRate * 1000;
+  this->sendRate = (unsigned long)sendRate * 1000;
 }
 
 bool AutoDigitalCounter::service(){
@@ -119,7 +119,7 @@ bool AutoDigitalCounter::service(){
     newCounts++;
   }
   lastState = state;
-  bool res = (newCounts > changeThreshold);
+  bool res = (newCounts >= changeThreshold);
   dt = micros() - lastChange;
   res |= ((dt >= sendRate) && (newCounts != 0));
   if(res){
