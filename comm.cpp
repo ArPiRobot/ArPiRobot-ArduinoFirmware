@@ -20,6 +20,7 @@
 #include "comm.hpp"
 #include "gpio.hpp"
 #include "conversions.hpp"
+#include "i2c.hpp"
 
 const static FastCRC16 BaseComm::CRC16;
 
@@ -70,6 +71,14 @@ void BaseComm::handleCommand(){
     return GpioHelper::analogReadHelper(*this, readBuffer + 2, readBufferLen - 2);
   }else if(cmd == Command::ANALOG_INPUT_TO_DIGITAL_PIN){
     return GpioHelper::analogInputToDigitalPinHelper(*this, readBuffer + 2, readBufferLen - 2);
+  }else if(cmd == Command::I2C_WRITE){
+    return I2CHelper::writeHelper(*this, readBuffer + 2, readBufferLen - 2);
+  }else if(cmd == Command::I2C_WRITE_BYTE){
+    return I2CHelper::writeByteHelper(*this, readBuffer + 2, readBufferLen - 2);
+  }else if(cmd == Command::I2C_READ_BYTE){
+    return I2CHelper::readByteHelper(*this, readBuffer + 2, readBufferLen - 2);
+  }else if(cmd == Command::I2C_READ){
+    return I2CHelper::readHelper(*this, readBuffer + 2, readBufferLen - 2);
   }else if(cmd == Command::STOP_AUTO_ACTION){
     // Args: ActionId (uint8_t) = index in list
     if(readBufferLen < 3){

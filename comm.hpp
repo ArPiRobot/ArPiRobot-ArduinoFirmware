@@ -83,7 +83,12 @@ enum class Command{
   POLL_DIG_READ = 7,      // Start auto action to digitalRead a pin (polling)
   POLL_ANA_READ = 8,      // Start auto action to analogRead a pin (polling)
   POLL_DIG_COUNT = 9,     // Start auto action to count pin changes (polling)
-  POLL_DIG_PULSEIN = 10   // Start auto action to time pulses triggered by digitalWrite (polling)
+  POLL_DIG_PULSEIN = 10,  // Start auto action to time pulses triggered by digitalWrite (polling)
+
+  I2C_WRITE = 11,
+  I2C_WRITE_BYTE = 12,
+  I2C_READ_BYTE = 13,
+  I2C_READ = 14
 };
 
 enum class ErrorCode{

@@ -17,21 +17,13 @@
  * along with ArPiRobot-ArduinoFirmware.  If not, see <https://www.gnu.org/licenses/>. 
  */
 
+#pragma once
+
 #include "comm.hpp"
-#include "conversions.hpp"
-#include <Arduino.h>
-#include <Wire.h>
 
-UartComm<HardwareSerial> comm(Serial, 115200);
-
-void setup() {
-  Wire.begin();
-  Conversions::checkBigEndian();
-  DBG_INIT();
-  comm.begin();
-  LOGLN(F("STARTING"));
-}
-
-void loop() {
-  comm.service();
+namespace I2CHelper{
+  void writeHelper(BaseComm &comm, uint8_t *data, uint8_t len);
+  void writeByteHelper(BaseComm &comm, uint8_t *data, uint8_t len);
+  void readByteHelper(BaseComm &comm, uint8_t *data, uint8_t len);
+  void readHelper(BaseComm &comm, uint8_t *data, uint8_t len);
 }
