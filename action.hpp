@@ -92,3 +92,28 @@ private:
   unsigned long lastChange = 0;  // Time of last count send
   unsigned long dt = 0;          // Time since last count send
 };
+
+
+// Sends status message containing pulseIn time periodically.
+// PulseIn is read after a digital write of specified duration
+// BLOCKS WHILE WAITING FOR PULSE!!!
+// Will only run a pulseIn every pulseRate milliseconds
+// Will send status message after each pulseIn
+// Optionally can specify a puseIn timeout (in millis)
+// If pulseIn times out will send status message with value of zero
+class AutoPollingTimer : public AutoAction {
+public:
+  bool configure(uint8_t writePin, bool writeHigh, uint16_t writeDuration, uint8_t pulsePin, bool pulseHigh, uint16_t pulseRate, uint16_t pulseTimeout);
+  bool service() override;
+  void sendData(BaseComm &comm) override;
+private:
+  uint8_t writePin;
+  bool writeHigh;           // If true, will write HIGH, wait, then write LOW. If false will write LOW then HIGH
+  uint16_t writeDuration;   // Microseconds
+  uint8_t pulsePin;        
+  bool pulseHigh;           // True will wait for a HIGH pulse, false will wait for a LOW pulse
+  uint16_t pulseRate;       // Milliseconds
+  uint16_t pulseTimeout;    // Milliseconds
+  uint16_t duration;        // Pulse duration (microseconds)
+  unsigned long lastPulse = 0;  // Time of last pulse millis
+};

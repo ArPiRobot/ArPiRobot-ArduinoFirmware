@@ -82,7 +82,8 @@ enum class Command{
   STOP_AUTO_ACTION = 6,   // Stop an auto action (auto actions send data using status messages)
   POLL_DIG_READ = 7,      // Start auto action to digitalRead a pin (polling)
   POLL_ANA_READ = 8,      // Start auto action to analogRead a pin (polling)
-  POLL_DIG_COUNT = 9      // Start auto action to count pin changes (polling)
+  POLL_DIG_COUNT = 9,     // Start auto action to count pin changes (polling)
+  POLL_DIG_PULSEIN = 10   // Start auto action to time pulses triggered by digitalWrite (polling)
 };
 
 enum class ErrorCode{

@@ -7,15 +7,14 @@ print("ARDUINO READY")
 
 count = 0
 
-def handle_data(data: bytearray):
-    global count
-    new_count, dt = arduino.parse_poll_dig_count_status(data)
-    count += new_count
-    print(count)
+def handle_status(data: bytearray):
+    duration = arduino.parse_poll_pulsein_status(data)
+    distance = duration * 0.034 / 2
+    print("{0} cm".format(distance))
 
 
 arduino.pinMode(10, PinMode.INPUT_PULLUP)
-id = arduino.startAutoPollingDigitalCount(10, 5, 50, handle_data)
+id = arduino.startAutoPollingPulsein(7, True, 10, 8, True, 100, 20, handle_status)
 
 if id == -1:
     print("FAILED TO START")

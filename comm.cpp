@@ -123,6 +123,29 @@ void BaseComm::handleCommand(){
     uint8_t actionId = autoDigCount->getActionId();
     respond(ErrorCode::NONE, &actionId, 1);
     return;
+  }else if(cmd == Command::POLL_DIG_PULSEIN){
+    // Args: writePin(uint8_t), writeHigh(uint8_t), writeDuration(uint16_t), 
+    //       pulsePin(uint8_t), pulseHigh(uint8_t), pulseRate(uint16_t), pulseTimeout(uint16_t)
+    // writeDuration in microseconds
+    // pulseRate and pulseTimeout in milliseconds
+    if(readBufferLen < 10){
+      respond(ErrorCode::NOT_ENOUGH_ARGS, nullptr, 0);
+      return;
+    }
+    uint8_t writePin = readBuffer[2];
+    bool writeHigh = readBuffer[3] != 0;
+    uint16_t writeDuration = Conversions::convertDataToInt16(readBuffer + 4, false);
+    uint8_t pulsePin = readBuffer[6];
+    uint8_t pulseHigh = readBuffer[7];
+    uint16_t pulseRate = Conversions::convertDataToInt16(readBuffer + 8, false);
+    uint16_t pulseTimeout = Conversions::convertDataToInt16(readBuffer + 10, false);
+    
+    AutoPollingTimer *autoPollTimer = new AutoPollingTimer();
+    autoPollTimer->configure(writePin, writeHigh, writeDuration, pulsePin, pulseHigh, pulseRate, pulseTimeout);
+    autoActions.add(autoPollTimer);
+    uint8_t actionId = autoPollTimer->getActionId();
+    respond(ErrorCode::NONE, &actionId, 1);
+    return;
   }
   return respond(ErrorCode::UNKNOWN_COMMAND, nullptr, 0);
 }

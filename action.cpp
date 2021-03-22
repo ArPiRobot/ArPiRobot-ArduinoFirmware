@@ -139,3 +139,43 @@ void AutoDigitalCounter::sendData(BaseComm &comm){
   comm.sendStatus(data, 6);
   newCounts = 0;
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// AutoPollingTimer
+////////////////////////////////////////////////////////////////////////////////
+
+bool AutoPollingTimer::configure(uint8_t writePin, bool writeHigh, uint16_t writeDuration, uint8_t pulsePin, bool pulseHigh, uint16_t pulseRate, uint16_t pulseTimeout){
+  this->writePin = writePin;
+  this->writeHigh = writeHigh;
+  this->writeDuration = writeDuration;
+  this->pulsePin = pulsePin;
+  this->pulseHigh = pulseHigh;
+  this->pulseRate = pulseRate;
+  this->pulseTimeout = pulseTimeout;
+
+  pinMode(writePin, OUTPUT);
+  pinMode(pulsePin, INPUT);
+  digitalWrite(writePin, writeHigh ? LOW : HIGH);
+}
+
+bool AutoPollingTimer::service(){
+  if(millis() - lastPulse > pulseRate){
+    digitalWrite(writePin, writeHigh ? HIGH : LOW);
+    delayMicroseconds(writeDuration);
+    digitalWrite(writePin, writeHigh ? LOW : HIGH);
+    duration = pulseIn(pulsePin, pulseHigh ? HIGH : LOW, (unsigned long)pulseTimeout * 1000);
+    lastPulse = millis();
+    return true;
+  }
+  return false;
+}
+
+void AutoPollingTimer::sendData(BaseComm &comm){
+  // source is actionId is uint8_t
+  // duration is uint32_t
+  uint8_t data[5];
+  data[0] = actionId;
+  Conversions::convertInt32ToData(duration, data + 1, false);
+  comm.sendStatus(data, 5);
+}

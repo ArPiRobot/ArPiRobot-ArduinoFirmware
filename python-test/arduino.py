@@ -21,10 +21,11 @@ class Command(IntEnum):
     ANALOG_WRITE = 4
     ANALOG_INPUT_TO_DIGITAL_PIN = 5
 
-    STOP_AUTO_ACTION = 6  # Stop an auto action (auto actions send data using status messages)
-    POLL_DIG_READ = 7     # Start auto action to digitalRead a pin (polling)
-    POLL_ANA_READ = 8     # Start auto action to analogRead a pin (polling)
-    POLL_DIG_COUNT = 9    # Start auto action to count pin changes (polling)
+    STOP_AUTO_ACTION = 6      # Stop an auto action (auto actions send data using status messages)
+    POLL_DIG_READ = 7         # Start auto action to digitalRead a pin (polling)
+    POLL_ANA_READ = 8         # Start auto action to analogRead a pin (polling)
+    POLL_DIG_COUNT = 9        # Start auto action to count pin changes (polling)
+    POLL_DIG_PULSEIN = 10     # Start auto action to time pulses triggered by digitalWrite (polling)
 
 
 class ErrorCode(IntEnum):
@@ -243,6 +244,31 @@ class ArduinoInterface(ABC):
             action_id = res.response_data[0]
             self.__auto_actions[action_id] = callback
             return action_id
+    
+    def startAutoPollingPulsein(self, write_pin: int, write_high: bool,
+            write_duration: int, pulse_pin: int, pulse_high: bool, pulse_rate: int, pulse_timeout: int,
+            callback: Callable[[bytearray], None]) -> int:
+        with self.__cmd_lock:
+            self.clear_response()
+            msg = bytearray()
+            msg.extend(int(MessageType.COMMAND).to_bytes(1, 'big'))
+            msg.extend(int(Command.POLL_DIG_PULSEIN).to_bytes(1, 'big'))
+            msg.extend(write_pin.to_bytes(1, 'big'))
+            msg.extend(write_high.to_bytes(1, 'big'))
+            msg.extend(write_duration.to_bytes(2, 'big'))
+            msg.extend(pulse_pin.to_bytes(1, 'big'))
+            msg.extend(pulse_high.to_bytes(1, 'big'))
+            msg.extend(pulse_rate.to_bytes(2, 'big'))
+            msg.extend(pulse_timeout.to_bytes(2, 'big'))
+            print(msg)
+            self.write_data(msg)
+            res = self.wait_for_response()
+            if res.error_code != 0:
+                self.print_error(sys._getframe().f_code.co_name, res.error_code)
+                return -1
+            action_id = res.response_data[0]
+            self.__auto_actions[action_id] = callback
+            return action_id
 
     ############################################################################
     # Functions to help parsing status messages
@@ -273,6 +299,13 @@ class ArduinoInterface(ABC):
         counts = data[4]
         dt = struct.unpack_from(">I", data, offset=0)[0]
         return counts, dt
+    
+    def parse_poll_pulsein_status(self, data: bytearray) -> int:
+        # duration(4)
+        if(len(data) < 4):
+            return 0, 0
+        duration = struct.unpack_from(">I", data, offset=0)[0]
+        return duration
 
 
     ############################################################################
