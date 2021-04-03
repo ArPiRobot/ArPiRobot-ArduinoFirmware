@@ -78,7 +78,7 @@ bool OldAdafruit9Dof::service(){
         gy += (g.y - gyCal) * (dt / 1e6f);
         gz += (g.z - gzCal) * (dt / 1e6f);
 
-        return millis() >= nextSendTime;
+        return (millis() - lastSendTime) >= sendRateMs;
     }
 }
 

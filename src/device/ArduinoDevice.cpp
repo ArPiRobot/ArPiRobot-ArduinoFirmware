@@ -30,6 +30,6 @@ uint16_t ArduinoDevice::getSendBufferSize(){
     return sendBufferSize;
 }
 
-void ArduinoDevice::updateNextSendTime(){
-    nextSendTime = millis() + sendRateMs;
+void ArduinoDevice::updateSendTime(){
+    lastSendTime = millis();
 }

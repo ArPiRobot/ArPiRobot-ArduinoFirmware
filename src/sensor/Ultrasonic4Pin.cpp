@@ -55,7 +55,7 @@ uint16_t Ultrasonic4Pin::getSendData(uint8_t *data){
 bool Ultrasonic4Pin::service(){
     // Don't service this sensor unless data is to be sent. Servicing it is time-expensive.
     // Servicing this sensor polls for a pulse to come back, preventing servicing of other sensors.
-    if(millis() >= nextSendTime){
+    if((millis() - lastSendTime) >= sendRateMs){
         digitalWrite(triggerPin, HIGH);
         delayMicroseconds(10);
         digitalWrite(triggerPin, LOW);

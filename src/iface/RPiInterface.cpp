@@ -154,7 +154,7 @@ void RPiInterface::run(){
                 uint8_t *data = new uint8_t[d->getSendBufferSize() + 1];
                 data[0] = d->deviceId;
                 uint16_t len = d->getSendData(data + 1);
-                d->updateNextSendTime();
+                d->updateSendTime();
                 writeData(data, len + 1);
                 flush();
                 delete[] data;

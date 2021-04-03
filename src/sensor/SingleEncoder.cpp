@@ -48,7 +48,7 @@ bool SingleEncoder::service(){
         count++;
         lastState = state;
     }
-    return (millis() >= nextSendTime) && (count != lastSentCount);
+    return ((millis() - lastSendTime) >= sendRateMs) && (count != lastSentCount);
 }
 
 void SingleEncoder::handleMessage(uint8_t *data, uint16_t len){

@@ -46,9 +46,9 @@ public:
 
     /**
      * Call this after sending data for this sensor
-     * Next send time will be recalculated
+     * Last send time will be stored
      */
-    void updateNextSendTime();
+    void updateSendTime();
 
     /**
      * Get the data to be sent from this device
@@ -74,8 +74,8 @@ protected:
     // How often this device should send data back to the Pi (not how often this device should be serviced)
     uint16_t sendRateMs = 50;
 
-    // The next time to send data (calculated by updateNextSendTime function)
-    unsigned long nextSendTime = 0;
+    // The last time updateSendTime was called
+    unsigned long lastSendTime = 0;
 
     int16_t deviceId = -1; // Device id is only an 8-bit int (unsigned), but is negative if invalid
 

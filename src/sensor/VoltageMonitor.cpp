@@ -71,7 +71,7 @@ bool VoltageMonitor::service(){
 
     voltage = readingRunningSum * readingScaleFactor;
 
-    return millis() >= nextSendTime;
+    return (millis() - lastSendTime) >= sendRateMs;
 }
 
 void VoltageMonitor::handleMessage(uint8_t *data, uint16_t len){

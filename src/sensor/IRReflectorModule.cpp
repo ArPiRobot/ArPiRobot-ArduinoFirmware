@@ -83,7 +83,7 @@ bool IRReflectorModule::service(){
         lastAnalogValue = analogVal;
     }
 
-    return (millis() >= nextSendTime) && changedSinceLastSend;
+    return ((millis() - lastSendTime) >= sendRateMs) && changedSinceLastSend;
 }
 
 void IRReflectorModule::handleMessage(uint8_t *data, uint16_t len){
