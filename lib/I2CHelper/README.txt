@@ -1,1 +1,0 @@
-I2C helper library used by custom sensor drivers for ArPiRobot-ArduinoFirmware.

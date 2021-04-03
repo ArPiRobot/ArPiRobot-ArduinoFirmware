@@ -37,7 +37,7 @@ public:
 
     /**
      * Construct an IRReflectorModule from command data
-     * Data format: ADDIRREFLECTOR[DANALOG][DIGITALPIN][ANALOGPIN]
+     * Data format: [DANALOG][DIGITALPIN][ANALOGPIN]
      *      DANALOG: If 1 the digital pin number is the number of an analog pin (0 = A0, 1 = A1, etc)
      *      DIGITALPIN: Number of digital pin
      *      ANALOGPIN: Analog pin number (0 = A0, 1 = A1, etc)

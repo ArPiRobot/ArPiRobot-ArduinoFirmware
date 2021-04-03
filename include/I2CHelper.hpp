@@ -32,7 +32,7 @@ namespace I2CHelper{
      * @param stop Same as stop argument for Wire.endTransmission (defaults to true for writes)
      * @return 0 on success, else error code from Wire.endTransmission
      */
-    uint8_t write(TwoWire *wire, uint8_t address, uint8_t val, bool stop = true);
+    uint8_t write(TwoWire &wire, uint8_t address, uint8_t val, bool stop = true);
 
     /**
      * Write a byte to the given register
@@ -43,7 +43,7 @@ namespace I2CHelper{
      * @param stop Same as stop for Wire.endTransmission (defaults to true for writes)
      * @return 0 on success, else error code from Wire.endTransmission
      */
-    uint8_t writeByte(TwoWire *wire, uint8_t address, uint8_t reg, uint8_t val, bool stop = true);
+    uint8_t writeByte(TwoWire &wire, uint8_t address, uint8_t reg, uint8_t val, bool stop = true);
 
     /**
      * Read a byte from the given register
@@ -53,7 +53,7 @@ namespace I2CHelper{
      * @param stop Same as stop for endTransmission after writing register address (defaults to false for reads)
      * @return Read value on success, -1 on error
      */
-    int16_t readByte(TwoWire *wire, uint8_t address, uint8_t reg, bool stop = false);
+    int16_t readByte(TwoWire &wire, uint8_t address, uint8_t reg, bool stop = false);
 
     /**
      * Read multiple bytes from the given device
@@ -63,7 +63,7 @@ namespace I2CHelper{
      * @param count Number of bytes to read (max)
      * @return Nubmer of bytes read
      */
-    uint8_t readBytes(TwoWire *wire, uint8_t address, uint8_t *data, uint8_t count);
+    uint8_t readBytes(TwoWire &wire, uint8_t address, uint8_t *data, uint8_t count);
 
     /**
      * Replace a subset of bits in a byte with a different value

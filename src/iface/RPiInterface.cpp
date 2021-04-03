@@ -25,8 +25,6 @@
 #include <sensor/IRReflectorModule.hpp>
 #include <sensor/Ultrasonic4Pin.hpp>
 #include <sensor/OldAdafruit9Dof.hpp>
-#include <sensor/NxpAdafruit9Dof.hpp>
-#include <sensor/Mpu6050Imu.hpp>
 
 FastCRC16 CRC16;
 
@@ -39,8 +37,9 @@ int16_t RPiInterface::addStaticDevice(ArduinoDevice *device){
         return -1;
 
     // Add static devices at the beginning of the linked list
-    device->deviceId = devices.size();
-    devices.add(0, device);
+    device->deviceId = devicesLen;
+    devices[devicesLen] = device;
+    devicesLen++;
 
     staticDeviceCount++;
 
@@ -87,8 +86,9 @@ int16_t RPiInterface::addDevice(){
     }
 
     if(device != nullptr){
-        devices.add(device);
-        device->deviceId = devices.size() - 1;
+        devices[devicesLen] = device;
+        device->deviceId = devicesLen;
+        devicesLen++;
         uint8_t buf[11] = "ADDSUCCESS"; // 10 character string  + 1 for a device id
         buf[10] = device->deviceId;
         writeData(buf, 11);
@@ -102,11 +102,11 @@ int16_t RPiInterface::addDevice(){
 void RPiInterface::reset(){
     // Delete non-static devices ((deviceCount - statiDeviceCount) devices removed from the front)
     // Non-static devices added to the front of the linked list after static devices
-    for(int i = staticDeviceCount; i < devices.size(); ++i){
-        ArduinoDevice *d = devices.get(0);
+    for(int i = staticDeviceCount; i < devicesLen; ++i){
+        ArduinoDevice *d = devices[i];
         delete d;
-        devices.remove(0);
     }
+    devicesLen = staticDeviceCount;
     
     // Empty buffer
     readBufferLen = 0;
@@ -146,17 +146,18 @@ void RPiInterface::run(){
 
     while(true){
         // Service devices and send data as needed
-        for(int i = 0; i < devices.size(); ++i){
-            ArduinoDevice *d = devices.get(i);
+        for(int i = 0; i < devicesLen; ++i){
+            ArduinoDevice *d = devices[i];
 
             // Service will return true if there is data to send
             if(d->service()){
-                uint8_t data[d->getSendBufferSize() + 1];
+                uint8_t *data = new uint8_t[d->getSendBufferSize() + 1];
                 data[0] = d->deviceId;
-                uint16_t len = d->getSendData(&data[1]);
+                uint16_t len = d->getSendData(data + 1);
                 d->updateNextSendTime();
                 writeData(data, len + 1);
                 flush();
+                delete[] data;
             }
         }
 
@@ -174,9 +175,9 @@ void RPiInterface::run(){
                     return;
                 }else if (dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"-", 1)){
                     uint8_t id = readBuffer[1];
-                    for(uint8_t i = 0; i < devices.size(); ++i){
+                    for(uint8_t i = 0; i < devicesLen; ++i){
                         // Iterating in forward order will not cause performance issues. get() method caches.
-                        ArduinoDevice *d = devices.get(i);
+                        ArduinoDevice *d = devices[i];
                         if(d->deviceId == id){
                             // Skip the '-' in the data given to the device as well as device id
                             d->handleMessage(&readBuffer[2], readBufferLen - 2);

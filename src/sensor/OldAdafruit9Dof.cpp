@@ -19,40 +19,24 @@
 
 #include <sensor/OldAdafruit9Dof.hpp>
 #include <Conversions.hpp>
+#include <settings.h>
+#include <I2CHelper.hpp>
 
 bool OldAdafruit9Dof::locked = false;
 
 OldAdafruit9Dof::OldAdafruit9Dof() : ArduinoDevice(24){
     if(locked)
         return;
-
     locked = true;
-
-    bool success = accel.begin(LSM303::AccelRange::RANGE_2G) && gyro.begin(L3GD20::GyroRange::RANGE_500DPS);
-    if(!success){
-        locked = false;
-        return;
-    }
-
-    valid = true;
+    valid = initSensors();
 }
 
 OldAdafruit9Dof::OldAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24){
-
     // No arguments passed when creating this device so data is ignored
-
     if(locked)
         return;
-
     locked = true;
-
-    bool success = accel.begin(LSM303::AccelRange::RANGE_2G) && gyro.begin(L3GD20::GyroRange::RANGE_500DPS);
-    if(!success){
-        locked = false;
-        return;
-    }
-
-    valid = true;
+    valid = initSensors();
 }
 
 uint16_t OldAdafruit9Dof::getSendData(uint8_t *data){
@@ -70,29 +54,32 @@ bool OldAdafruit9Dof::service(){
     if(!valid) return false;
 
     unsigned long now = micros();
-    double dt = (now - lastSample) / 1e6;
+    unsigned long dt = now - lastSample;
     lastSample = now;
 
-    if(dt < 0){
-        // micros() rolled over. Some data has been lost...
+    // Have to ignore the first sample b/c lastSample is an arbitrary 0
+    // This means dt is unknown
+    // Cannot just use lastSample==0 bc micros can roll over and be zero at other times
+    if(startup){
+        startup = false; // Have the first sample so dt is valid next time
         return false;
+    }else{
+        // m/s^2
+        auto a = getAccelData();
+        ax = a.x - axCal;
+        ay = a.y - ayCal;
+        az = a.z - azCal;
+
+        // deg / sec
+        auto g = getGyroData();
+
+        // Deg (accumulated)
+        gx += (g.x - gxCal) * (dt / 1e6f);
+        gy += (g.y - gyCal) * (dt / 1e6f);
+        gz += (g.z - gzCal) * (dt / 1e6f);
+
+        return millis() >= nextSendTime;
     }
-
-    // m/s^2
-    auto a = accel.getAccel();
-    ax = a.x - axCal;
-    ay = a.y - ayCal;
-    az = a.z - azCal;
-
-    // deg / sec
-    auto g = gyro.getRates();
-
-    // Deg (accumulated)
-    gx += (g.x - gxCal) * dt;
-    gy += (g.y - gyCal) * dt;
-    gz += (g.z - gzCal) * dt;
-
-    return millis() >= nextSendTime;
 }
 
 void OldAdafruit9Dof::handleMessage(uint8_t *data, uint16_t len){
@@ -107,6 +94,8 @@ void OldAdafruit9Dof::handleMessage(uint8_t *data, uint16_t len){
 }
 
 void OldAdafruit9Dof::calibrate(uint16_t samples){
+    if(!valid) return;
+
     // Calibration is performed by taking given number of samples 1ms apart each
     // Values for each are averaged and subtracted from accepted values for each measurement
     // Calibration assumes device is stationary and gravity is along z axis (device is level)
@@ -122,14 +111,14 @@ void OldAdafruit9Dof::calibrate(uint16_t samples){
     azCal = 0;
 
     for(uint16_t i = 0; i < samples; ++i){
-        auto a = accel.getAccel();
-        auto g = gyro.getRates();
+        auto a = getAccelData();
+        auto g = getGyroData();
         gxCal += g.x;
         gyCal += g.y;
         gzCal += g.z;
         axCal += a.x;
-        ayCal += a.x;
-        azCal += a.x;
+        ayCal += a.y;
+        azCal += (a.z - 9.80665f);  // Z axis reads +g when IMU flat
         delay(1);
     }
 
@@ -139,9 +128,111 @@ void OldAdafruit9Dof::calibrate(uint16_t samples){
     axCal /= samples;
     ayCal /= samples;
     azCal /= samples;
+}
 
-    // When stationary Z axis reads -g not zero
-    azCal -= 9.80665;
+bool OldAdafruit9Dof::initSensors(){
 
-    // The cal variables now contain values that should be subtracted from each value read from imu
+    Wire.begin();
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// LSM303 (accelerometer) setup
+    ////////////////////////////////////////////////////////////////////////////
+    // Verify correct device
+    int16_t id = I2CHelper::readByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_WHO_AM_I);
+    if(id != 0x33)
+        return false;
+
+    // Enable accelerometer at 100Hz
+    if(I2CHelper::writeByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_CTRL_REG1_A, 0x57) != 0)
+        return false;
+
+    // Set range
+    // 0x00 = +/- 2G
+    // 0x01 = +/- 4G
+    // 0x02 = +/- 8G
+    // 0x03 = +/- 16G
+    uint8_t c4val = I2CHelper::readByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_CTRL_REG4_A);
+    c4val = I2CHelper::replaceBits(c4val, 0x00, 2, 4);
+    I2CHelper::writeByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_CTRL_REG4_A, c4val);
+
+    // Set to high resolution mode  (12-bit values)
+    c4val = I2CHelper::readByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_CTRL_REG4_A);
+    uint8_t c1val = I2CHelper::readByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_CTRL_REG1_A);
+    c4val = I2CHelper::replaceBits(c4val, 0x01, 1, 3);
+    c1val = I2CHelper::replaceBits(c1val, 0x00, 1, 3);
+    I2CHelper::writeByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_CTRL_REG4_A, c4val);
+    I2CHelper::writeByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_CTRL_REG1_A, c1val);
+
+    ////////////////////////////////////////////////////////////////////////////
+    /// L2GD20 (gyro) setup
+    ////////////////////////////////////////////////////////////////////////////
+    // Verify correct device
+    id = I2CHelper::readByte(Wire, L3GD20_ADDRESS, GYRO_REGISTER_WHO_AM_I);
+    if(id != 0xD4 && id != 0xD7){
+        return false;
+    }
+
+    // Reset
+    I2CHelper::writeByte(Wire, L3GD20_ADDRESS, GYRO_REGISTER_CTRL_REG1, 0x00);
+
+    // Switch to normal mode (enable X, Y, Z axes)
+    I2CHelper::writeByte(Wire, L3GD20_ADDRESS, GYRO_REGISTER_CTRL_REG1, 0x0F);
+   
+    // Set range
+    // 0x00 = 250DPS
+    // 0x10 = 500DPS
+    // 0x20 = 2000DPS
+    I2CHelper::writeByte(Wire, L3GD20_ADDRESS, GYRO_REGISTER_CTRL_REG4, 0x10);
+
+    return true;
+}
+
+OldAdafruit9Dof::Data OldAdafruit9Dof::getGyroData(){
+    Data data;
+    I2CHelper::write(Wire, L3GD20_ADDRESS, GYRO_REGISTER_OUT_X_L | 0x80);
+
+    uint8_t rawData[6];
+    if(I2CHelper::readBytes(Wire, L3GD20_ADDRESS, rawData, 6) != 6){
+        return data;
+    }
+    int16_t x = (int16_t)(rawData[0] | (rawData[1] << 8));
+    int16_t y = (int16_t)(rawData[2] | (rawData[3] << 8));
+    int16_t z = (int16_t)(rawData[4] | (rawData[5] << 8));
+
+    // Conversion to deg/sec depends on range
+    // 250DPS:  0.00875f
+    // 500DPS:  0.0175f
+    // 2000DPS: 0.070f
+    data.x = x * 0.0175f;
+    data.y = y * 0.0175f;
+    data.z = z * 0.0175f;
+
+    return data;
+}
+
+OldAdafruit9Dof::Data OldAdafruit9Dof::getAccelData(){
+    Data data;
+    I2CHelper::write(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_OUT_X_L_A | 0x80);
+
+    uint8_t rawData[6];
+    if(I2CHelper::readBytes(Wire, LSM303_ADDRESS, rawData, 6) != 6){
+        return data;
+    }
+
+    // Right shift 4 b/c 12-bit number left aligned (sensor is in high resolution mode)
+    data.x = (int16_t)((rawData[0] | (rawData[1] << 8)) >> 4);
+    data.y = (int16_t)((rawData[2] | (rawData[3] << 8)) >> 4);
+    data.z = (int16_t)((rawData[4] | (rawData[5] << 8)) >> 4);
+
+    // Scale values depend both on mode and range.
+    // Sensor is in high resolution mode so:
+    // +/- 2G:  0.00098f
+    // +/- 4G:  0.00195f
+    // +/- 8G:  0.0039f
+    // +/- 16G: 0.01172f
+    data.x *= 0.00098f * 9.80665f;
+    data.y *= 0.00098f * 9.80665f;
+    data.z *= 0.00098f * 9.80665f;
+
+    return data;
 }

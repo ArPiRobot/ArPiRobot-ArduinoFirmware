@@ -19,15 +19,18 @@
 
 #include <Arduino.h>
 #include <board.h>
+#include <settings.h>
 #include <iface/RPiUartInterface.hpp>
 #include <Conversions.hpp>
 
-void setup() {
-    // NEVER REMOVE THIS LINE!
-    Conversions::checkBigEndian();
+// Change this line to use different interface if necessary
+RPiUartInterface rpi(Serial1, 57600);
 
-    // Change this line to use different interface if necessary
-    RPiUartInterface rpi(Serial, 57600);
+void setup() {
+    // NEVER REMOVE THESE LINES!
+    Conversions::checkBigEndian();
+    DBG_INIT();
+    LOGLN("STARTING");
 
     // Add any static devices here
 

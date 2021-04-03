@@ -36,7 +36,7 @@ public:
 
     /**
      * Construct a SingleEncoder from command data
-     * Data format: ADDSENC[ANALOG][PIN][PULLUP]
+     * Data format: [ANALOG][PIN][PULLUP]
      *      ANALOG: 1 = analog pin #, 0 = digital pin #
      *      PIN: Pin number (unsigned 8-bit int)
      *      PULLUP: 1 = use internal pullup resistor, 0 = do not

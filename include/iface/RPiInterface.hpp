@@ -23,7 +23,6 @@
 #include <SoftwareSerial.h>
 
 #include <FastCRC.h>
-#include <LinkedList.h>
 
 #include <board.h>
 #include <device/ArduinoDevice.hpp>
@@ -183,7 +182,9 @@ private:
     bool parseStarted = false;    // Has start byte
     bool parseEscaped = false;    // Is parse escaped
     
-    LinkedList<ArduinoDevice*> devices;
+    // LinkedList<ArduinoDevice*> devices;
+    ArduinoDevice *devices[10];
+    uint8_t devicesLen = 0;
     uint8_t staticDeviceCount = 0;
 
     bool canAddStatic = true;

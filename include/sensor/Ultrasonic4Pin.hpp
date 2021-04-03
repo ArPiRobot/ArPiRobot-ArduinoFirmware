@@ -33,7 +33,7 @@ public:
 
     /**
      * Construct a Ultrasonic4Pin from command data
-     * Data format: ADDUSONIC4[TRIGANALOG][TRIGPIN][ECHOANALOG][ECHOPIN]
+     * Data format: [TRIGANALOG][TRIGPIN][ECHOANALOG][ECHOPIN]
      *      TRIGANALOG: 1 = analog pin #, 0 = digital pin #
      *      TRIGPIN: Pin number (unsigned 8-bit int)
      *      ECHOANALOG: 1 = analog pin #, 0 = digital pin #

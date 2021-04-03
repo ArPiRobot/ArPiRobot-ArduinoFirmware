@@ -19,33 +19,33 @@
 
 #include "I2CHelper.hpp"
 
-uint8_t I2CHelper::write(TwoWire *wire, uint8_t address, uint8_t val, bool stop){
-    wire->beginTransmission(address);
-    wire->write(val);
-    return wire->endTransmission(stop);
+uint8_t I2CHelper::write(TwoWire &wire, uint8_t address, uint8_t val, bool stop){
+    wire.beginTransmission(address);
+    wire.write(val);
+    return wire.endTransmission(stop);
 }
 
-uint8_t I2CHelper::writeByte(TwoWire *wire, uint8_t address, uint8_t reg, uint8_t val, bool stop){
-    wire->beginTransmission(address);
-    wire->write(reg);
-    wire->write(val);
-    return wire->endTransmission(stop);
+uint8_t I2CHelper::writeByte(TwoWire &wire, uint8_t address, uint8_t reg, uint8_t val, bool stop){
+    wire.beginTransmission(address);
+    wire.write(reg);
+    wire.write(val);
+    return wire.endTransmission(stop);
 }
 
-int16_t I2CHelper::readByte(TwoWire *wire, uint8_t address, uint8_t reg, bool stop){
-    wire->beginTransmission(address);
-    wire->write(reg);
-    if(wire->endTransmission(stop) != 0)
+int16_t I2CHelper::readByte(TwoWire &wire, uint8_t address, uint8_t reg, bool stop){
+    wire.beginTransmission(address);
+    wire.write(reg);
+    if(wire.endTransmission(stop) != 0)
         return -1;
-    if(wire->requestFrom(address, (size_t)1) != 1)
+    if(wire.requestFrom(address, (size_t)1) != 1)
         return -1;
-    return wire->read();
+    return wire.read();
 }
 
-uint8_t I2CHelper::readBytes(TwoWire *wire, uint8_t address, uint8_t *data, uint8_t count){
-    uint8_t len = wire->requestFrom(address, (size_t)count);
+uint8_t I2CHelper::readBytes(TwoWire &wire, uint8_t address, uint8_t *data, uint8_t count){
+    uint8_t len = wire.requestFrom(address, (size_t)count);
     for(uint8_t i = 0; i < len; ++i){
-        data[i] = wire->read();
+        data[i] = wire.read();
     }
     return len;
 }
