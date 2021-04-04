@@ -9,7 +9,7 @@
 
 #define IRReflectorModule_ENABLE
 //#define Mpu6050Imu_ENABLE
-//#define NxpAdafruit9Dof_ENABLE
+#define NxpAdafruit9Dof_ENABLE
 #define OldAdafruit9Dof_ENABLE
 #define SingleEncoder_ENABLE
 #define Ultrasonic4Pin_ENABLE

@@ -52,6 +52,9 @@
  *    
  */
 
+
+extern void(*reset) (void);
+
 extern FastCRC16 CRC16;
 
 class RPiInterface{
@@ -77,11 +80,6 @@ public:
      * @return The device ID of the created device
      */
     int16_t addDevice();
-
-    /**
-     * Reset the Pi interface
-     */
-    void reset();
 
     /**
      * Wait for the pi to add devices to the interface via commands, then service

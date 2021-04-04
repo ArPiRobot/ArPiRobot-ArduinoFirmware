@@ -25,6 +25,10 @@
 #include <sensor/IRReflectorModule.hpp>
 #include <sensor/Ultrasonic4Pin.hpp>
 #include <sensor/OldAdafruit9Dof.hpp>
+#include <sensor/NxpAdafruit9Dof.hpp>
+
+
+void(*reset) (void) = 0;
 
 FastCRC16 CRC16;
 
@@ -99,19 +103,6 @@ int16_t RPiInterface::addDevice(){
     }
 }
 
-void RPiInterface::reset(){
-    // Delete non-static devices ((deviceCount - statiDeviceCount) devices removed from the front)
-    // Non-static devices added to the front of the linked list after static devices
-    for(int i = staticDeviceCount; i < devicesLen; ++i){
-        ArduinoDevice *d = devices[i];
-        delete d;
-    }
-    devicesLen = staticDeviceCount;
-    
-    // Empty buffer
-    readBufferLen = 0;
-}
-
 void RPiInterface::run(){
 
     open();
@@ -130,7 +121,6 @@ void RPiInterface::run(){
                 break;
             }else if(dataDoesMatch(readBuffer, readBufferLen, (uint8_t*)"RESET", 5)){
                 reset();
-                writeData((uint8_t*)"START", 5);                
             }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADD", 3)){
                 addDevice();
             }
@@ -171,8 +161,6 @@ void RPiInterface::run(){
 
                 if(dataDoesMatch(readBuffer, readBufferLen, (uint8_t*)"RESET", 5)){
                     reset();
-                    run();
-                    return;
                 }else if (dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"-", 1)){
                     uint8_t id = readBuffer[1];
                     for(uint8_t i = 0; i < devicesLen; ++i){

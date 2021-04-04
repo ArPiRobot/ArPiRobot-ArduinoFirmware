@@ -17,21 +17,21 @@
  * along with ArPiRobot-ArduinoFirmware.  If not, see <https://www.gnu.org/licenses/>. 
  */
 
-#include <sensor/OldAdafruit9Dof.hpp>
+#include <sensor/NxpAdafruit9Dof.hpp>
 #include <Conversions.hpp>
 #include <settings.h>
 #include <I2CHelper.hpp>
 
-bool OldAdafruit9Dof::locked = false;
+bool NxpAdafruit9Dof::locked = false;
 
-OldAdafruit9Dof::OldAdafruit9Dof() : ArduinoDevice(24){
+NxpAdafruit9Dof::NxpAdafruit9Dof() : ArduinoDevice(24){
     if(locked)
         return;
     locked = true;
     valid = initSensors();
 }
 
-OldAdafruit9Dof::OldAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24){
+NxpAdafruit9Dof::NxpAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24){
     // No arguments passed when creating this device so data is ignored
     if(locked)
         return;
@@ -39,7 +39,7 @@ OldAdafruit9Dof::OldAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24
     valid = initSensors();
 }
 
-uint16_t OldAdafruit9Dof::getSendData(uint8_t *data){
+uint16_t NxpAdafruit9Dof::getSendData(uint8_t *data){
     // This will never be called if not valid because service returns false
     Conversions::convertFloatToData(gx, &data[0], true);
     Conversions::convertFloatToData(gy, &data[4], true);
@@ -50,7 +50,7 @@ uint16_t OldAdafruit9Dof::getSendData(uint8_t *data){
     return 24;
 }
 
-bool OldAdafruit9Dof::service(){
+bool NxpAdafruit9Dof::service(){
     if(!valid) return false;
 
     unsigned long now = micros();
@@ -82,7 +82,7 @@ bool OldAdafruit9Dof::service(){
     }
 }
 
-void OldAdafruit9Dof::handleMessage(uint8_t *data, uint16_t len){
+void NxpAdafruit9Dof::handleMessage(uint8_t *data, uint16_t len){
     if(!valid) return;
 
     // Only one valid message 'C', samples
@@ -93,7 +93,7 @@ void OldAdafruit9Dof::handleMessage(uint8_t *data, uint16_t len){
     }
 }
 
-void OldAdafruit9Dof::calibrate(uint16_t samples){
+void NxpAdafruit9Dof::calibrate(uint16_t samples){
     if(!valid) return;
 
     // Calibration is performed by taking given number of samples 1ms apart each
@@ -130,109 +130,107 @@ void OldAdafruit9Dof::calibrate(uint16_t samples){
     azCal /= samples;
 }
 
-bool OldAdafruit9Dof::initSensors(){
+bool NxpAdafruit9Dof::initSensors(){
 
     Wire.begin();
 
     ////////////////////////////////////////////////////////////////////////////
-    /// LSM303 (accelerometer) setup
+    /// FXOS8700 (accelerometer) setup
     ////////////////////////////////////////////////////////////////////////////
     // Verify correct device
-    int16_t id = I2CHelper::readByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_WHO_AM_I);
-    if(id != 0x33)
+    int16_t id = I2CHelper::readByte(Wire, FXOS8700_ADDRESS, FXOS8700_REGISTER_WHO_AM_I);
+    if(id != FXOS8700_ID)
         return false;
 
-    // Enable accelerometer at 100Hz
-    if(I2CHelper::writeByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_CTRL_REG1_A, 0x57) != 0)
-        return false;
+    // Put in standby mode before configuring
+    I2CHelper::writeByte(Wire, FXOS8700_ADDRESS, FXOS8700_REGISTER_CTRL_REG1, 0x00);
 
     // Set range
     // 0x00 = +/- 2G
     // 0x01 = +/- 4G
     // 0x02 = +/- 8G
-    // 0x03 = +/- 16G
-    uint8_t c4val = I2CHelper::readByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_CTRL_REG4_A);
-    c4val = I2CHelper::replaceBits(c4val, 0x00, 2, 4);
-    I2CHelper::writeByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_CTRL_REG4_A, c4val);
+    I2CHelper::writeByte(Wire, FXOS8700_ADDRESS, FXOS8700_REGISTER_XYZ_DATA_CFG, 0x00);
 
-    // Set to high resolution mode  (12-bit values)
-    c4val = I2CHelper::readByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_CTRL_REG4_A);
-    uint8_t c1val = I2CHelper::readByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_CTRL_REG1_A);
-    c4val = I2CHelper::replaceBits(c4val, 0x01, 1, 3);
-    c1val = I2CHelper::replaceBits(c1val, 0x00, 1, 3);
-    I2CHelper::writeByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_CTRL_REG4_A, c4val);
-    I2CHelper::writeByte(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_CTRL_REG1_A, c1val);
+    // High resolution mode
+    I2CHelper::writeByte(Wire, FXOS8700_ADDRESS, FXOS8700_REGISTER_CTRL_REG2, 0x02);
+
+    // Enabled, normal mode, 100Hz
+    I2CHelper::writeByte(Wire, FXOS8700_ADDRESS, FXOS8700_REGISTER_CTRL_REG1, 0x15);
 
     ////////////////////////////////////////////////////////////////////////////
-    /// L2GD20 (gyro) setup
+    /// FXAS2100 (gyro) setup
     ////////////////////////////////////////////////////////////////////////////
     // Verify correct device
-    id = I2CHelper::readByte(Wire, L3GD20_ADDRESS, GYRO_REGISTER_WHO_AM_I);
-    if(id != 0xD4 && id != 0xD7){
+    id = I2CHelper::readByte(Wire, FXAS21002C_ADDRESS, GYRO_REGISTER_WHO_AM_I);
+    if(id != FXAS21002C_ID)
         return false;
-    }
+
+    // Switch to standby mode
+    I2CHelper::writeByte(Wire, FXAS21002C_ADDRESS, GYRO_REGISTER_CTRL_REG1, 0x00);
 
     // Reset
-    I2CHelper::writeByte(Wire, L3GD20_ADDRESS, GYRO_REGISTER_CTRL_REG1, 0x00);
+    I2CHelper::writeByte(Wire, FXAS21002C_ADDRESS, GYRO_REGISTER_CTRL_REG1, 0x40);
 
-    // Switch to normal mode (enable X, Y, Z axes)
-    I2CHelper::writeByte(Wire, L3GD20_ADDRESS, GYRO_REGISTER_CTRL_REG1, 0x0F);
-   
-    // Set range
-    // 0x00 = 250DPS
-    // 0x10 = 500DPS
-    // 0x20 = 2000DPS
-    I2CHelper::writeByte(Wire, L3GD20_ADDRESS, GYRO_REGISTER_CTRL_REG4, 0x10);
+    // Set sensitivity
+    // 250DPS = 0x03
+    // 500DPS = 0x02
+    // 1000DPS = 0x01
+    // 2000DPS = 0x00
+    I2CHelper::writeByte(Wire, FXAS21002C_ADDRESS, GYRO_REGISTER_CTRL_REG0, 0x02);
+
+    // Active mode 100Hz
+    I2CHelper::writeByte(Wire, FXAS21002C_ADDRESS, GYRO_REGISTER_CTRL_REG1, 0x0E);
 
     return true;
 }
 
-OldAdafruit9Dof::Data OldAdafruit9Dof::getGyroData(){
+NxpAdafruit9Dof::Data NxpAdafruit9Dof::getGyroData(){
     Data data;
-    I2CHelper::write(Wire, L3GD20_ADDRESS, GYRO_REGISTER_OUT_X_L | 0x80);
+    I2CHelper::write(Wire, FXAS21002C_ADDRESS, GYRO_REGISTER_OUT_X_MSB | 0x80);
 
     uint8_t rawData[6];
-    if(I2CHelper::readBytes(Wire, L3GD20_ADDRESS, rawData, 6) != 6){
+    if(I2CHelper::readBytes(Wire, FXAS21002C_ADDRESS, rawData, 6) != 6){
         return data;
     }
+
     data.x = (int16_t)(rawData[0] | (rawData[1] << 8));
     data.y = (int16_t)(rawData[2] | (rawData[3] << 8));
     data.z = (int16_t)(rawData[4] | (rawData[5] << 8));
 
     // Conversion to deg/sec depends on range
-    // 250DPS:  0.00875f
-    // 500DPS:  0.0175f
-    // 2000DPS: 0.070f
-    data.x *= 0.0175f;
-    data.y *= 0.0175f;
-    data.z *= 0.0175f;
+    // 250DPS = 0.0078125f
+    // 500DPS = 0.015625f
+    // 1000DPS = 0.03125f
+    // 2000DPS = 0.0625f
+    data.x *= 0.015625f;
+    data.y *= 0.015625f;
+    data.z *= 0.015625f;
 
     return data;
 }
 
-OldAdafruit9Dof::Data OldAdafruit9Dof::getAccelData(){
+NxpAdafruit9Dof::Data NxpAdafruit9Dof::getAccelData(){
     Data data;
-    I2CHelper::write(Wire, LSM303_ADDRESS, LSM303_REGISTER_ACCEL_OUT_X_L_A | 0x80);
+    I2CHelper::write(Wire, FXOS8700_ADDRESS, FXOS8700_REGISTER_OUT_X_MSB | 0x80);
 
     uint8_t rawData[6];
-    if(I2CHelper::readBytes(Wire, LSM303_ADDRESS, rawData, 6) != 6){
+    if(I2CHelper::readBytes(Wire, FXOS8700_ADDRESS, rawData, 6) != 6){
         return data;
     }
 
-    // Right shift 4 b/c 12-bit number left aligned (sensor is in high resolution mode)
-    data.x = (int16_t)((rawData[0] | (rawData[1] << 8)) >> 4);
-    data.y = (int16_t)((rawData[2] | (rawData[3] << 8)) >> 4);
-    data.z = (int16_t)((rawData[4] | (rawData[5] << 8)) >> 4);
+    // Right shift b/c data is left aligned and only 14 bits wide
+    data.x = (int16_t)((rawData[1] << 8) | rawData[0]) >> 2;
+    data.y = (int16_t)((rawData[3] << 8) | rawData[2]) >> 2;
+    data.z = (int16_t)((rawData[5] << 8) | rawData[4]) >> 2;
 
     // Scale values depend both on mode and range.
     // Sensor is in high resolution mode so:
-    // +/- 2G:  0.00098f
-    // +/- 4G:  0.00195f
-    // +/- 8G:  0.0039f
-    // +/- 16G: 0.01172f
-    data.x *= 0.00098f * 9.80665f;
-    data.y *= 0.00098f * 9.80665f;
-    data.z *= 0.00098f * 9.80665f;
+    // +/- 2G:  0.000244f
+    // +/- 4G:  0.000488f
+    // +/- 8G:  0.000976f
+    data.x *= 0.000244f * 9.80665f;
+    data.y *= 0.000244f * 9.80665f;
+    data.z *= 0.000244f * 9.80665f;
 
     return data;
 }
