@@ -20,44 +20,52 @@
 #pragma once
 
 #include <Arduino.h>
-#include <Wire.h>
+#include <board.h>
+#include <device/ArduinoDevice.hpp>
 
-
-class MPU6050{
+/**
+ * Old Adafruit 9DOF (now discontinued) L3GD20 + LSM303
+ */
+class Mpu6050Imu : public ArduinoDevice {
 public:
+    Mpu6050Imu();
 
-    enum class AccelRange{
-        RANGE_2G = 0b00,
-        RANGE_4G = 0b01,
-        RANGE_8G = 0b10,
-        RANGE_16G = 0b11
-    };
+    /**
+     * Construct the IMU from command data
+     * Data format: NULL
+     */
+    Mpu6050Imu(uint8_t *data, uint16_t len);
 
-    enum class GyroRange{
-        RANGE_250DPS = 0,
-        RANGE_500DPS = 1,
-        RANGE_1000DPS = 2,
-        RANGE_2000DPS = 3
-    };
+    uint16_t getSendData(uint8_t *data) override;
 
-    struct Data{
-        float accelX = 0, accelY = 0, accelZ = 0;
-        float gyroX = 0, gyroY = 0, gyroZ = 0;
-    };
+    bool service() override;
 
-    bool begin(AccelRange arange = AccelRange::RANGE_2G, GyroRange grange = GyroRange::RANGE_250DPS, 
-            uint8_t address = MPU6050_I2CADDR_DEFAULT, TwoWire *wire = &Wire);
+    void handleMessage(uint8_t *data, uint16_t len) override;
 
-    Data getData();
+    void calibrate(uint16_t samples);
 
 private:
+    
+    struct Data{
+        float x = 0, y = 0, z = 0;
+    };
 
-    TwoWire *wire = nullptr;
-    uint8_t address;
-    GyroRange grange = GyroRange::RANGE_250DPS;
-    AccelRange arange = AccelRange::RANGE_2G;
+    bool initSensors();
 
-    const static uint8_t MPU6050_I2CADDR_DEFAULT = 0x68;
+    Data getGyroData();
+
+    Data getAccelData();
+
+    bool valid = false;
+    float ax = 0, ay = 0, az = 0, gx = 0, gy = 0, gz = 0;
+    float gxCal = 0, gyCal = 0, gzCal = 0;
+    float axCal = 0, ayCal = 0, azCal = 0;
+    unsigned long lastSample = 0;
+    bool startup = true; // True means no samples yet. False means have taken a sample before.
+
+    static bool locked;
+
+    const static uint8_t MPU6050_I2CADDR = 0x68;
     const static uint8_t MPU6050_DEVICE_ID = 0x68;
 
     const static uint8_t MPU6050_SELF_TEST_X = 0x0D;
@@ -77,4 +85,5 @@ private:
     const static uint8_t MPU6050_TEMP_H = 0x41;
     const static uint8_t MPU6050_TEMP_L = 0x42;
     const static uint8_t MPU6050_ACCEL_OUT = 0x3B;
+    const static uint8_t MPU6050_GYRO_OUT = 0x43;
 };

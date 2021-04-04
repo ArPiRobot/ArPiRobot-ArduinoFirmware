@@ -26,6 +26,7 @@
 #include <sensor/Ultrasonic4Pin.hpp>
 #include <sensor/OldAdafruit9Dof.hpp>
 #include <sensor/NxpAdafruit9Dof.hpp>
+#include <sensor/Mpu6050Imu.hpp>
 
 
 void(*reset) (void) = 0;
