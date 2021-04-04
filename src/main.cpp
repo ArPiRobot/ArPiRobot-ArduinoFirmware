@@ -24,7 +24,7 @@
 #include <Conversions.hpp>
 
 // Change this line to use different interface if necessary
-RPiUartInterface rpi(Serial1, 57600);
+RPiUartInterface rpi(Serial, 57600);
 
 void setup() {
     ////////////////////////////////////////////////////////////////////////////

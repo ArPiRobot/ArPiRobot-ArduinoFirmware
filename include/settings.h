@@ -20,16 +20,14 @@
 /// Debug settings
 ////////////////////////////////////////////////////////////////////////////////
 
-#define ARPFW_DEBUG
+//#define ARPFW_DEBUG
 
 #ifdef ARPFW_DEBUG
 
 #include <SoftwareSerial.h>
 #include <Arduino.h>
 
-//extern SoftwareSerial debugSer;
-
-extern HardwareSerial &debugSer;
+extern SoftwareSerial debugSer;
 
 #define LOG(msg) debugSer.print(msg)
 #define LOGLN(msg) debugSer.println(msg)

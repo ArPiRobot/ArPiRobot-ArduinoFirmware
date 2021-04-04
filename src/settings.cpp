@@ -5,8 +5,6 @@
 #include <SoftwareSerial.h>
 #include <Arduino.h>
 
-//SoftwareSerial debugSer(2, 3); // RX, TX
-
-HardwareSerial &debugSer = Serial;
+SoftwareSerial debugSer(2, 3); // RX, TX
 
 #endif
