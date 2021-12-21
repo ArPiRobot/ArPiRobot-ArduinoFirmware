@@ -52,9 +52,6 @@
  *    
  */
 
-
-extern void(*reset) (void);
-
 extern FastCRC16 CRC16;
 
 class RPiInterface{

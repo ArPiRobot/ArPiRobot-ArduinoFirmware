@@ -27,12 +27,13 @@
 /// RPiInterface
 ////////////////////////////////////////////////////////////////////////////////
 
-void(*reset) (void) = 0;
-
 FastCRC16 CRC16;
 
 RPiInterface::~RPiInterface(){
-    // Nothing special here. Just virtual destructor to ensure proper behavior from child classes.
+    for(uint8_t i = staticDeviceCount; i < devicesLen; ++i){
+        // Non-static devices were dynamically allocated by this class
+        delete devices[i];
+    }
 }
 
 int16_t RPiInterface::addStaticDevice(ArduinoDevice *device){
@@ -119,7 +120,7 @@ void RPiInterface::run(){
             if(dataDoesMatch(readBuffer, readBufferLen, (uint8_t*)"END", 3)){
                 break;
             }else if(dataDoesMatch(readBuffer, readBufferLen, (uint8_t*)"RESET", 5)){
-                reset();
+                return;
             }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADD", 3)){
                 addDevice();
             }
@@ -159,7 +160,7 @@ void RPiInterface::run(){
                 readBufferLen -= 2;
 
                 if(dataDoesMatch(readBuffer, readBufferLen, (uint8_t*)"RESET", 5)){
-                    reset();
+                    return;
                 }else if (dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"-", 1)){
                     uint8_t id = readBuffer[1];
                     for(uint8_t i = 0; i < devicesLen; ++i){
@@ -295,4 +296,3 @@ void RPiUartInterface::write(uint8_t data){
 void RPiUartInterface::flush(){
     serial.flush();
 }
-
