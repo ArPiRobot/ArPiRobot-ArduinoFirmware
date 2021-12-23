@@ -264,7 +264,7 @@ private:
 class SingleEncoder : public ArduinoDevice{
 public:
     /**
-     * @param pin Digital pin number to use
+     * @param pin Digital pin number to use. If this pin is able to be used as an interrupt it will be
      * @param pullup if true internal pullup will be used, if false it will not
      */
     SingleEncoder(uint8_t pin, bool pullup);
@@ -287,6 +287,7 @@ public:
 private:
     uint8_t pin;
     bool lastState;
+    bool isInterrupt;
     uint16_t count = 0, lastSentCount = 65535;
 };
 

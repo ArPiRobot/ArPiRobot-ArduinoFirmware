@@ -82,7 +82,6 @@
 #endif
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 // Pin ISR flag name
 #define INTERRUPTS_FLAG_NAME(x)             interrupts_##x##_flag
 
@@ -111,6 +110,14 @@
                                                 *pin = x; \
                                                 return 1; \
                                             }
+
+// Used in check function to determine if a flag is set
+#define INTERRUPTS_CHECK_SPECIFIC(x)        case x: \
+                                                if(INTERRUPTS_FLAG_NAME(x)){ \
+                                                    INTERRUPTS_FLAG_NAME(x) = 0; \
+                                                    return 1; \
+                                                } \
+                                                return 0; \
 
 // Used in enable interrupts function to enable an interrupt
 #define INTERRUPTS_ENABLE_CASE(x)           case x: \
@@ -146,6 +153,13 @@ void interrupts_init();
  * @return true if any pin interrupted, else false
  */
 bool interrupts_check_flags(uint8_t *pin);
+
+/**
+ * Checks if a SPECIFIC pin's flag is set
+ * @param pin The pin to check the flag for
+ * @return true if the pin's flag is set
+ */
+bool interrupts_check_flag(uint8_t pin);
 
 /**
  * Enables the interrupt for the given pin

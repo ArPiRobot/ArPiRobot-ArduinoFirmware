@@ -34,6 +34,13 @@ bool interrupts_check_flags(uint8_t *pin) {
     return false;
 }
 
+bool interrupts_check_flag(uint8_t pin){
+    switch(pin){
+    MAP(INTERRUPTS_CHECK_SPECIFIC, INTERRUPT_PINS)
+    }
+    return false;
+}
+
 bool interrupts_enable_pin(uint8_t pin, AI_MODE_T mode){
     switch(pin){
     // Uses preprocessor to generate a case for each pin in INTERRUPT_PINS

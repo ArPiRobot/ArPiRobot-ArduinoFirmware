@@ -3,6 +3,7 @@
 #include "conversions.h"
 #include "board.h"
 #include "settings.h"
+#include "interrupts.h"
 #include "i2c.h"
 #include <Wire.h>
 
@@ -757,8 +758,23 @@ OldAdafruit9Dof::Data OldAdafruit9Dof::getAccelData(){
 /// SingleEncoder
 ////////////////////////////////////////////////////////////////////////////////
 SingleEncoder::SingleEncoder(uint8_t pin, bool pullup) : ArduinoDevice(2), pin(pin){
-    pinMode(pin, pullup ? INPUT_PULLUP : INPUT);
-    lastState = digitalRead(pin);
+    // Check if the given pin is able to be used as an interrupt
+    isInterrupt = false;
+    uint8_t interruptPins[] = {INTERRUPT_PINS};
+    for(uint8_t i = 0; i < NUM_INTERRUPTS; ++i){
+        if(interruptPins[i] == pin){
+            isInterrupt = true;
+            break;
+        }
+    }
+
+    // Configure as needed
+    if(isInterrupt){
+        interrupts_enable_pin(pin, CHANGE);
+    }else{
+        pinMode(pin, pullup ? INPUT_PULLUP : INPUT);
+        lastState = digitalRead(pin);
+    }
 }
 
 SingleEncoder::SingleEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(2){
@@ -767,8 +783,24 @@ SingleEncoder::SingleEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(2){
     }else{
         pin = data[1];
     }
-    pinMode(pin, data[2] ? INPUT_PULLUP : INPUT);
-    lastState = digitalRead(pin);
+    
+    // Check if the given pin is able to be used as an interrupt
+    isInterrupt = false;
+    uint8_t interruptPins[] = {INTERRUPT_PINS};
+    for(uint8_t i = 0; i < NUM_INTERRUPTS; ++i){
+        if(interruptPins[i] == pin){
+            isInterrupt = true;
+            break;
+        }
+    }
+
+    // Configure as needed
+    if(isInterrupt){
+        interrupts_enable_pin(pin, CHANGE);
+    }else{
+        pinMode(pin, data[2] ? INPUT_PULLUP : INPUT);
+        lastState = digitalRead(pin);
+    }
 }
 
 uint16_t SingleEncoder::getSendData(uint8_t *data){
@@ -779,10 +811,16 @@ uint16_t SingleEncoder::getSendData(uint8_t *data){
 }
 
 bool SingleEncoder::service(){
-    bool state = digitalRead(pin);
-    if(state != lastState){
-        count++;
-        lastState = state;
+    if(isInterrupt){
+        if(interrupts_check_flag(pin)){
+            count++;
+        }
+    }else{
+        bool state = digitalRead(pin);
+        if(state != lastState){
+            count++;
+            lastState = state;
+        }
     }
     return ((millis() - lastSendTime) >= sendRateMs) && (count != lastSentCount);
 }
