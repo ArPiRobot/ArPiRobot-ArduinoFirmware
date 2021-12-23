@@ -25,15 +25,14 @@
 
 #include "log.h"
 #include "settings.h"
-#include "board.h"
 #include "interrupts.h"
+#include "conversions.h"
+#include "rpi.h"
 
 
 // Uncomment if using software serial for logging
 #include <SoftwareSerial.h>
 SoftwareSerial debugSerial(5, 6);
-
-bool done;
 
 void setup() {
 
@@ -52,34 +51,19 @@ void setup() {
     log_write(VERSION_SUFFIX);
     log_write('\n');
 
+    // Setup conversions (checks if this is a big endian system)
+    conversions_init();
+
     // Initialize interrupts
-    interrupts_init();
+    interrupts_init();                  
 
-    // TODO: Remove this. Test code
-    interrupts_enable_pin(2, RISING);
-    interrupts_enable_pin(3, RISING);    
-    done = false;
-
-    // TODO: Initialize all the other things
-
+    // Initialize communication with pi
+    rpi_init();
 }
 
 void loop() {
-    uint8_t pin;
-    if(interrupts_check_flags(&pin)){
-        switch(pin){
-        case 2:
-            log_write("P2IFG\n");
-            break;
-        case 3:
-            log_write("P3IFG\n");
-            break;
-        }
-    }
-
-    if(!done && millis() >= 10000){
-        done = true;
-        interrupts_disable_pin(2);
-        interrupts_disable_pin(3); 
-    }
+    // TODO: Check interrupt flags and do something with them
+    
+    // Handle data from the pi
+    rpi_process();
 }

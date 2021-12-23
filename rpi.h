@@ -19,25 +19,34 @@
 
 #pragma once
 
+#include "settings.h"
 
-#include <Arduino.h>
-#include <HardwareSerial.h>
-#include <SoftwareSerial.h>
+////////////////////////////////////////////////////////////////////////////////
+/// Macros
+////////////////////////////////////////////////////////////////////////////////
 
-// Uncomment if using software serial for logging. Defined in the ino file
-extern SoftwareSerial debugSerial;
-
-// Define DEBUG_SERIAL to enable debug logging via UART
-// Cannot be the same as the UART port used with the Pi
-// Should be disabled when not debugging as messages increase ram usage or program size
-#define DEBUG_SERIAL            debugSerial
-#define DEBUG_SERIAL_BAUD       9600
+#define RPI_START_BYTE              253
+#define RPI_END_BYTE                254
+#define RPI_ESCAPE_BYTE             255
 
 
+////////////////////////////////////////////////////////////////////////////////
+/// Functions
+////////////////////////////////////////////////////////////////////////////////
 
-// General RPi interface settings
-#define RPI_READ_BUFFER_SIZE    64
+/**
+ * Write a complete message to the pi.
+ * @param data The message to write (bytes)
+ * @param len The length of the message
+ */
+void rpi_write_data(uint8_t *data, uint16_t len);
 
-// Controls how the pi is interfaced with
-#define PI_SERIAL               Serial
-#define PI_BAUD                 57600
+/**
+ * Initialize communication with the Pi
+ */
+void rpi_init();
+
+/**
+ * Handle data from the raspberry pi
+ */
+void rpi_process();

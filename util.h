@@ -19,25 +19,23 @@
 
 #pragma once
 
-
 #include <Arduino.h>
-#include <HardwareSerial.h>
-#include <SoftwareSerial.h>
 
-// Uncomment if using software serial for logging. Defined in the ino file
-extern SoftwareSerial debugSerial;
+/**
+ * Checks if a set of data starts with another set of data
+ * @param data1 The set of data to search in
+ * @param len1 The length of data1
+ * @param data2 The set of data to seach for in data1
+ * @param len2 The length of data2
+ * @return true if data1 starts with data2, else false
+ */
+bool util_data_matches(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t len2);
 
-// Define DEBUG_SERIAL to enable debug logging via UART
-// Cannot be the same as the UART port used with the Pi
-// Should be disabled when not debugging as messages increase ram usage or program size
-#define DEBUG_SERIAL            debugSerial
-#define DEBUG_SERIAL_BAUD       9600
-
-
-
-// General RPi interface settings
-#define RPI_READ_BUFFER_SIZE    64
-
-// Controls how the pi is interfaced with
-#define PI_SERIAL               Serial
-#define PI_BAUD                 57600
+/**
+ * Checks if two sets of data match
+ * @param data1 The first dataset
+ * @param len1 Length of the first dataset
+ * @param data2 The second dataset
+ * @param len2 Length of the second dataset
+ */
+bool util_data_starts_with(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t len2);

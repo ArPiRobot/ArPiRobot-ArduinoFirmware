@@ -17,27 +17,21 @@
  * along with ArPiRobot-ArduinoFirmware. If not, see <https://www.gnu.org/licenses/>. 
  */
 
-#pragma once
+#include "util.h"
 
 
-#include <Arduino.h>
-#include <HardwareSerial.h>
-#include <SoftwareSerial.h>
+bool util_data_matches(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t len2){
+    if(len1 != len2) return false;
+    for(uint8_t i = 0; i < len1; ++i){
+        if(data1[i] != data2[i]) return false;
+    }
+    return true;
+}
 
-// Uncomment if using software serial for logging. Defined in the ino file
-extern SoftwareSerial debugSerial;
-
-// Define DEBUG_SERIAL to enable debug logging via UART
-// Cannot be the same as the UART port used with the Pi
-// Should be disabled when not debugging as messages increase ram usage or program size
-#define DEBUG_SERIAL            debugSerial
-#define DEBUG_SERIAL_BAUD       9600
-
-
-
-// General RPi interface settings
-#define RPI_READ_BUFFER_SIZE    64
-
-// Controls how the pi is interfaced with
-#define PI_SERIAL               Serial
-#define PI_BAUD                 57600
+bool util_data_starts_with(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t len2){
+    if(len2 > len1) return false;
+    for(uint8_t i = 0; i < len2; ++i){
+        if(data1[i] != data2[i]) return false;
+    }
+    return true;
+}
