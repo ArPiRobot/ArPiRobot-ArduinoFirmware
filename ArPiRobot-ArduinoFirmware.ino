@@ -23,11 +23,17 @@
 #define VERSION_BUILD       0
 #define VERSION_SUFFIX      "-alpha"
 
+#include "log.h"
+#include "settings.h"
 #include "board.h"
 #include "interrupts.h"
-#include "logger.h"
 
 
+// Uncomment if using software serial for logging
+#include <SoftwareSerial.h>
+SoftwareSerial debugSerial(5, 6);
+
+bool done;
 
 void setup() {
 
@@ -36,21 +42,44 @@ void setup() {
     DEBUG_SERIAL.begin(DEBUG_SERIAL_BAUD);
 #endif
 
-    log_message("ArPiRobot Arduino Firmware v");
-    log_int(VERSION_MAJOR);
-    log_char('.');
-    log_int(VERSION_MINOR);
-    log_char('.');
-    log_int(VERSION_BUILD);
-    log_message(VERSION_SUFFIX);
-    log_char('\n');
+    // Startup message
+    log_write("FW ");
+    log_write(VERSION_MAJOR);
+    log_write('.');
+    log_write(VERSION_MINOR);
+    log_write('.');
+    log_write(VERSION_BUILD);
+    log_write(VERSION_SUFFIX);
+    log_write('\n');
 
     // Initialize interrupts
     interrupts_init();
 
+    // TODO: Remove this. Test code
+    interrupts_enable_pin(2, RISING);
+    interrupts_enable_pin(3, RISING);    
+    done = false;
+
     // TODO: Initialize all the other things
+
 }
 
 void loop() {
-    // TODO: Handle interrupts flags
+    uint8_t pin;
+    if(interrupts_check_flags(&pin)){
+        switch(pin){
+        case 2:
+            log_write("P2IFG\n");
+            break;
+        case 3:
+            log_write("P3IFG\n");
+            break;
+        }
+    }
+
+    if(!done && millis() >= 10000){
+        done = true;
+        interrupts_disable_pin(2);
+        interrupts_disable_pin(3); 
+    }
 }

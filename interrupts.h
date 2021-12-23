@@ -44,21 +44,33 @@
 
 // Defines pin ISR functions (used in source file)
 #define INTERRUPTS_ISR_DEFINE(x)            void INTERRUPTS_ISR_NAME(x) () { \
-                                                delay(1); \
+                                                INTERRUPTS_FLAG_NAME(x) = 1; \
                                             }
 
 
 // Used in check function to determine if a flag is set
 #define INTERRUPTS_CHECK_ROUTINE(x)         if(INTERRUPTS_FLAG_NAME(x)) { \
+                                                INTERRUPTS_FLAG_NAME(x) = 0; \
                                                 *pin = x; \
                                                 return 1; \
                                             }
 
 // Used in enable interrupts function to enable an interrupt
-#define INTERRUPTS_ENABLE_CASE(x)           case x: attachInterrupt(digitalPinToInterrupt(x), &INTERRUPTS_ISR_NAME(x), mode); break;
+#define INTERRUPTS_ENABLE_CASE(x)           case x: \ 
+                                                detachInterrupt(digitalPinToInterrupt(x)); \
+                                                attachInterrupt(digitalPinToInterrupt(x), &INTERRUPTS_ISR_NAME(x), mode); \
+                                                log_write("IE "); \
+                                                log_write(pin); \
+                                                log_write('\n'); \
+                                                return true;
 
 // Used in disable interrupts function to disable an interrupt
-#define INTERRUPTS_DISABLE_CASE(x)          case x: detachInterrupt(digitalPinToInterrupt(x)); break;
+#define INTERRUPTS_DISABLE_CASE(x)          case x: \
+                                                detachInterrupt(digitalPinToInterrupt(x)); \
+                                                log_write("IE !"); \
+                                                log_write(pin); \
+                                                log_write('\n'); \
+                                                return true;
 
 
 // Calls INTERRUPTS_FLAG_DECLARE (in preprocessor) for each pin in INTERRUPT_PINS
@@ -76,7 +88,7 @@ void interrupts_init();
  * Only provides one pin number at a time.
  *
  * @param pin Pinter to uint8_t to store the pin number in
- * @return 1 if any pin interrupted, else 0
+ * @return true if any pin interrupted, else false
  */
 bool interrupts_check_flags(uint8_t *pin);
 
@@ -85,15 +97,17 @@ bool interrupts_check_flags(uint8_t *pin);
  * 
  * @param pin The pin to enable the interrupt for
  * @param mode The mode for the interrupt (LOW, CHANGE, RISING, FALLING, HIGH)
+ * @return true if the pin is a valid interrupt, else false
  */
-void interrupts_enable_pin(uint8_t pin, int mode);
+bool interrupts_enable_pin(uint8_t pin, int mode);
 
 /**
  * Disables the interrupt for the given pin
  * 
  * @param pin The pin to disable the interrupt for
+ * @return true if the pin is a valid interrupt, else false
  */
-void interrupts_disable_pin(uint8_t pin);
+bool interrupts_disable_pin(uint8_t pin);
 
 
 // Calls INTERRUPTS_ISR_DECLARE (in preprocessor) for each pin in INTERRUPT_PINS

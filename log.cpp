@@ -1,5 +1,5 @@
 
-#include "logger.h"
+#include "log.h"
 
 
 void log_internal(const char *message){
@@ -8,25 +8,25 @@ void log_internal(const char *message){
 #endif
 }
 
-void log_char_internal(char c){
+void log_internal(char c){
 #ifdef DEBUG_SERIAL
     DEBUG_SERIAL.print(c);
 #endif
 }
 
-void log_int_internal(int value){
+void log_internal(int value){
 #ifdef DEBUG_SERIAL
     DEBUG_SERIAL.print(value);
 #endif
 }
 
-void log_float_internal(float value){
+void log_internal(float value){
 #ifdef DEBUG_SERIAL
     DEBUG_SERIAL.print(value);
 #endif
 }
 
-void log_double_internal(double value){
+void log_internal(double value){
 #ifdef DEBUG_SERIAL
     DEBUG_SERIAL.print(value);
 #endif

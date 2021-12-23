@@ -22,8 +22,13 @@
 
 #include <Arduino.h>
 #include <HardwareSerial.h>
+#include <SoftwareSerial.h>
+
+// Uncomment if using software serial for logging. Defined in the ino file
+extern SoftwareSerial debugSerial;
 
 // Define DEBUG_SERIAL to enable debug logging via UART
 // Cannot be the same as the UART port used with the Pi
-#define DEBUG_SERIAL            Serial
+// Should be disabled when not debugging as messages increase ram usage or program size
+#define DEBUG_SERIAL            debugSerial
 #define DEBUG_SERIAL_BAUD       9600

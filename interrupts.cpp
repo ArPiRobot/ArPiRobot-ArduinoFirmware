@@ -18,7 +18,7 @@
  */
 
 #include "interrupts.h"
-#include "logger.h"
+#include "log.h"
 
 
 // Calls INTERRUPTS_FLAG_DEFINE (in preprocessor) for each pin in INTERRUPT_PINS
@@ -34,15 +34,30 @@ bool interrupts_check_flags(uint8_t *pin) {
     MAP(INTERRUPTS_CHECK_ROUTINE, INTERRUPT_PINS)
 }
 
-void interrupts_enable_pin(uint8_t pin, int mode){
+bool interrupts_enable_pin(uint8_t pin, int mode){
     switch(pin){
     // Uses preprocessor to generate a case for each pin in INTERRUPT_PINS
     MAP(INTERRUPTS_ENABLE_CASE, INTERRUPT_PINS)
+    default: 
+        // Interrupt Enable Bad Pin
+        log_write("IEBP "); 
+        log_write(pin);
+        log_write('\n');
+        return false;
     }
 }
 
-void interrupts_disable_pin(uint8_t pin){
-
+bool interrupts_disable_pin(uint8_t pin){
+    switch(pin){
+    // Uses preprocessor to generate a case for each pin in INTERRUPT_PINS
+    MAP(INTERRUPTS_DISABLE_CASE, INTERRUPT_PINS)
+    default: 
+        // Interrupt Disable Bad Pin
+        log_write("IEBP !"); 
+        log_write(pin);
+        log_write('\n');
+        return false;
+    }
 }
 
 // Calls PIN_ISR_DEFINE (in preprocessor) for each pin in INTERRUPT_PINS

@@ -23,17 +23,9 @@
 
 // Prevents string literals from wasting RAM / flash if DEBUG_SERIAL is not defined
 #ifdef DEBUG_SERIAL
-    #define log_message(x)      log_internal(x)
-    #define log_char(x)         log_char_internal(x)
-    #define log_int(x)          log_int_internal(x)
-    #define log_float(x)        log_float_internal(x)
-    #define log_double(x)       log_double_internal(x)
+    #define log_write(x)        log_internal(x)
 #else
-    #define log_message(x)
-    #define log_char(x) 
-    #define log_int(x)
-    #define log_float(x)
-    #define log_double(x)
+    #define log_write(x)
 #endif
 
 
@@ -47,23 +39,23 @@ void log_internal(const char *message);
  * Log a character
  * @param c The character to log
  */
-void log_char_internal(char c);
+void log_internal(char c);
 
 /**
  * Write an integer's ASCII representation to the log
  * @param value The integer to write
  */
-void log_int_internal(int value);
+void log_internal(int value);
 
 /**
  * Write an float's ASCII representation to the log
  * @param value The float to write
  */
-void log_float_internal(float value);
+void log_internal(float value);
 
 /**
  * Write an double's ASCII representation to the log
  * @param value The double to write
  */
-void log_double_internal(double value);
+void log_internal(double value);
 
