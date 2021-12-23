@@ -121,15 +121,7 @@ void rpi_process(){
         // Ignore CRC now
         rpi_read_buffer_len -= 2;
 
-        log_write("DATA\n");
-        log_write((char)rpi_read_buffer[0]);
-        log_write((char)rpi_read_buffer[1]);
-        log_write((char)rpi_read_buffer[2]);
-        log_write('\n');
-
-        // Handle data received from the pi
-        uint8_t message[] = {'H', 'e', 'l', 'l', 'o'};
-        rpi_write_data(rpi_read_buffer, rpi_read_buffer_len);
+        // Data starting with '^' is sent to a device
 
         // Clear read buffer
         rpi_read_buffer_len = 0;

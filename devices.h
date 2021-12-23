@@ -21,25 +21,22 @@
 
 #include <Arduino.h>
 
-
-////////////////////////////////////////////////////////////////////////////////
-/// Arduino Nano and Arduino Uno
-////////////////////////////////////////////////////////////////////////////////
-
-#if defined(ARDUINO_AVR_NANO) || defined(ARDUINO_AVR_UNO)
-    #define ARPIROBOT_SUPPORTED_BOARD
-    
-    // Interrupt support
-    #define NUM_INTERRUPTS      2
-    #define INTERRUPT_PINS      2, 3
-    #define BOARD_VOLTAGE       5
-#endif
+// Supported device types
+#define DEVICE_VOLTAGE_MONITOR                      0
+#define DEVICE_SINGLE_ENCODER                       1
+#define DEVICE_ULTRASONIC_4                         2
+#define DEVICE_IR_DETECTOR                          3
+#define DEVICE_OLDADA9DOF                           4
+#define DEVICE_NXPADA9DOF                           5
+#define DEVICE_MPU6060                              6
 
 
-////////////////////////////////////////////////////////////////////////////////
-/// Handling of unsupported boards
-////////////////////////////////////////////////////////////////////////////////
+// Holds configuration information for a device
+typedef struct {
+    uint8_t type;
+    uint8_t primary_pin;
+    uint8_t secondary_pin;
+    bool uses_interrupt;
+} Device;
 
-#ifndef ARPIROBOT_SUPPORTED_BOARD
-    #error "Targeted board is unsupported!"
-#endif
+

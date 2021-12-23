@@ -17,29 +17,6 @@
  * along with ArPiRobot-ArduinoFirmware. If not, see <https://www.gnu.org/licenses/>. 
  */
 
-#pragma once
-
-#include <Arduino.h>
+#include "devices.h"
 
 
-////////////////////////////////////////////////////////////////////////////////
-/// Arduino Nano and Arduino Uno
-////////////////////////////////////////////////////////////////////////////////
-
-#if defined(ARDUINO_AVR_NANO) || defined(ARDUINO_AVR_UNO)
-    #define ARPIROBOT_SUPPORTED_BOARD
-    
-    // Interrupt support
-    #define NUM_INTERRUPTS      2
-    #define INTERRUPT_PINS      2, 3
-    #define BOARD_VOLTAGE       5
-#endif
-
-
-////////////////////////////////////////////////////////////////////////////////
-/// Handling of unsupported boards
-////////////////////////////////////////////////////////////////////////////////
-
-#ifndef ARPIROBOT_SUPPORTED_BOARD
-    #error "Targeted board is unsupported!"
-#endif
