@@ -22,6 +22,32 @@
 #include "settings.h"
 #include "iface.h"
 #include "conversions.h"
+#include "interrupts.h"
+
+// Debug info via software serial port
+// Only if debug enabled in settings
+#ifdef ARPFW_DEBUG
+#include <SoftwareSerial.h>
+SoftwareSerial debugSer(5, 6); // RX, TX
+#endif
+
+
+
+void setup() {
+    ////////////////////////////////////////////////////////////////////////////
+    // NEVER REMOVE THESE LINES!
+    Conversions::checkBigEndian();
+    interrupts_init();
+    DBG_INIT();
+    LOGLN("STARTING");
+    ////////////////////////////////////////////////////////////////////////////
+}
+
+void loop() {
+    // DO NOT TOUCH THIS LINE!
+    // This will return when a reset of the interface is requested
+    runInterface();
+}
 
 void runInterface(){
     // Generally, these should not be modified. Edit settings.h
@@ -38,19 +64,4 @@ void runInterface(){
     // DO NOT TOUCH THIS LINE
     // THIS METHOD WILL RETURN WHEN THE RPI REQUESTS AN INTERFACE RESET
     rpi.run();
-}
-
-void setup() {
-    ////////////////////////////////////////////////////////////////////////////
-    // NEVER REMOVE THESE LINES!
-    Conversions::checkBigEndian();
-    DBG_INIT();
-    LOGLN("STARTING");
-    ////////////////////////////////////////////////////////////////////////////
-}
-
-void loop() {
-    // DO NOT TOUCH THIS LINE!
-    // This will return when a reset of the interface is requested
-    runInterface();
 }

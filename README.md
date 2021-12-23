@@ -4,13 +4,15 @@ Arduino firmware with command interface for use as an ArPiRobot sensor co-proces
 ## Building & Uploading
 - Download the source code from the releases tab
 - Extract the project
-- Install the libraries in the libraries folder. This can be done by extracting the zips into the sketchbook libraries directory or by using the Arduino IDE's Sketch > Include Library > Add .zip Library option
+- Open the project in the Arduino IDE
+- Install required libraries using library manager (see list below)
 - Select board and port
 - Click upload button
 
-## License
+## Required Libraries
+- FastCRC
 
-**Note: This license does not apply to third party libraries in the `libraries` folder. Each of these libraries is distributed under the terms of its own license (included with the libraries).**
+## License
 
 ```
 ArPiRobot-ArduinoFirmware is free software: you can redistribute it and/or modify
