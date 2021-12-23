@@ -17,28 +17,28 @@
  * along with ArPiRobot-ArduinoFirmware. If not, see <https://www.gnu.org/licenses/>. 
  */
 
-#pragma once
-
-#include <Arduino.h>
+#include "interrupts.h"
 
 
-////////////////////////////////////////////////////////////////////////////////
-/// Arduino Nano and Arduino Uno
-////////////////////////////////////////////////////////////////////////////////
-
-#if defined(ARDUINO_AVR_NANO) || defined(ARDUINO_AVR_UNO)
-    #define ARPIROBOT_SUPPORTED_BOARD
-    
-    // Interrupt support
-    #define NUM_INTERRUPTS      2
-    #define INTERRUPT_PINS      2, 3
-#endif
+// Calls INTERRUPTS_FLAG_DEFINE (in preprocessor) for each pin in INTERRUPT_PINS
+MAP(INTERRUPTS_FLAG_DEFINE, INTERRUPT_PINS)
 
 
-////////////////////////////////////////////////////////////////////////////////
-/// Handling of unsupported boards
-////////////////////////////////////////////////////////////////////////////////
+bool interrupts_check_flags(uint8_t *pin) {
+    // Calls INTERRUPTS_CHECK_ROUTINE (in preprocessor) for each pin in INTERRUPT_PINS
+    MAP(INTERRUPTS_CHECK_ROUTINE, INTERRUPT_PINS)
+}
 
-#ifndef ARPIROBOT_SUPPORTED_BOARD
-    #error "Targeted board is unsupported!"
-#endif
+void interrupts_enable_pin(uint8_t pin, int mode){
+    switch(pin){
+    // Uses preprocessor to generate a case for each pin in INTERRUPT_PINS
+    MAP(INTERRUPTS_ENABLE_CASE, INTERRUPT_PINS)
+    }
+}
+
+void interrupts_disable_pin(uint8_t pin){
+
+}
+
+// Calls PIN_ISR_DEFINE (in preprocessor) for each pin in INTERRUPT_PINS
+MAP(INTERRUPTS_ISR_DEFINE, INTERRUPT_PINS)

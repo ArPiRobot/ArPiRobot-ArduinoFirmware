@@ -10,26 +10,21 @@
  * 
  * ArPiRobot-ArduinoFirmware is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.    See the
  * GNU Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public License
- * along with ArPiRobot-ArduinoFirmware.  If not, see <https://www.gnu.org/licenses/>. 
+ * along with ArPiRobot-ArduinoFirmware. If not, see <https://www.gnu.org/licenses/>. 
  */
 
-#include "device.h"
+#pragma once
 
-ArduinoDevice::ArduinoDevice(uint16_t sendBufferSize) : sendBufferSize(sendBufferSize){
 
-}
+// TODO: Use this to create a debug interface. Board specific
 
-ArduinoDevice::~ArduinoDevice(){
-}
 
-uint16_t ArduinoDevice::getSendBufferSize(){
-    return sendBufferSize;
-}
+void log(const char *message);
+void log_int(int value);
+void log_float(float value);
+void log_double(double value);
 
-void ArduinoDevice::updateSendTime(){
-    lastSendTime = millis();
-}
