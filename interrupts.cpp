@@ -18,11 +18,16 @@
  */
 
 #include "interrupts.h"
+#include "logger.h"
 
 
 // Calls INTERRUPTS_FLAG_DEFINE (in preprocessor) for each pin in INTERRUPT_PINS
 MAP(INTERRUPTS_FLAG_DEFINE, INTERRUPT_PINS)
 
+
+void interrupts_init(void){
+    // Currently nothing here, but it is possible this will be useful for some board
+}
 
 bool interrupts_check_flags(uint8_t *pin) {
     // Calls INTERRUPTS_CHECK_ROUTINE (in preprocessor) for each pin in INTERRUPT_PINS

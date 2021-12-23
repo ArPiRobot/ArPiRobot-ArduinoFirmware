@@ -40,10 +40,10 @@
 #define INTERRUPTS_ISR_NAME(x)              interrupts_##x##_isr
 
 // Declares pin ISR functions (used in header)
-#define INTERRUPTS_ISR_DECLARE(x)           void INTERRUPTS_ISR_NAME(x) (void);
+#define INTERRUPTS_ISR_DECLARE(x)           void INTERRUPTS_ISR_NAME(x) ();
 
 // Defines pin ISR functions (used in source file)
-#define INTERRUPTS_ISR_DEFINE(x)            void INTERRUPTS_ISR_NAME(x) (void) { \
+#define INTERRUPTS_ISR_DEFINE(x)            void INTERRUPTS_ISR_NAME(x) () { \
                                                 delay(1); \
                                             }
 
@@ -64,6 +64,11 @@
 // Calls INTERRUPTS_FLAG_DECLARE (in preprocessor) for each pin in INTERRUPT_PINS
 MAP(INTERRUPTS_FLAG_DECLARE, INTERRUPT_PINS)
 
+
+/**
+ * Setup anything needed for interrupts
+ */
+void interrupts_init();
 
 /**
  * Checks for interrupt flags that have been set. 

@@ -20,11 +20,10 @@
 #pragma once
 
 
-// TODO: Use this to create a debug interface. Board specific
+#include <Arduino.h>
+#include <HardwareSerial.h>
 
-
-void log(const char *message);
-void log_int(int value);
-void log_float(float value);
-void log_double(double value);
-
+// Define DEBUG_SERIAL to enable debug logging via UART
+// Cannot be the same as the UART port used with the Pi
+#define DEBUG_SERIAL            Serial
+#define DEBUG_SERIAL_BAUD       9600
