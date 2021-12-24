@@ -285,9 +285,13 @@ public:
     void handleMessage(uint8_t *data, uint16_t len) override;
 
 private:
+    void isrMember();
+    static void isr(void* userData);
+
     uint8_t pin;
     bool lastState;
     bool isInterrupt;
+    bool isrChange;
     uint16_t count = 0, lastSentCount = 65535;
 };
 
@@ -322,6 +326,8 @@ public:
 private:
     uint8_t triggerPin, echoPin;
     uint16_t distance = 0;
+    bool usingInterrupt;
+    unsigned long startTime = 0;
 };
 
 

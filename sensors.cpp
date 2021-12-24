@@ -759,20 +759,13 @@ OldAdafruit9Dof::Data OldAdafruit9Dof::getAccelData(){
 ////////////////////////////////////////////////////////////////////////////////
 SingleEncoder::SingleEncoder(uint8_t pin, bool pullup) : ArduinoDevice(2), pin(pin){
     // Check if the given pin is able to be used as an interrupt
-    isInterrupt = false;
-    uint8_t interruptPins[] = {INTERRUPT_PINS};
-    for(uint8_t i = 0; i < NUM_INTERRUPTS; ++i){
-        if(interruptPins[i] == pin){
-            isInterrupt = true;
-            break;
-        }
-    }
+    isInterrupt = interrupts_is_interrupt(pin);
 
     // Configure as needed
+    pinMode(pin, pullup ? INPUT_PULLUP : INPUT);
     if(isInterrupt){
-        interrupts_enable_pin(pin, CHANGE);
+        interrupts_enable(pin, CHANGE, &SingleEncoder::isr, (void*)this);
     }else{
-        pinMode(pin, pullup ? INPUT_PULLUP : INPUT);
         lastState = digitalRead(pin);
     }
 }
@@ -785,20 +778,14 @@ SingleEncoder::SingleEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(2){
     }
     
     // Check if the given pin is able to be used as an interrupt
-    isInterrupt = false;
-    uint8_t interruptPins[] = {INTERRUPT_PINS};
-    for(uint8_t i = 0; i < NUM_INTERRUPTS; ++i){
-        if(interruptPins[i] == pin){
-            isInterrupt = true;
-            break;
-        }
-    }
+    isInterrupt = interrupts_is_interrupt(pin);
 
     // Configure as needed
+    pinMode(pin, data[2] ? INPUT_PULLUP : INPUT);
     if(isInterrupt){
-        interrupts_enable_pin(pin, CHANGE);
+        interrupts_enable(pin, CHANGE, &SingleEncoder::isr, (void*)this);
+        LOGLN("ENC INT");
     }else{
-        pinMode(pin, data[2] ? INPUT_PULLUP : INPUT);
         lastState = digitalRead(pin);
     }
 }
@@ -811,11 +798,7 @@ uint16_t SingleEncoder::getSendData(uint8_t *data){
 }
 
 bool SingleEncoder::service(){
-    if(isInterrupt){
-        if(interrupts_check_flag(pin)){
-            count++;
-        }
-    }else{
+    if(!isInterrupt){
         bool state = digitalRead(pin);
         if(state != lastState){
             count++;
@@ -829,6 +812,14 @@ void SingleEncoder::handleMessage(uint8_t *data, uint16_t len){
     
 }
 
+void SingleEncoder::isrMember(){
+    count++;
+}
+
+void SingleEncoder::isr(void* userData){
+    ((SingleEncoder*)userData)->isrMember();
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Ultrasonic4Pin
@@ -837,6 +828,8 @@ Ultrasonic4Pin::Ultrasonic4Pin(uint8_t triggerPin, uint8_t echoPin) : ArduinoDev
         triggerPin(triggerPin), echoPin(echoPin){
     pinMode(triggerPin, OUTPUT);
     pinMode(echoPin, INPUT);
+
+    usingInterrupt = false;
 
     // Don't need to send data frequently for this sensor
     sendRateMs = 150;
@@ -856,6 +849,8 @@ Ultrasonic4Pin::Ultrasonic4Pin(uint8_t *data, uint16_t len) : ArduinoDevice(2){
     pinMode(triggerPin, OUTPUT);
     pinMode(echoPin, INPUT);
 
+    usingInterrupt = false;
+
     // Don't need to send data frequently for this sensor
     sendRateMs = 150;
 }
@@ -866,9 +861,12 @@ uint16_t Ultrasonic4Pin::getSendData(uint8_t *data){
 }
 
 bool Ultrasonic4Pin::service(){
-    // Don't service this sensor unless data is to be sent. Servicing it is time-expensive.
-    // Servicing this sensor polls for a pulse to come back, preventing servicing of other sensors.
-    if((millis() - lastSendTime) >= sendRateMs){
+    if(usingInterrupt){
+        
+    }else if((millis() - lastSendTime) >= sendRateMs){
+        // Don't service this sensor unless data is to be sent. Servicing it is time-expensive.
+        // Servicing this sensor polls for a pulse to come back, preventing servicing of other sensors.
+        
         digitalWrite(triggerPin, HIGH);
         delayMicroseconds(10);
         digitalWrite(triggerPin, LOW);
@@ -883,7 +881,6 @@ bool Ultrasonic4Pin::service(){
         }else{
             distance = 999;
         }
-        
         return true;
     }
     return false;

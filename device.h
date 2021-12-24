@@ -21,6 +21,7 @@
 
 #include <Arduino.h>
 #include "board.h"
+#include "settings.h"
 
 class RPiInterface;
 
@@ -72,7 +73,7 @@ protected:
     uint16_t sendBufferSize;     // Size is max size
 
     // How often this device should send data back to the Pi (not how often this device should be serviced)
-    uint16_t sendRateMs = 50;
+    uint16_t sendRateMs = DEFAULT_SEND_RATE;
 
     // The last time updateSendTime was called
     unsigned long lastSendTime = 0;

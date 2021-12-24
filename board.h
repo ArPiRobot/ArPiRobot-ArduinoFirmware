@@ -31,10 +31,6 @@
     
     // Interrupt support
     #define NUM_INTERRUPTS          2
-    #define INTERRUPT_PINS          2, 3
-
-    // Voltage of this board (usually 3.3V or 5.0V)
-    #define BOARD_VOLTAGE           5
 
     // Class for USB serial port
     #define HW_SERIAL_T             HardwareSerial
@@ -56,10 +52,6 @@
     
     // Interrupt support
     #define NUM_INTERRUPTS          22
-    #define INTERRUPT_PINS          0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21
-
-    // Voltage of this board (usually 3.3V or 5.0V)
-    #define BOARD_VOLTAGE           5
 
     // Class for USB serial port
     #define HW_SERIAL_T             HardwareSerial
@@ -84,10 +76,6 @@
     
     // Interrupt support
     #define NUM_INTERRUPTS          34
-    #define INTERRUPT_PINS          0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33
-
-    // Voltage of this board (usually 3.3V or 5.0V)
-    #define BOARD_VOLTAGE           3.3
 
     // Class for USB serial port
     #define HW_SERIAL_T             usb_serial_class
@@ -105,5 +93,5 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef ARPIROBOT_SUPPORTED_BOARD
-    #error "Targeted board is unsupported!"
+    #error "Targeted board is unsupported by ArPiRobot Arduino Firmware!"
 #endif
