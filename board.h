@@ -89,9 +89,45 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Handling of unsupported boards
+/// Raspberry Pi Pico
+////////////////////////////////////////////////////////////////////////////////
+
+#if defined(ARDUINO_RASPBERRY_PI_PICO)
+    #define ARPIROBOT_SUPPORTED_BOARD
+    
+    // Interrupt support
+    #define NUM_INTERRUPTS          30
+
+    // Class for USB serial port
+    #define HW_SERIAL_T             HardwareSerial
+
+    // Argument type for mode argument of attachInterrupt
+    #define AI_MODE_T               PinStatus
+
+    // Size of the buffer to hold data read from the pi
+    #define DATA_READ_BUFFER_SIZE   64
+
+    // This macro is not defined in the core for the pi pico
+    #define analogInputToDigitalPin(pin) (pin + 26)
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Unsupported boards (default settings)
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef ARPIROBOT_SUPPORTED_BOARD
-    #error "Targeted board is unsupported by ArPiRobot Arduino Firmware!"
+    #warning "Targeted board is unsupported by ArPiRobot Arduino Firmware! Some functionality will not be available."
+
+    // Interrupt support
+    #define NUM_INTERRUPTS          0
+
+    // Class for USB serial port
+    #define HW_SERIAL_T             HardwareSerial
+
+    // Argument type for mode argument of attachInterrupt
+    #define AI_MODE_T               int
+
+    // Size of the buffer to hold data read from the pi
+    #define DATA_READ_BUFFER_SIZE   64
 #endif
