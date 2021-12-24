@@ -17,9 +17,10 @@
  * along with ArPiRobot-ArduinoFirmware. If not, see <https://www.gnu.org/licenses/>. 
  */
 
+#if 0
+
 #include "rpi.h"
 #include "conversions.h"
-#include "log.h"
 #include "util.h"
 
 #include <FastCRC.h>
@@ -127,3 +128,5 @@ void rpi_process(){
         rpi_read_buffer_len = 0;
     }
 }
+
+#endif

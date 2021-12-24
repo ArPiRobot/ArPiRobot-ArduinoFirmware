@@ -20,24 +20,67 @@
 #pragma once
 
 
-#include <Arduino.h>
-#include <HardwareSerial.h>
+////////////////////////////////////////////////////////////////////////////////
+/// Interface Settings
+////////////////////////////////////////////////////////////////////////////////
+
+// How much memory is used to store messages from the computer
+#define IFACE_READ_BUFFER_SIZE      64
+
+// Maximum number of devices this interface can have
+#define IFACE_MAX_DEVICES           20
+
+// -----------------------------------------------------------------------------
+// UART interface
+// -----------------------------------------------------------------------------
+#define IFACE_SERIAL                Serial                  // Which serial port
+#define IFACE_SERIAL_BAUD           57600                   // UART baud rate
+#define IFACE_SERIAL_T              HardwareSerial          // HardwareSerial, SoftwareSerial, usb_serial_class (teensy)
+// -----------------------------------------------------------------------------
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Debug settings
+////////////////////////////////////////////////////////////////////////////////
+
+// -----------------------------------------------------------------------------
+// SoftwareSerial debugging
+// -----------------------------------------------------------------------------
 #include <SoftwareSerial.h>
-
-// Uncomment if using software serial for logging. Defined in the ino file
+#define DEBUG_SERIAL                debugSerial
+#define DEBUG_SERIAL_BAUD           9600
+#define DEBUG_SERIAL_DEF()          SoftwareSerial debugSerial(5, 6);
 extern SoftwareSerial debugSerial;
+// -----------------------------------------------------------------------------
 
-// Define DEBUG_SERIAL to enable debug logging via UART
-// Cannot be the same as the UART port used with the Pi
-// Should be disabled when not debugging as messages increase ram usage or program size
-#define DEBUG_SERIAL            debugSerial
-#define DEBUG_SERIAL_BAUD       9600
+// -----------------------------------------------------------------------------
+// HardwareSerial debugging
+// -----------------------------------------------------------------------------
+// #include <Arduino.h>
+// #define DEBUG_SERIAL                Serial1
+// #define DEBUG_SERIAL_BAUD           9600
+// #define DEBUG_SERIAL_DEF()
+// -----------------------------------------------------------------------------
+
+// Prevents string literals from wasting memory / flash if not debugging
+#ifdef DEBUG_SERIAL
+    #define log_print(x)            DEBUG_SERIAL.print(x)
+    #define log_println(x)          DEBUG_SERIAL.println(x)
+#else
+    #define log_print(x)
+    #define log_println(x)
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
 
 
+////////////////////////////////////////////////////////////////////////////////
+/// Defaults and fallback / compatability
+////////////////////////////////////////////////////////////////////////////////
 
-// General RPi interface settings
-#define RPI_READ_BUFFER_SIZE    64
-
-// Controls how the pi is interfaced with
-#define PI_SERIAL               Serial
-#define PI_BAUD                 57600
+// Allows ComputerUartInterface to compile
+#ifndef IFACE_SERIAL_T
+    #define IFACE_SERIAL_T HardwareSerial
+#endif

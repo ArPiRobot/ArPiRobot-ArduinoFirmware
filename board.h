@@ -30,16 +30,89 @@
     #define ARPIROBOT_SUPPORTED_BOARD
     
     // Interrupt support
-    #define NUM_INTERRUPTS      2
-    #define INTERRUPT_PINS      2, 3
-    #define BOARD_VOLTAGE       5
+    #define NUM_INTERRUPTS          2
+
+    // Argument type for mode argument of attachInterrupt
+    #define AI_MODE_T               int
+
+    // Size of the buffer to hold data read from the pi
+    #define DATA_READ_BUFFER_SIZE   64
 #endif
 
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Handling of unsupported boards
+/// Arduino Nano Every
+////////////////////////////////////////////////////////////////////////////////
+
+#if defined(ARDUINO_AVR_NANO_EVERY)
+    #define ARPIROBOT_SUPPORTED_BOARD
+    
+    // Interrupt support
+    #define NUM_INTERRUPTS          22
+
+    // Argument type for mode argument of attachInterrupt
+    #define AI_MODE_T               PinStatus
+
+    // Size of the buffer to hold data read from the pi
+    #define DATA_READ_BUFFER_SIZE   64
+
+    // This macro is not defined in the core for the nano every
+    #define analogInputToDigitalPin(pin) (pin + 14)
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Teensy 3.1 / 3.2
+////////////////////////////////////////////////////////////////////////////////
+
+#if defined(ARDUINO_TEENSY32)
+    #define ARPIROBOT_SUPPORTED_BOARD
+    
+    // Interrupt support
+    #define NUM_INTERRUPTS          34
+
+    // Argument type for mode argument of attachInterrupt
+    #define AI_MODE_T               int
+
+    // Size of the buffer to hold data read from the pi
+    #define DATA_READ_BUFFER_SIZE   64
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Raspberry Pi Pico
+////////////////////////////////////////////////////////////////////////////////
+
+#if defined(ARDUINO_RASPBERRY_PI_PICO)
+    #define ARPIROBOT_SUPPORTED_BOARD
+    
+    // Interrupt support
+    #define NUM_INTERRUPTS          30
+
+    // Argument type for mode argument of attachInterrupt
+    #define AI_MODE_T               PinStatus
+
+    // Size of the buffer to hold data read from the pi
+    #define DATA_READ_BUFFER_SIZE   64
+
+    // This macro is not defined in the core for the pi pico
+    #define analogInputToDigitalPin(pin) (pin + 26)
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Unsupported boards (default settings)
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef ARPIROBOT_SUPPORTED_BOARD
-    #error "Targeted board is unsupported!"
+    #warning "Targeted board is unsupported by ArPiRobot Arduino Firmware! Some functionality will not be available."
+
+    // Interrupt support
+    #define NUM_INTERRUPTS          0
+
+    // Argument type for mode argument of attachInterrupt
+    #define AI_MODE_T               int
+
+    // Size of the buffer to hold data read from the pi
+    #define DATA_READ_BUFFER_SIZE   64
 #endif

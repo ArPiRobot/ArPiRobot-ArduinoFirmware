@@ -24,24 +24,24 @@
 /// Globals
 ////////////////////////////////////////////////////////////////////////////////
 
-bool conversions_is_big_endian;
+bool Conversions::isBigEndian;
 
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Functions
 ////////////////////////////////////////////////////////////////////////////////
 
-void conversions_init(){
+void Conversions::init(){
     // i = 0x0001
     //  On big endian systems this is stored 0x00, 0x01
     // c = pointer to leftmost byte (array)
     // c[0] = leftmost byte. 1 on little endian. 0 on big endian
     uint16_t i = 1;
     uint8_t *c = (uint8_t*)&i;
-    conversions_is_big_endian = !c[0];
+    isBigEndian = !c[0];
 }
 
-void convert_int32_to_data(int32_t input, uint8_t *outBuffer, bool littleEndian){
+void Conversions::int32ToData(int32_t input, uint8_t *outBuffer, bool littleEndian){
     if(littleEndian){
         outBuffer[0] = input;
         outBuffer[1] = input >> 8;
@@ -55,7 +55,7 @@ void convert_int32_to_data(int32_t input, uint8_t *outBuffer, bool littleEndian)
     }
 }
 
-int32_t convert_data_to_int32(uint8_t *data, bool littleEndian){
+int32_t Conversions::dataToInt32(uint8_t *data, bool littleEndian){
     if(littleEndian){
         return (int32_t)data[0] | 
                (int32_t)data[1] << 8 | 
@@ -69,7 +69,7 @@ int32_t convert_data_to_int32(uint8_t *data, bool littleEndian){
     }
 }
 
-void convert_int16_to_data(int16_t input, uint8_t *outBuffer, bool littleEndian){
+void Conversions::int16ToData(int16_t input, uint8_t *outBuffer, bool littleEndian){
     if(littleEndian){
         outBuffer[0] = input;
         outBuffer[1] = input >> 8;
@@ -79,7 +79,7 @@ void convert_int16_to_data(int16_t input, uint8_t *outBuffer, bool littleEndian)
     }
 }
 
-int16_t convert_data_to_int16(uint8_t *data, bool littleEndian){
+int16_t Conversions::dataToInt16(uint8_t *data, bool littleEndian){
     if(littleEndian){
         return data[0] | data[1] << 8;
     }else{
@@ -87,11 +87,11 @@ int16_t convert_data_to_int16(uint8_t *data, bool littleEndian){
     }
 }
 
-void convert_float_to_data(float input, uint8_t *outBuffer, bool littleEndian){
+void Conversions::floatToData(float input, uint8_t *outBuffer, bool littleEndian){
     // Pointer to leftmost byte of input
     uint8_t *ptr = (uint8_t*)&input;
     
-    if(conversions_is_big_endian == littleEndian){
+    if(isBigEndian == littleEndian){
         // System endianess and desired endianess different, so reverse order
         outBuffer[0] = ptr[3];
         outBuffer[1] = ptr[2];
@@ -106,10 +106,10 @@ void convert_float_to_data(float input, uint8_t *outBuffer, bool littleEndian){
     }
 }
 
-float convert_data_to_float(uint8_t *data, bool littleEndian){
+float Conversions::dataToFloat(uint8_t *data, bool littleEndian){
     uint8_t dataRaw[4];
     
-    if(conversions_is_big_endian == littleEndian){
+    if(isBigEndian == littleEndian){
         // System endianess and desired endianess different, so reverse order
         dataRaw[0] = data[3];
         dataRaw[1] = data[2];

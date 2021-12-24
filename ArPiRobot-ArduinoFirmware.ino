@@ -21,18 +21,22 @@
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       1
 #define VERSION_BUILD       0
-#define VERSION_SUFFIX      "-alpha"
+#define VERSION_SUFFIX      "-a1"
 
-#include "log.h"
 #include "settings.h"
 #include "interrupts.h"
 #include "conversions.h"
-#include "rpi.h"
+#include "computer.h"
 
+// Support for debugging if needed (see settings.h)
+#ifdef DEBUG_SERIAL
+DEBUG_SERIAL_DEF()
+#endif
 
-// Uncomment if using software serial for logging
-#include <SoftwareSerial.h>
-SoftwareSerial debugSerial(5, 6);
+// Instantiate one interface (see settings.h)
+#ifdef IFACE_SERIAL
+ComputerUartInterface iface(IFACE_SERIAL, IFACE_SERIAL_BAUD);
+#endif
 
 void setup() {
 
@@ -42,28 +46,23 @@ void setup() {
 #endif
 
     // Startup message
-    log_write("FW ");
-    log_write(VERSION_MAJOR);
-    log_write('.');
-    log_write(VERSION_MINOR);
-    log_write('.');
-    log_write(VERSION_BUILD);
-    log_write(VERSION_SUFFIX);
-    log_write('\n');
+    log_print("FW ");
+    log_print(VERSION_MAJOR);
+    log_print('.');
+    log_print(VERSION_MINOR);
+    log_print('.');
+    log_print(VERSION_BUILD);
+    log_println(VERSION_SUFFIX);
 
-    // Setup conversions (checks if this is a big endian system)
-    conversions_init();
+    // Initialization of required subsystems
+    Conversions::init();
+    Interrupts::init();
 
-    // Initialize interrupts
-    interrupts_init();                  
-
-    // Initialize communication with pi
-    rpi_init();
+    // Initialize communication with computer
+    iface.init();
 }
 
-void loop() {
-    // TODO: Check interrupt flags and do something with them
-    
-    // Handle data from the pi
-    rpi_process();
+void loop() {    
+    // Handle the interface
+    iface.process();
 }

@@ -22,18 +22,31 @@
 #include <Arduino.h>
 #include "board.h"
 
+namespace Conversions {
 
-void conversions_init();
+    ////////////////////////////////////////////////////////////////////////////
+    /// Globals
+    ////////////////////////////////////////////////////////////////////////////
 
-void convert_int32_to_data(int32_t input, uint8_t *outBuffer, bool littleEndian);
+    extern bool isBigEndian;
 
-int32_t convert_data_to_int32(uint8_t *data, bool littleEndian);
 
-void convert_int16_to_data(int16_t input, uint8_t *outBuffer, bool littleEndian);
+    ////////////////////////////////////////////////////////////////////////////
+    /// Functions
+    ////////////////////////////////////////////////////////////////////////////
 
-int16_t convert_data_to_int16(uint8_t *data, bool littleEndian);
+    void init();
 
-void convert_float_to_data(float input, uint8_t *outBuffer, bool littleEndian);
+    void int32ToData(int32_t input, uint8_t *outBuffer, bool littleEndian);
 
-float convert_data_to_float(uint8_t *data, bool littleEndian);
+    int32_t dataToInt32(uint8_t *data, bool littleEndian);
 
+    void int16ToData(int16_t input, uint8_t *outBuffer, bool littleEndian);
+
+    int16_t dataToInt16(uint8_t *data, bool littleEndian);
+
+    void floatToData(float input, uint8_t *outBuffer, bool littleEndian);
+
+    float dataToFloat(uint8_t *data, bool littleEndian);
+
+}

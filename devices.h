@@ -19,24 +19,19 @@
 
 #pragma once
 
-#include <Arduino.h>
+#include "settings.h"
 
-// Supported device types
-#define DEVICE_VOLTAGE_MONITOR                      0
-#define DEVICE_SINGLE_ENCODER                       1
-#define DEVICE_ULTRASONIC_4                         2
-#define DEVICE_IR_DETECTOR                          3
-#define DEVICE_OLDADA9DOF                           4
-#define DEVICE_NXPADA9DOF                           5
-#define DEVICE_MPU6060                              6
+class Device {
+public:
+    Device() = default;
+    Device(const Device &other) = delete;
+    Device(Device &&other) = delete;
 
+    Device &operator=(const Device &other) = delete;
+    Device &operator=(Device &&other) = delete;
+    
+    virtual ~Device();
 
-// Holds configuration information for a device
-typedef struct {
-    uint8_t type;
-    uint8_t primary_pin;
-    uint8_t secondary_pin;
-    bool uses_interrupt;
-} Device;
+private:
 
-
+};

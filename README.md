@@ -1,16 +1,25 @@
 # ArPiRobot-ArduinoFirmware
 Arduino firmware with command interface for use as an ArPiRobot sensor co-processor.
 
+
+## Supported Boards
+- Arduino Uno and Arduino Nano (Official AVR core)
+- Arduino Nano Every (Official megaAVR core)
+- Teensy 3.1 / 3.2 ([Teensyduino](https://www.pjrc.com/teensy/teensyduino.html) core)
+- Raspberry Pi Pico ([arduino-pico](https://github.com/earlephilhower/arduino-pico) core)
+
+
 ## Building & Uploading
 - Download the source code from the releases tab
-- Extract the project
-- Install required libraries (listed below)
+- Extract the project into your arduino sketchbook folder
+- Install required libraries (see list below) using library manager
 - Select board and port
 - Click upload button
 
+
 ## Required Libraries
-- FastCRC
-- TODO: Others?
+- [FastCRC](https://github.com/FrankBoesing/FastCRC) (1.31 or newer)
+
 
 ## License
 
