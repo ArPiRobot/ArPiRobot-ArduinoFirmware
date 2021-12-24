@@ -784,7 +784,6 @@ SingleEncoder::SingleEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(2){
     pinMode(pin, data[2] ? INPUT_PULLUP : INPUT);
     if(isInterrupt){
         interrupts_enable(pin, CHANGE, &SingleEncoder::isr, (void*)this);
-        LOGLN("ENC INT");
     }else{
         lastState = digitalRead(pin);
     }
@@ -829,7 +828,12 @@ Ultrasonic4Pin::Ultrasonic4Pin(uint8_t triggerPin, uint8_t echoPin) : ArduinoDev
     pinMode(triggerPin, OUTPUT);
     pinMode(echoPin, INPUT);
 
-    usingInterrupt = false;
+    usingInterrupt = interrupts_is_interrupt(echoPin);
+    needsPulse = true;
+
+    if(usingInterrupt){
+        interrupts_enable(echoPin, CHANGE, &Ultrasonic4Pin::isr, (void*)this);
+    }
 
     // Don't need to send data frequently for this sensor
     sendRateMs = 150;
@@ -849,7 +853,13 @@ Ultrasonic4Pin::Ultrasonic4Pin(uint8_t *data, uint16_t len) : ArduinoDevice(2){
     pinMode(triggerPin, OUTPUT);
     pinMode(echoPin, INPUT);
 
-    usingInterrupt = false;
+    usingInterrupt = interrupts_is_interrupt(echoPin);
+    needsPulse = true;
+
+    if(usingInterrupt){
+        LOGLN("US INT");
+        interrupts_enable(echoPin, CHANGE, &Ultrasonic4Pin::isr, (void*)this);
+    }
 
     // Don't need to send data frequently for this sensor
     sendRateMs = 150;
@@ -861,9 +871,14 @@ uint16_t Ultrasonic4Pin::getSendData(uint8_t *data){
 }
 
 bool Ultrasonic4Pin::service(){
-    if(usingInterrupt){
-        
-    }else if((millis() - lastSendTime) >= sendRateMs){
+    if(usingInterrupt && needsPulse){
+        digitalWrite(triggerPin, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(triggerPin, LOW);
+        needsPulse = false;
+        distance = distance * 0.0343 / 2;
+        return (millis() - lastSendTime) >= sendRateMs;
+    }else if(!usingInterrupt && ((millis() - lastSendTime) >= sendRateMs)){
         // Don't service this sensor unless data is to be sent. Servicing it is time-expensive.
         // Servicing this sensor polls for a pulse to come back, preventing servicing of other sensors.
         
@@ -888,6 +903,21 @@ bool Ultrasonic4Pin::service(){
 
 void Ultrasonic4Pin::handleMessage(uint8_t *data, uint16_t len){
 
+}
+
+void Ultrasonic4Pin::isrMember(){
+    if(digitalRead(echoPin)){
+        // Rising edge of pulse
+        startTime = micros();
+    }else{
+        // Falling edge of pulse
+        distance = micros() - startTime;
+        needsPulse = true;
+    }
+}
+
+void Ultrasonic4Pin::isr(void* userData){
+    ((Ultrasonic4Pin*)userData)->isrMember();
 }
 
 
