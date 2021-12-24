@@ -278,6 +278,8 @@ public:
      */
     SingleEncoder(uint8_t *data, uint16_t len);
 
+    ~SingleEncoder();
+
     uint16_t getSendData(uint8_t *data) override;
 
     bool service() override;
@@ -316,6 +318,8 @@ public:
      *      ECHOPIN: 1 = use internal pullup resistor, 0 = do not
      */
     Ultrasonic4Pin(uint8_t *data, uint16_t len);
+
+    ~Ultrasonic4Pin();
 
     uint16_t getSendData(uint8_t *data) override;
 

@@ -26,10 +26,6 @@
 #if NUM_INTERRUPTS > 0
 void (* volatile interrupts_functions[NUM_INTERRUPTS])(void*);
 void * volatile interrupts_data[NUM_INTERRUPTS];
-#else
-// Array size zero breaks on many compilers
-void (* volatile interrupts_functions[1])(void*);
-void * volatile interrupts_data[1];
 #endif
 
 
@@ -251,8 +247,10 @@ bool interrupts_enable(uint8_t pin, AI_MODE_T mode, void (*function)(void*), voi
     if(interrupt == NOT_AN_INTERRUPT || interrupt > NUM_INTERRUPTS){
         return false;
     }
+#if NUM_INTERRUPTS > 0
     interrupts_functions[interrupt] = function;
     interrupts_data[interrupt] = user_data;
+#endif
     detachInterrupt(interrupt);
     switch(interrupt){
 #if NUM_INTERRUPTS > 0

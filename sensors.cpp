@@ -789,6 +789,12 @@ SingleEncoder::SingleEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(2){
     }
 }
 
+SingleEncoder::~SingleEncoder(){
+    if(isInterrupt){
+        interrupts_disable(pin);
+    }
+}
+
 uint16_t SingleEncoder::getSendData(uint8_t *data){
     lastSentCount = count;
     // Buffer count little endian
@@ -857,12 +863,17 @@ Ultrasonic4Pin::Ultrasonic4Pin(uint8_t *data, uint16_t len) : ArduinoDevice(2){
     needsPulse = true;
 
     if(usingInterrupt){
-        LOGLN("US INT");
         interrupts_enable(echoPin, CHANGE, &Ultrasonic4Pin::isr, (void*)this);
     }
 
     // Don't need to send data frequently for this sensor
     sendRateMs = 150;
+}
+
+Ultrasonic4Pin::~Ultrasonic4Pin(){
+    if(usingInterrupt){
+        interrupts_disable(echoPin);
+    }
 }
 
 uint16_t Ultrasonic4Pin::getSendData(uint8_t *data){
