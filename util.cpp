@@ -20,7 +20,7 @@
 #include "util.h"
 
 
-bool util_data_matches(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t len2){
+bool Util::dataMatches(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t len2){
     if(len1 != len2) return false;
     for(uint8_t i = 0; i < len1; ++i){
         if(data1[i] != data2[i]) return false;
@@ -28,7 +28,7 @@ bool util_data_matches(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t l
     return true;
 }
 
-bool util_data_starts_with(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t len2){
+bool Util::dataStartsWith(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t len2){
     if(len2 > len1) return false;
     for(uint8_t i = 0; i < len2; ++i){
         if(data1[i] != data2[i]) return false;

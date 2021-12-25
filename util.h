@@ -21,21 +21,25 @@
 
 #include <Arduino.h>
 
-/**
- * Checks if a set of data starts with another set of data
- * @param data1 The set of data to search in
- * @param len1 The length of data1
- * @param data2 The set of data to seach for in data1
- * @param len2 The length of data2
- * @return true if data1 starts with data2, else false
- */
-bool util_data_matches(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t len2);
+namespace Util{
 
-/**
- * Checks if two sets of data match
- * @param data1 The first dataset
- * @param len1 Length of the first dataset
- * @param data2 The second dataset
- * @param len2 Length of the second dataset
- */
-bool util_data_starts_with(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t len2);
+    /**
+     * Checks if a set of data starts with another set of data
+     * @param data1 The set of data to search in
+     * @param len1 The length of data1
+     * @param data2 The set of data to seach for in data1
+     * @param len2 The length of data2
+     * @return true if data1 starts with data2, else false
+     */
+    bool dataMatches(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t len2);
+
+    /**
+     * Checks if two sets of data match
+     * @param data1 The first dataset
+     * @param len1 Length of the first dataset
+     * @param data2 The second dataset
+     * @param len2 Length of the second dataset
+     */
+    bool dataStartsWith(uint8_t *data1, uint16_t len1, uint8_t *data2, uint16_t len2);
+
+}

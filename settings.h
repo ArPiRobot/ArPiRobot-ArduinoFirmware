@@ -27,15 +27,16 @@
 // How much memory is used to store messages from the computer
 #define IFACE_READ_BUFFER_SIZE      64
 
-// Maximum number of devices this interface can have
+// Largest message size that can be sent to the computer
+#define IFACE_WRITE_BUFFER_SIZE     32
+
+// Maximum number of devices this interface can have. Cannot exceed 254
 #define IFACE_MAX_DEVICES           20
 
 // -----------------------------------------------------------------------------
 // UART interface
 // -----------------------------------------------------------------------------
-#define IFACE_SERIAL                Serial                  // Which serial port
-#define IFACE_SERIAL_BAUD           57600                   // UART baud rate
-#define IFACE_SERIAL_T              HardwareSerial          // HardwareSerial, SoftwareSerial, usb_serial_class (teensy)
+#define IFACE_DEF()                 ComputerInterfaceFactory::createUart(Serial, 57600);
 // -----------------------------------------------------------------------------
 
 ////////////////////////////////////////////////////////////////////////////////

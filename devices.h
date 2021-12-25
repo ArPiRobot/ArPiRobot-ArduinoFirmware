@@ -21,6 +21,12 @@
 
 #include "settings.h"
 
+class ComputerInterface;
+
+////////////////////////////////////////////////////////////////////////////////
+/// Device
+////////////////////////////////////////////////////////////////////////////////
+
 class Device {
 public:
     Device() = default;
@@ -31,6 +37,30 @@ public:
     Device &operator=(Device &&other) = delete;
     
     virtual ~Device();
+
+    /**
+     * Periodically called to service the device
+     * Primarily used for polling of sensors
+     * @return true when data should be sent to the computer by the interface
+     *         Will cause getData to be called
+     */
+    virtual uint16_t process() = 0;
+
+    /**
+     * Called when the interface wants the data that should be sent to the computer for this sensor
+     * 
+     * @param data Buffer to write the data into. Do not write more than 
+     * @return uint16_t The number of bytes written into the buffer
+     */
+    virtual uint16_t getData(uint8_t *data);
+
+    /**
+     * Handle data sent from the arduino to this device
+     * 
+     * @param data Pointer to the data buffer 
+     * @param len Number of bytes of data available in the buffer
+     */
+    virtual void handleData(const uint8_t *data, const uint16_t len);
 
 private:
 

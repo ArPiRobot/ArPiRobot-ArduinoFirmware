@@ -22,6 +22,7 @@
 #include "board.h"
 #include "settings.h"
 #include "devices.h"
+#include <FastCRC.h>
 
 class ComputerInterface{
 public:
@@ -45,42 +46,55 @@ protected:
     virtual uint16_t available() = 0;
 
 private:
+    void reset();
+
+    uint8_t addDeviceFromData(uint8_t *data, uint16_t len);
+
     void writeData(const uint8_t *data, const uint16_t len);
-    void writeData(const char *data, const uint16_t len);
     bool readData();
     bool checkData();
+    
+
+    bool parseStarted, parseEscaped;
 
     Device *devices[IFACE_MAX_DEVICES];
     uint16_t devicesLen;
     uint16_t staticDeviceCount;
-    uint8_t *readBuffer[IFACE_READ_BUFFER_SIZE];
+    uint8_t readBuffer[IFACE_READ_BUFFER_SIZE];
     uint16_t readBufferLen;
 
-    static const uint8_t START_BYTE = 253;
-    static const uint8_t END_BYTE = 254;
-    static const uint8_t ESCAPE_BYTE = 255;
+    FastCRC16 crcInst;
 };
 
-
+template <class SER_T>
 class ComputerUartInterface : public ComputerInterface {
 public:
-    ComputerUartInterface(IFACE_SERIAL_T &serial, unsigned long baud);
+    ComputerUartInterface(SER_T &serial, unsigned long baud) : serial(serial), baud(baud) {  }
+
     ComputerUartInterface(const ComputerUartInterface &other) = delete;
     ComputerUartInterface(ComputerUartInterface &&other) = delete;
 
-    ~ComputerUartInterface() = default;
+    ~ComputerUartInterface(){ close(); }
 
     ComputerUartInterface &operator=(const ComputerUartInterface &other) = delete;
     ComputerUartInterface &operator=(ComputerUartInterface &&other) = delete;
 
 protected:
-    void open() override;
-    void close() override;
-    void write(uint8_t b) override;
-    uint8_t read() override;
-    uint16_t available() override;
+    void open() override { serial.begin(baud); }
+    void close() override { serial.end(); }
+    void write(uint8_t b) override { serial.write(b); }
+    uint8_t read() override { return serial.read(); }
+    uint16_t available() override { return serial.available(); }
 
-private:
-    IFACE_SERIAL_T &serial;
+    SER_T &serial;
     unsigned long baud;
+};
+
+class ComputerInterfaceFactory{
+public:
+    // Template functions can infer types, template classes cannot
+    template<class T>
+    static ComputerInterface *createUart(T serial, unsigned long baud) { 
+        return new ComputerUartInterface<T>(serial, baud);
+    }
 };

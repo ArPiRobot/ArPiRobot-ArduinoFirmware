@@ -34,9 +34,7 @@ DEBUG_SERIAL_DEF()
 #endif
 
 // Instantiate one interface (see settings.h)
-#ifdef IFACE_SERIAL
-ComputerUartInterface iface(IFACE_SERIAL, IFACE_SERIAL_BAUD);
-#endif
+ComputerInterface *iface = IFACE_DEF();
 
 void setup() {
 
@@ -59,10 +57,10 @@ void setup() {
     Interrupts::init();
 
     // Initialize communication with computer
-    iface.init();
+    iface->init();
 }
 
 void loop() {    
     // Handle the interface
-    iface.process();
+    iface->process();
 }
