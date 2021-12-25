@@ -32,14 +32,8 @@
     // Interrupt support
     #define NUM_INTERRUPTS          2
 
-    // Class for USB serial port
-    #define HW_SERIAL_T             HardwareSerial
-
     // Argument type for mode argument of attachInterrupt
     #define AI_MODE_T               int
-
-    // Size of the buffer to hold data read from the pi
-    #define DATA_READ_BUFFER_SIZE   64
 #endif
 
 
@@ -53,14 +47,8 @@
     // Interrupt support
     #define NUM_INTERRUPTS          22
 
-    // Class for USB serial port
-    #define HW_SERIAL_T             HardwareSerial
-
     // Argument type for mode argument of attachInterrupt
     #define AI_MODE_T               PinStatus
-
-    // Size of the buffer to hold data read from the pi
-    #define DATA_READ_BUFFER_SIZE   64
 
     // This macro is not defined in the core for the nano every
     #define analogInputToDigitalPin(pin) (pin + 14)
@@ -77,14 +65,8 @@
     // Interrupt support
     #define NUM_INTERRUPTS          34
 
-    // Class for USB serial port
-    #define HW_SERIAL_T             usb_serial_class
-
     // Argument type for mode argument of attachInterrupt
     #define AI_MODE_T               int
-
-    // Size of the buffer to hold data read from the pi
-    #define DATA_READ_BUFFER_SIZE   64
 #endif
 
 
@@ -98,14 +80,8 @@
     // Interrupt support
     #define NUM_INTERRUPTS          30
 
-    // Class for USB serial port
-    #define HW_SERIAL_T             HardwareSerial
-
     // Argument type for mode argument of attachInterrupt
     #define AI_MODE_T               PinStatus
-
-    // Size of the buffer to hold data read from the pi
-    #define DATA_READ_BUFFER_SIZE   64
 
     // This macro is not defined in the core for the pi pico
     #define analogInputToDigitalPin(pin) (pin + 26)
@@ -122,12 +98,6 @@
     // Interrupt support
     #define NUM_INTERRUPTS          0
 
-    // Class for USB serial port
-    #define HW_SERIAL_T             HardwareSerial
-
     // Argument type for mode argument of attachInterrupt
     #define AI_MODE_T               int
-
-    // Size of the buffer to hold data read from the pi
-    #define DATA_READ_BUFFER_SIZE   64
 #endif

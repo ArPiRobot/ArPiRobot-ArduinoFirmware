@@ -5,12 +5,23 @@ Arduino firmware with command interface for use as an ArPiRobot sensor co-proces
 - Download the source code from the releases tab
 - Extract the project
 - Open the project in the Arduino IDE
-- Install required libraries using library manager (see list below)
-- Select board and port
+- Install required libraries (see list below) using library manager 
+- Select board (see list of supported boards below) and port
 - Click upload button
 
+
+## Supported Boards
+| Board               | Core                  | Notes                                                                   |
+| ------------------- | --------------------- | ----------------------------------------------------------------------- |
+| Arduino Uno & Nano  | Official AVR Core     | Includes compatible boards such as Adafruit Metro 328 & Metro Mini 328  |
+| Arduino Nano Every  | Official megaAVR Core |                                                                         |
+| Teensy 3.1 / 3.2    | [Teensyduino](https://www.pjrc.com/teensy/teensyduino.html) |                                   |
+| Raspberry Pi Pico   | [arduino-pico](https://github.com/earlephilhower/arduino-pico) Core |                           |
+
+
 ## Required Libraries
-- FastCRC
+- FastCRC (1.31+)
+
 
 ## License
 

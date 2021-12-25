@@ -273,7 +273,7 @@ bool RPiInterface::dataDoesMatch(uint8_t *data1, uint16_t len1, uint8_t *data2, 
 /// RPiUartInterface
 ////////////////////////////////////////////////////////////////////////////////
 
-RPiUartInterface::RPiUartInterface(HW_SERIAL_T &serial, uint32_t baud) : serial(serial), baud(baud){
+RPiUartInterface::RPiUartInterface(UART_PORT_CLASS &serial, uint32_t baud) : serial(serial), baud(baud){
     
 }
 

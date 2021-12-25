@@ -51,6 +51,8 @@ public:
     void handleMessage(uint8_t *data, uint16_t len) override;
 
 private:
+    void init(uint8_t digitalPin, uint8_t analogPin);
+
     uint8_t digitalPin, analogPin;
     uint8_t lastDigitalState;
     uint16_t lastAnalogValue;
@@ -80,6 +82,8 @@ public:
     void calibrate(uint16_t samples);
 
 private:
+
+    void init();
     
     struct Data{
         float x = 0, y = 0, z = 0;
@@ -146,6 +150,8 @@ public:
     void calibrate(uint16_t samples);
 
 private:
+
+    void init();
     
     struct Data{
         float x = 0, y = 0, z = 0;
@@ -225,6 +231,8 @@ public:
 
 private:
     
+    void init();
+
     struct Data{
         float x = 0, y = 0, z = 0;
     };
@@ -287,6 +295,8 @@ public:
     void handleMessage(uint8_t *data, uint16_t len) override;
 
 private:
+    void init(uint8_t pin, bool pullup);
+
     void isrMember();
     static void isr(void* userData);
 
@@ -328,6 +338,8 @@ public:
     void handleMessage(uint8_t *data, uint16_t len) override;
 
 private:
+    void init(uint8_t triggerPin, uint8_t echoPin);
+
     void isrMember();
     static void isr(void* userData);
     
@@ -368,6 +380,8 @@ public:
     void handleMessage(uint8_t *data, uint16_t len) override;
 
 private:
+    void init(uint8_t analogPin, float vboard, uint32_t r1, uint32_t r2);
+
     // Number of analog readings to average together to smooth readings a little
     const static uint8_t AVG_READINGS = 5;
 

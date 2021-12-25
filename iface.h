@@ -24,6 +24,7 @@
 #include <FastCRC.h>
 
 #include "board.h"
+#include "settings.h"
 #include "device.h"
 
 /*
@@ -194,7 +195,7 @@ public:
      * @param serail The serial port to use (hardware or software serial)
      * @param baud The baud rate to use
      */
-    RPiUartInterface(HW_SERIAL_T &serial, uint32_t baud);
+    RPiUartInterface(UART_PORT_CLASS &serial, uint32_t baud);
 
     void open() override;
     uint16_t available() override;
@@ -203,6 +204,6 @@ public:
     void flush() override;
 
 private:
-    HW_SERIAL_T &serial;
+    UART_PORT_CLASS &serial;
     uint32_t baud;
 };

@@ -4,13 +4,17 @@
 /// Interface settings
 ////////////////////////////////////////////////////////////////////////////////
 
+// Size of the buffer to hold data read from the pi
+#define DATA_READ_BUFFER_SIZE   64
+
 // Interfaces (uncomment only one)
 #define IFACE_UART
 
 
 // Interface settings (do not comment these out, only relevant options are used)
-#define UART_PORT Serial
-#define UART_BAUD 57600
+#define UART_PORT       Serial
+#define UART_BAUD       57600
+#define UART_PORT_CLASS HardwareSerial      // Use usb_serial_class for Teensy
 
 
 ////////////////////////////////////////////////////////////////////////////////

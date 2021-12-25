@@ -11,14 +11,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// IRReflectorModule
 ////////////////////////////////////////////////////////////////////////////////
-IRReflectorModule::IRReflectorModule(uint8_t digitalPin, uint8_t analogPin) : ArduinoDevice(3), 
-        digitalPin(digitalPin), analogPin(analogPin){
-    pinMode(digitalPin, INPUT);
-    lastDigitalState = digitalRead(digitalPin);
-    if(analogPin != 255){
-        pinMode(analogPin, INPUT);
-        lastAnalogValue = analogRead(analogPin);
-    }
+IRReflectorModule::IRReflectorModule(uint8_t digitalPin, uint8_t analogPin) : ArduinoDevice(3){
+    init(digitalPin, analogPin);
 }
 
 IRReflectorModule::IRReflectorModule(uint8_t *data, uint16_t len) : ArduinoDevice(3) {
@@ -33,7 +27,12 @@ IRReflectorModule::IRReflectorModule(uint8_t *data, uint16_t len) : ArduinoDevic
     }else{
         analogPin = analogInputToDigitalPin(data[2]);
     }
+    init(digitalPin, analogPin);
+}
 
+void IRReflectorModule::init(uint8_t digitalPin, uint8_t analogPin){
+    this->digitalPin = digitalPin;
+    this->analogPin = analogPin;
     pinMode(digitalPin, INPUT);
     lastDigitalState = digitalRead(digitalPin);
     if(analogPin != 255){
@@ -88,14 +87,15 @@ void IRReflectorModule::handleMessage(uint8_t *data, uint16_t len){
 bool Mpu6050Imu::locked = false;
 
 Mpu6050Imu::Mpu6050Imu() : ArduinoDevice(24){
-    if(locked)
-        return;
-    locked = true;
-    valid = initSensors();
+    init();
 }
 
 Mpu6050Imu::Mpu6050Imu(uint8_t *data, uint16_t len) : ArduinoDevice(24){
     // No arguments passed when creating this device so data is ignored
+    init();
+}
+
+void Mpu6050Imu::init(){
     if(locked)
         return;
     locked = true;
@@ -324,14 +324,15 @@ Mpu6050Imu::Data Mpu6050Imu::getAccelData(){
 bool NxpAdafruit9Dof::locked = false;
 
 NxpAdafruit9Dof::NxpAdafruit9Dof() : ArduinoDevice(24){
-    if(locked)
-        return;
-    locked = true;
-    valid = initSensors();
+    init();
 }
 
 NxpAdafruit9Dof::NxpAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24){
     // No arguments passed when creating this device so data is ignored
+    init();
+}
+
+void NxpAdafruit9Dof::init(){
     if(locked)
         return;
     locked = true;
@@ -541,14 +542,15 @@ NxpAdafruit9Dof::Data NxpAdafruit9Dof::getAccelData(){
 bool OldAdafruit9Dof::locked = false;
 
 OldAdafruit9Dof::OldAdafruit9Dof() : ArduinoDevice(24){
-    if(locked)
-        return;
-    locked = true;
-    valid = initSensors();
+    init();
 }
 
 OldAdafruit9Dof::OldAdafruit9Dof(uint8_t *data, uint16_t len) : ArduinoDevice(24){
     // No arguments passed when creating this device so data is ignored
+    init();
+}
+
+void OldAdafruit9Dof::init(){
     if(locked)
         return;
     locked = true;
@@ -757,17 +759,8 @@ OldAdafruit9Dof::Data OldAdafruit9Dof::getAccelData(){
 ////////////////////////////////////////////////////////////////////////////////
 /// SingleEncoder
 ////////////////////////////////////////////////////////////////////////////////
-SingleEncoder::SingleEncoder(uint8_t pin, bool pullup) : ArduinoDevice(2), pin(pin){
-    // Check if the given pin is able to be used as an interrupt
-    isInterrupt = interrupts_is_interrupt(pin);
-
-    // Configure as needed
-    pinMode(pin, pullup ? INPUT_PULLUP : INPUT);
-    if(isInterrupt){
-        interrupts_enable(pin, CHANGE, &SingleEncoder::isr, (void*)this);
-    }else{
-        lastState = digitalRead(pin);
-    }
+SingleEncoder::SingleEncoder(uint8_t pin, bool pullup) : ArduinoDevice(2){
+    init(pin, pullup);
 }
 
 SingleEncoder::SingleEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(2){
@@ -776,14 +769,18 @@ SingleEncoder::SingleEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(2){
     }else{
         pin = data[1];
     }
-    
+    init(pin, data[2]);
+}
+
+void SingleEncoder::init(uint8_t pin, bool pullup){
+    this->pin = pin;
     // Check if the given pin is able to be used as an interrupt
-    isInterrupt = interrupts_is_interrupt(pin);
+    isInterrupt = Interrupts::isInterrupt(pin);
 
     // Configure as needed
-    pinMode(pin, data[2] ? INPUT_PULLUP : INPUT);
+    pinMode(pin, pullup ? INPUT_PULLUP : INPUT);
     if(isInterrupt){
-        interrupts_enable(pin, CHANGE, &SingleEncoder::isr, (void*)this);
+        Interrupts::enable(pin, CHANGE, &SingleEncoder::isr, (void*)this);
     }else{
         lastState = digitalRead(pin);
     }
@@ -791,7 +788,7 @@ SingleEncoder::SingleEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(2){
 
 SingleEncoder::~SingleEncoder(){
     if(isInterrupt){
-        interrupts_disable(pin);
+        Interrupts::disable(pin);
     }
 }
 
@@ -829,20 +826,8 @@ void SingleEncoder::isr(void* userData){
 ////////////////////////////////////////////////////////////////////////////////
 /// Ultrasonic4Pin
 ////////////////////////////////////////////////////////////////////////////////
-Ultrasonic4Pin::Ultrasonic4Pin(uint8_t triggerPin, uint8_t echoPin) : ArduinoDevice(2), 
-        triggerPin(triggerPin), echoPin(echoPin){
-    pinMode(triggerPin, OUTPUT);
-    pinMode(echoPin, INPUT);
-
-    usingInterrupt = interrupts_is_interrupt(echoPin);
-    needsPulse = true;
-
-    if(usingInterrupt){
-        interrupts_enable(echoPin, CHANGE, &Ultrasonic4Pin::isr, (void*)this);
-    }
-
-    // Don't need to send data frequently for this sensor
-    sendRateMs = 150;
+Ultrasonic4Pin::Ultrasonic4Pin(uint8_t triggerPin, uint8_t echoPin) : ArduinoDevice(2){
+    init(triggerPin, echoPin);
 }
 
 Ultrasonic4Pin::Ultrasonic4Pin(uint8_t *data, uint16_t len) : ArduinoDevice(2){
@@ -856,14 +841,21 @@ Ultrasonic4Pin::Ultrasonic4Pin(uint8_t *data, uint16_t len) : ArduinoDevice(2){
     }else{
         echoPin = data[3];
     }
+    init(triggerPin, echoPin);
+}
+
+void Ultrasonic4Pin::init(uint8_t triggerPin, uint8_t echoPin){
+    this->triggerPin = triggerPin;
+    this->echoPin = echoPin;
+
     pinMode(triggerPin, OUTPUT);
     pinMode(echoPin, INPUT);
 
-    usingInterrupt = interrupts_is_interrupt(echoPin);
+    usingInterrupt = Interrupts::isInterrupt(echoPin);
     needsPulse = true;
 
     if(usingInterrupt){
-        interrupts_enable(echoPin, CHANGE, &Ultrasonic4Pin::isr, (void*)this);
+        Interrupts::enable(echoPin, CHANGE, &Ultrasonic4Pin::isr, (void*)this);
     }
 
     // Don't need to send data frequently for this sensor
@@ -872,7 +864,7 @@ Ultrasonic4Pin::Ultrasonic4Pin(uint8_t *data, uint16_t len) : ArduinoDevice(2){
 
 Ultrasonic4Pin::~Ultrasonic4Pin(){
     if(usingInterrupt){
-        interrupts_disable(echoPin);
+        Interrupts::disable(echoPin);
     }
 }
 
@@ -922,6 +914,7 @@ void Ultrasonic4Pin::isrMember(){
         startTime = micros();
     }else{
         // Falling edge of pulse
+        // Reuse distance variable instead of a second "duration" variable
         distance = micros() - startTime;
         needsPulse = true;
     }
@@ -935,27 +928,21 @@ void Ultrasonic4Pin::isr(void* userData){
 ////////////////////////////////////////////////////////////////////////////////
 /// VoltageMonitor
 ////////////////////////////////////////////////////////////////////////////////
-VoltageMonitor::VoltageMonitor(uint8_t analogPin, float vboard, uint32_t r1, uint32_t r2) : 
-        ArduinoDevice(5), analogPin(analogPin){  
-    
-    pinMode(analogPin, INPUT);
-    readingScaleFactor = vboard * (r1 + r2) / r2 / 1023 / AVG_READINGS;
-
-    // Zero the samples buffer
-    for(uint8_t i = 0; i < AVG_READINGS; ++i){
-        readings[i] = 0;
-    }
-
-    // Don't need to send data frequently for this sensor
-    sendRateMs = 150;
+VoltageMonitor::VoltageMonitor(uint8_t analogPin, float vboard, uint32_t r1, uint32_t r2) : ArduinoDevice(5){  
+    init(analogPin, vboard, r1, r2);
 }
 
 VoltageMonitor::VoltageMonitor(uint8_t *data, uint16_t len) : ArduinoDevice(5){
-
     analogPin = data[0];
     float vboard = Conversions::convertDataToFloat(&data[1], false);
     uint32_t r1 = Conversions::convertDataToInt32(&data[5], false);
     uint32_t r2 = Conversions::convertDataToInt32(&data[9], false);
+
+    init(analogPin, vboard, r1, r2);
+}
+
+void VoltageMonitor::init(uint8_t analogPin, float vboard, uint32_t r1, uint32_t r2){
+    this->analogPin = analogPin;
 
     pinMode(analogPin, INPUT);
     readingScaleFactor = vboard * (r1 + r2) / r2 / 1023 / AVG_READINGS;
