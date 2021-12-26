@@ -32,6 +32,11 @@ SoftwareSerial debugSer(5, 6); // RX, TX
 #endif
 
 
+// Generally, these should not be modified. Edit settings.h
+#ifdef IFACE_UART
+    RPiUartInterface rpi(UART_PORT, UART_BAUD);
+#endif
+
 
 void setup() {
     ////////////////////////////////////////////////////////////////////////////
@@ -40,27 +45,15 @@ void setup() {
     DBG_INIT();
     LOGLN("STARTING");
     ////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Add any static devices here. 
+        
+    ////////////////////////////////////////////////////////////////////////////
 }
 
 void loop() {
     // DO NOT TOUCH THIS LINE!
     // This will return when a reset of the interface is requested
-    runInterface();
-}
-
-void runInterface(){
-    // Generally, these should not be modified. Edit settings.h
-#ifdef IFACE_UART
-    RPiUartInterface rpi(UART_PORT, UART_BAUD);
-#endif
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Add any static devices here. 
-    // It is recommended to avoid dynamic memory allocation for these devices
-    
-    ////////////////////////////////////////////////////////////////////////////
-
-    // DO NOT TOUCH THIS LINE
-    // THIS METHOD WILL RETURN WHEN THE RPI REQUESTS AN INTERFACE RESET
     rpi.run();
 }

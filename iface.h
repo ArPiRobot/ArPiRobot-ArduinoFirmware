@@ -94,6 +94,11 @@ protected:
     virtual void open() = 0;
 
     /**
+     * Close communication with the Pi
+     */
+    virtual void close() = 0;
+
+    /**
      * Check the number of bytes available to read
      * @return Number of bytes available to read
      */
@@ -198,6 +203,7 @@ public:
     RPiUartInterface(UART_PORT_CLASS &serial, uint32_t baud);
 
     void open() override;
+    void close() override;
     uint16_t available() override;
     int16_t read() override;
     void write(uint8_t data) override;

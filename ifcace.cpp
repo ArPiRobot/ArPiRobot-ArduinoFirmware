@@ -105,6 +105,8 @@ int16_t RPiInterface::addDevice(){
 
 void RPiInterface::run(){
 
+    bool shouldReset = false;
+
     open();
 
     // No longer allow static devices. 
@@ -112,7 +114,7 @@ void RPiInterface::run(){
     canAddStatic = false;
 
     writeData((uint8_t*)"START", 5);
-    while(true){
+    while(!shouldReset){
         if(readData() && checkData()){
             // Ignore CRC in the buffer now
             readBufferLen -= 2;
@@ -120,7 +122,7 @@ void RPiInterface::run(){
             if(dataDoesMatch(readBuffer, readBufferLen, (uint8_t*)"END", 3)){
                 break;
             }else if(dataDoesMatch(readBuffer, readBufferLen, (uint8_t*)"RESET", 5)){
-                return;
+                shouldReset = true;
             }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADD", 3)){
                 addDevice();
             }
@@ -134,7 +136,7 @@ void RPiInterface::run(){
     writeData((uint8_t*)"END", 3);
     flush();
 
-    while(true){
+    while(!shouldReset){
         // Service devices and send data as needed
         for(int i = 0; i < devicesLen; ++i){
             ArduinoDevice *d = devices[i];
@@ -160,7 +162,7 @@ void RPiInterface::run(){
                 readBufferLen -= 2;
 
                 if(dataDoesMatch(readBuffer, readBufferLen, (uint8_t*)"RESET", 5)){
-                    return;
+                    shouldReset = true;
                 }else if (dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"-", 1)){
                     uint8_t id = readBuffer[1];
                     for(uint8_t i = 0; i < devicesLen; ++i){
@@ -182,6 +184,16 @@ void RPiInterface::run(){
         }
     }
 
+    close();
+    for(uint8_t i = staticDeviceCount; i < devicesLen; ++i){
+        // Non-static devices were dynamically allocated by this class
+        delete devices[i];
+    }
+    devicesLen = staticDeviceCount;
+    canAddStatic = true;
+    parseStarted = false;
+    parseEscaped = false;
+    readBufferLen = 0;
 }
 
 bool RPiInterface::readData(){
@@ -279,6 +291,10 @@ RPiUartInterface::RPiUartInterface(UART_PORT_CLASS &serial, uint32_t baud) : ser
 
 void RPiUartInterface::open(){
     serial.begin(baud);
+}
+
+void RPiUartInterface::close(){
+    serial.end();
 }
 
 uint16_t RPiUartInterface::available(){

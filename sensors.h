@@ -304,7 +304,8 @@ private:
     bool lastState;
     bool isInterrupt;
     bool isrChange;
-    uint16_t count = 0, lastSentCount = 65535;
+    volatile uint16_t count = 0;
+    uint16_t lastSendCount = 0;
 };
 
 

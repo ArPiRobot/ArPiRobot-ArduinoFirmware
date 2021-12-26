@@ -759,11 +759,11 @@ OldAdafruit9Dof::Data OldAdafruit9Dof::getAccelData(){
 ////////////////////////////////////////////////////////////////////////////////
 /// SingleEncoder
 ////////////////////////////////////////////////////////////////////////////////
-SingleEncoder::SingleEncoder(uint8_t pin, bool pullup) : ArduinoDevice(2){
+SingleEncoder::SingleEncoder(uint8_t pin, bool pullup) : ArduinoDevice(6){
     init(pin, pullup);
 }
 
-SingleEncoder::SingleEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(2){
+SingleEncoder::SingleEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(6){
     if(data[0]){
         pin = analogInputToDigitalPin(data[1]);
     }else{
@@ -793,10 +793,14 @@ SingleEncoder::~SingleEncoder(){
 }
 
 uint16_t SingleEncoder::getSendData(uint8_t *data){
-    lastSentCount = count;
     // Buffer count little endian
     Conversions::convertInt16ToData(count, &data[0], true);
-    return 2;
+
+    // Send data to the pi to be used to calculate speed
+    Conversions::convertInt16ToData(count - lastSendCount, &data[2], true);
+    Conversions::convertInt16ToData(millis() - lastSendTime, &data[4], true);
+    lastSendCount = count;
+    return 6;
 }
 
 bool SingleEncoder::service(){
@@ -807,7 +811,7 @@ bool SingleEncoder::service(){
             lastState = state;
         }
     }
-    return ((millis() - lastSendTime) >= sendRateMs) && (count != lastSentCount);
+    return (millis() - lastSendTime) >= sendRateMs;
 }
 
 void SingleEncoder::handleMessage(uint8_t *data, uint16_t len){
