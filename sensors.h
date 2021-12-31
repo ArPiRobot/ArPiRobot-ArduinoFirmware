@@ -297,15 +297,17 @@ public:
 private:
     void init(uint8_t pin, bool pullup);
 
-    void isrMember();
-    static void isr(void* userData);
+    void ISR_ATTRS isrMember();
+    static void ISR_ATTRS isr(void* userData);
 
     uint8_t pin;
     bool lastState;
     bool isInterrupt;
-    bool isrChange;
-    volatile uint16_t count = 0;
-    uint16_t lastSendCount = 0;
+    volatile uint32_t count = 0;
+    uint32_t lastCount = 0;
+    unsigned long lastCountTime = 0;
+    unsigned long lastVelCalc = 0;
+    float velocity = 0;
 };
 
 
@@ -341,8 +343,8 @@ public:
 private:
     void init(uint8_t triggerPin, uint8_t echoPin);
 
-    void isrMember();
-    static void isr(void* userData);
+    void ISR_ATTRS isrMember();
+    static void ISR_ATTRS isr(void* userData);
     
     uint8_t triggerPin, echoPin;
     uint16_t distance = 0;

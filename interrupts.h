@@ -55,140 +55,189 @@ public:
 private:
 
 #if NUM_INTERRUPTS > 0
-    static void isr0(void);        
+    static void ISR_ATTRS isr0(void);        
 #endif // NUM_INTERRUPTS > 0
 
 #if NUM_INTERRUPTS > 1      
-    static void isr1(void);        
+    static void ISR_ATTRS isr1(void);        
 #endif // NUM_INTERRUPTS > 1
 
 #if NUM_INTERRUPTS > 2      
-    static void isr2(void);        
+    static void ISR_ATTRS isr2(void);        
 #endif // NUM_INTERRUPTS > 2
 
 #if NUM_INTERRUPTS > 3
-    static void isr3(void);
+    static void ISR_ATTRS isr3(void);
 #endif // NUM_INTERRUPTS > 3
 
 #if NUM_INTERRUPTS > 4
-    static void isr4(void);
+    static void ISR_ATTRS isr4(void);
 #endif // NUM_INTERRUPTS > 4
 
 #if NUM_INTERRUPTS > 5
-    static void isr5(void);
+    static void ISR_ATTRS isr5(void);
 #endif // NUM_INTERRUPTS > 5
 
 #if NUM_INTERRUPTS > 6
-    static void isr6(void);
+    static void ISR_ATTRS isr6(void);
 #endif // NUM_INTERRUPTS > 6
 
 #if NUM_INTERRUPTS > 7
-    static void isr7(void);
+    static void ISR_ATTRS isr7(void);
 #endif // NUM_INTERRUPTS > 7
 
 #if NUM_INTERRUPTS > 8
-    static void isr8(void);
+    static void ISR_ATTRS isr8(void);
 #endif // NUM_INTERRUPTS > 8
 
 #if NUM_INTERRUPTS > 9
-    static void isr9(void);
+    static void ISR_ATTRS isr9(void);
 #endif // NUM_INTERRUPTS > 9
 
 #if NUM_INTERRUPTS > 10
-    static void isr10(void);
+    static void ISR_ATTRS isr10(void);
 #endif // NUM_INTERRUPTS > 10
 
 #if NUM_INTERRUPTS > 11
-    static void isr11(void);
+    static void ISR_ATTRS isr11(void);
 #endif // NUM_INTERRUPTS > 11
 
 #if NUM_INTERRUPTS > 12
-    static void isr12(void);
+    static void ISR_ATTRS isr12(void);
 #endif // NUM_INTERRUPTS > 12
 
 #if NUM_INTERRUPTS > 13
-    static void isr13(void);
+    static void ISR_ATTRS isr13(void);
 #endif // NUM_INTERRUPTS > 13
 
 #if NUM_INTERRUPTS > 14
-    static void isr14(void);
+    static void ISR_ATTRS isr14(void);
 #endif // NUM_INTERRUPTS > 14
 
 #if NUM_INTERRUPTS > 15
-    static void isr15(void);
+    static void ISR_ATTRS isr15(void);
 #endif // NUM_INTERRUPTS > 15
 
 #if NUM_INTERRUPTS > 16
-    static void isr16(void);
+    static void ISR_ATTRS isr16(void);
 #endif // NUM_INTERRUPTS > 16
 
 #if NUM_INTERRUPTS > 17
-    static void isr17(void);
+    static void ISR_ATTRS isr17(void);
 #endif // NUM_INTERRUPTS > 17
 
 #if NUM_INTERRUPTS > 18
-    static void isr18(void);
+    static void ISR_ATTRS isr18(void);
 #endif // NUM_INTERRUPTS > 18
 
 #if NUM_INTERRUPTS > 19
-    static void isr19(void);
+    static void ISR_ATTRS isr19(void);
 #endif // NUM_INTERRUPTS > 19
 
 #if NUM_INTERRUPTS > 20
-    static void isr20(void);
+    static void ISR_ATTRS isr20(void);
 #endif // NUM_INTERRUPTS > 20
 
 #if NUM_INTERRUPTS > 21
-    static void isr21(void);
+    static void ISR_ATTRS isr21(void);
 #endif // NUM_INTERRUPTS > 21
 
 #if NUM_INTERRUPTS > 22
-    static void isr22(void);
+    static void ISR_ATTRS isr22(void);
 #endif // NUM_INTERRUPTS > 22
 
 #if NUM_INTERRUPTS > 23
-    static void isr23(void);
+    static void ISR_ATTRS isr23(void);
 #endif // NUM_INTERRUPTS > 23
 
 #if NUM_INTERRUPTS > 24
-    static void isr24(void);
+    static void ISR_ATTRS isr24(void);
 #endif // NUM_INTERRUPTS > 24
 
 #if NUM_INTERRUPTS > 25
-    static void isr25(void);
+    static void ISR_ATTRS isr25(void);
 #endif // NUM_INTERRUPTS > 25
 
 #if NUM_INTERRUPTS > 26
-    static void isr26(void);
+    static void ISR_ATTRS isr26(void);
 #endif // NUM_INTERRUPTS > 26
 
 #if NUM_INTERRUPTS > 27
-    static void isr27(void);
+    static void ISR_ATTRS isr27(void);
 #endif // NUM_INTERRUPTS > 27
 
 #if NUM_INTERRUPTS > 28
-    static void isr28(void);
+    static void ISR_ATTRS isr28(void);
 #endif // NUM_INTERRUPTS > 28
 
 #if NUM_INTERRUPTS > 29
-    static void isr29(void);
+    static void ISR_ATTRS isr29(void);
 #endif // NUM_INTERRUPTS > 29
 
 #if NUM_INTERRUPTS > 30
-    static void isr30(void);
+    static void ISR_ATTRS isr30(void);
 #endif // NUM_INTERRUPTS > 30
 
 #if NUM_INTERRUPTS > 31
-    static void isr31(void);
+    static void ISR_ATTRS isr31(void);
 #endif // NUM_INTERRUPTS > 31
 
 #if NUM_INTERRUPTS > 32
-    static void isr32(void);
+    static void ISR_ATTRS isr32(void);
 #endif // NUM_INTERRUPTS > 32
 
 #if NUM_INTERRUPTS > 33
-    static void isr33(void);
+    static void ISR_ATTRS isr33(void);
 #endif // NUM_INTERRUPTS > 33
+
+#if NUM_INTERRUPTS > 34
+    static void ISR_ATTRS isr34(void);
+#endif // NUM_INTERRUPTS > 34
+
+#if NUM_INTERRUPTS > 35
+    static void ISR_ATTRS isr35(void);
+#endif // NUM_INTERRUPTS > 35
+
+#if NUM_INTERRUPTS > 36
+    static void ISR_ATTRS isr36(void);
+#endif // NUM_INTERRUPTS > 36
+
+#if NUM_INTERRUPTS > 37
+    static void ISR_ATTRS isr37(void);
+#endif // NUM_INTERRUPTS > 37
+
+#if NUM_INTERRUPTS > 38
+    static void ISR_ATTRS isr38(void);
+#endif // NUM_INTERRUPTS > 38
+
+#if NUM_INTERRUPTS > 39
+    static void ISR_ATTRS isr39(void);
+#endif // NUM_INTERRUPTS > 39
+
+#if NUM_INTERRUPTS > 40
+    static void ISR_ATTRS isr40(void);
+#endif // NUM_INTERRUPTS > 40
+
+#if NUM_INTERRUPTS > 41
+    static void ISR_ATTRS isr41(void);
+#endif // NUM_INTERRUPTS > 41
+
+#if NUM_INTERRUPTS > 42
+    static void ISR_ATTRS isr42(void);
+#endif // NUM_INTERRUPTS > 42
+
+#if NUM_INTERRUPTS > 43
+    static void ISR_ATTRS isr43(void);
+#endif // NUM_INTERRUPTS > 43
+
+#if NUM_INTERRUPTS > 44
+    static void ISR_ATTRS isr44(void);
+#endif // NUM_INTERRUPTS > 44
+
+#if NUM_INTERRUPTS > 45
+    static void ISR_ATTRS isr45(void);
+#endif // NUM_INTERRUPTS > 45
+
 
 #if NUM_INTERRUPTS > 0
     static void (* volatile userFunctions[NUM_INTERRUPTS])(void*);

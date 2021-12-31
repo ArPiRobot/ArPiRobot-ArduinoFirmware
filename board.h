@@ -23,10 +23,10 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Arduino Nano and Arduino Uno
+/// Arduino Nano, Uno and Feather 328P
 ////////////////////////////////////////////////////////////////////////////////
 
-#if defined(ARDUINO_AVR_NANO) || defined(ARDUINO_AVR_UNO)
+#if defined(ARDUINO_AVR_NANO) || defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_FEATHER328P)
     #define ARPIROBOT_SUPPORTED_BOARD
     
     // Interrupt support
@@ -34,6 +34,9 @@
 
     // Argument type for mode argument of attachInterrupt
     #define AI_MODE_T               int
+
+    // Extra attributes / modifiers needed in the definition of interrupts
+    #define ISR_ATTRS
 #endif
 
 
@@ -49,6 +52,9 @@
 
     // Argument type for mode argument of attachInterrupt
     #define AI_MODE_T               PinStatus
+
+    // Extra attributes / modifiers needed in the definition of interrupts
+    #define ISR_ATTRS
 
     // This macro is not defined in the core for the nano every
     #define analogInputToDigitalPin(pin) (pin + 14)
@@ -67,6 +73,9 @@
 
     // Argument type for mode argument of attachInterrupt
     #define AI_MODE_T               int
+
+    // Extra attributes / modifiers needed in the definition of interrupts
+    #define ISR_ATTRS
 #endif
 
 
@@ -83,8 +92,29 @@
     // Argument type for mode argument of attachInterrupt
     #define AI_MODE_T               PinStatus
 
+    // Extra attributes / modifiers needed in the definition of interrupts
+    #define ISR_ATTRS
+
     // This macro is not defined in the core for the pi pico
     #define analogInputToDigitalPin(pin) (pin + 26)
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// Unexpected Maker FeatherS2
+////////////////////////////////////////////////////////////////////////////////
+
+#if defined(ARDUINO_FEATHERS2)
+    #define ARPIROBOT_SUPPORTED_BOARD
+    
+    // Interrupt support
+    #define NUM_INTERRUPTS          46
+
+    // Argument type for mode argument of attachInterrupt
+    #define AI_MODE_T               int
+
+    // Extra attributes / modifiers needed in the definition of interrupts
+    #define ISR_ATTRS               IRAM_ATTR
 #endif
 
 
@@ -100,4 +130,7 @@
 
     // Argument type for mode argument of attachInterrupt
     #define AI_MODE_T               int
+
+    // Extra attributes / modifiers needed in the definition of interrupts
+    #define ISR_ATTRS
 #endif

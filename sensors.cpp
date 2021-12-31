@@ -759,11 +759,11 @@ OldAdafruit9Dof::Data OldAdafruit9Dof::getAccelData(){
 ////////////////////////////////////////////////////////////////////////////////
 /// SingleEncoder
 ////////////////////////////////////////////////////////////////////////////////
-SingleEncoder::SingleEncoder(uint8_t pin, bool pullup) : ArduinoDevice(6){
+SingleEncoder::SingleEncoder(uint8_t pin, bool pullup) : ArduinoDevice(8){
     init(pin, pullup);
 }
 
-SingleEncoder::SingleEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(6){
+SingleEncoder::SingleEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(8){
     if(data[0]){
         pin = analogInputToDigitalPin(data[1]);
     }else{
@@ -794,23 +794,32 @@ SingleEncoder::~SingleEncoder(){
 
 uint16_t SingleEncoder::getSendData(uint8_t *data){
     // Buffer count little endian
-    Conversions::convertInt16ToData(count, &data[0], true);
-
-    // Send data to the pi to be used to calculate speed
-    Conversions::convertInt16ToData(count - lastSendCount, &data[2], true);
-    Conversions::convertInt16ToData(millis() - lastSendTime, &data[4], true);
-    lastSendCount = count;
-    return 6;
+    Conversions::convertInt32ToData(count, &data[0], true);
+    // Buffer velocity little endian
+    Conversions::convertFloatToData(velocity, &data[4], true);
+    return 8;
 }
 
 bool SingleEncoder::service(){
     if(!isInterrupt){
         bool state = digitalRead(pin);
         if(state != lastState){
-            count++;
+            isrMember();
             lastState = state;
         }
     }
+
+    // Calculate velocity every 10ms
+    // Filtered with digital low pass filter
+    unsigned long now = micros();
+    if(now - lastVelCalc >= 10000){
+        // Velocity in ticks / ms
+        float rawVel = (count - lastCount) / ((now - lastVelCalc) / 1000.0);
+        velocity = velocity - (0.075 * (velocity - rawVel));
+        lastCount = count;
+        lastVelCalc = now;
+    }
+    
     return (millis() - lastSendTime) >= sendRateMs;
 }
 
@@ -818,11 +827,22 @@ void SingleEncoder::handleMessage(uint8_t *data, uint16_t len){
     
 }
 
-void SingleEncoder::isrMember(){
-    count++;
+void ISR_ATTRS SingleEncoder::isrMember(){
+    // Reject edges too close to each other
+    // Assume motor RPM = 300
+    // Assume 40 ticks / revolution counting both edges = 80 ticks / rev
+    // 300RPM / 60 sec = 5 rev/sec * 80 edges / rev = 400 edges / sec = 400 Hz
+    // Place cutoff at 1kHz --> Period = 1ms
+    // Counting both rising and falling edges therefore reject pulses spaced 
+    // less than 500 microseconds from each other
+    unsigned long now = micros();
+    if(now - lastCountTime >= 500){
+        count++;
+        lastCountTime = now;
+    }
 }
 
-void SingleEncoder::isr(void* userData){
+void ISR_ATTRS SingleEncoder::isr(void* userData){
     ((SingleEncoder*)userData)->isrMember();
 }
 
@@ -912,7 +932,7 @@ void Ultrasonic4Pin::handleMessage(uint8_t *data, uint16_t len){
 
 }
 
-void Ultrasonic4Pin::isrMember(){
+void ISR_ATTRS Ultrasonic4Pin::isrMember(){
     if(digitalRead(echoPin)){
         // Rising edge of pulse
         startTime = micros();
@@ -924,7 +944,7 @@ void Ultrasonic4Pin::isrMember(){
     }
 }
 
-void Ultrasonic4Pin::isr(void* userData){
+void ISR_ATTRS Ultrasonic4Pin::isr(void* userData){
     ((Ultrasonic4Pin*)userData)->isrMember();
 }
 
