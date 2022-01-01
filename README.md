@@ -15,10 +15,8 @@ Arduino firmware with command interface for use as an ArPiRobot sensor co-proces
 | ------------------- | --------------------- | ----------------------------------------------------------------------- |
 | Arduino Uno & Nano  | Official AVR Core     | Includes compatible boards such as Adafruit Metro 328 & Metro Mini 328  |
 | Arduino Nano Every  | Official megaAVR Core |                                                                         |
-| Adafruit Feather 328P | [Adafruit AVR Boards](https://learn.adafruit.com/add-boards-arduino-v164/setup)   |           |
 | Teensy 3.1 / 3.2    | [Teensyduino](https://www.pjrc.com/teensy/teensyduino.html) |                                   |
 | Raspberry Pi Pico   | [arduino-pico](https://github.com/earlephilhower/arduino-pico) Core |                           |
-| Unexpected Maker FeatherS2 | [arduino-esp32](https://docs.espressif.com/projects/arduino-esp32/en/latest/getting_started.html) | |
 
 *Other boards will likely work, but may require changes to `board.h`. Most commonly, any board will work, however interrupts will not be available. By modifying `board.h`, interrupt support can be added and other board specific modifications / fixes can be made.*
 
