@@ -34,7 +34,7 @@ SoftwareSerial debugSer(5, 6); // RX, TX
 
 // Generally, these should not be modified. Edit settings.h
 #ifdef IFACE_UART
-    RPiUartInterface rpi(UART_PORT, UART_BAUD);
+    RPiInterface *rpi = RpiInterfaceFactory::createUartInterface(UART_PORT, UART_BAUD);
 #endif
 
 
@@ -48,12 +48,12 @@ void setup() {
 
     ////////////////////////////////////////////////////////////////////////////
     // Add any static devices here. 
-        
+    // rpi->addStaticDevice(new DeviceName(arg1, arg2));
     ////////////////////////////////////////////////////////////////////////////
 }
 
 void loop() {
     // DO NOT TOUCH THIS LINE!
     // This will return when a reset of the interface is requested
-    rpi.run();
+    rpi->run();
 }

@@ -194,22 +194,36 @@ private:
 /**
  * Raspberry Pi interface that uses UART to communicate with the Pi
  */
+template <class SER_T>
 class RPiUartInterface : public RPiInterface {
-public:
+protected:
     /**
      * @param serail The serial port to use (hardware or software serial)
      * @param baud The baud rate to use
      */
-    RPiUartInterface(UART_PORT_CLASS &serial, uint32_t baud);
+    RPiUartInterface(SER_T &serial, uint32_t baud) : serial(serial), baud(baud) {  }
 
-    void open() override;
-    void close() override;
-    uint16_t available() override;
-    int16_t read() override;
-    void write(uint8_t data) override;
-    void flush() override;
+    ~RPiUartInterface() { close(); }
+
+    void open() override { serial.begin(baud); }
+    void close() override { serial.end(); }
+    uint16_t available() override { return serial.available(); }
+    int16_t read() override { return serial.read(); }
+    void write(uint8_t data) override { serial.write(data); }
+    void flush() override { serial.flush(); }
 
 private:
-    UART_PORT_CLASS &serial;
+    SER_T &serial;
     uint32_t baud;
+
+    friend class RpiInterfaceFactory;
+};
+
+// template functions can infer argument type, but instantiation of template classes cannot
+class RpiInterfaceFactory{
+public:
+    template <class T>
+    static RPiUartInterface<T> *createUartInterface(T &serial, uint32_t baud){
+        return new RPiUartInterface<T>(serial, baud);
+    }
 };

@@ -779,6 +779,10 @@ void SingleEncoder::init(uint8_t pin, bool pullup){
 
     // Configure as needed
     pinMode(pin, pullup ? INPUT_PULLUP : INPUT);
+
+    // Time for capacitors in any filters to charge (in case using internal pullup)
+    delay(1);
+    
     if(isInterrupt){
         Interrupts::enable(pin, CHANGE, &SingleEncoder::isr, (void*)this);
     }else{
@@ -844,6 +848,104 @@ void ISR_ATTRS SingleEncoder::isrMember(){
 
 void ISR_ATTRS SingleEncoder::isr(void* userData){
     ((SingleEncoder*)userData)->isrMember();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// QuadEncoder
+////////////////////////////////////////////////////////////////////////////////
+QuadEncoder::QuadEncoder(uint8_t pinA, uint8_t pinB, bool pullup) : ArduinoDevice(8){
+    init(pinA, pinB, pullup);
+}
+
+QuadEncoder::QuadEncoder(uint8_t *data, uint16_t len) : ArduinoDevice(8){
+    if(data[0]){
+        pinA = analogInputToDigitalPin(data[1]);
+    }else{
+        pinA = data[1];
+    }
+    if(data[2]){
+        pinB = analogInputToDigitalPin(data[3]);
+    }else{
+        pinB = data[3];
+    }
+    init(pinA, pinB, data[4]);
+}
+
+void QuadEncoder::init(uint8_t pinA, uint8_t pinB, bool pullup){
+    this->pinA = pinA;
+    this->pinB = pinB;
+    
+    // Check if the given pins are able to be used as an interrupt
+    isInterrupt = Interrupts::isInterrupt(pinA) && Interrupts::isInterrupt(pinB);
+
+    // Configure as needed
+    pinMode(pinA, pullup ? INPUT_PULLUP : INPUT);
+    pinMode(pinB, pullup ? INPUT_PULLUP : INPUT);
+
+    // Time for capacitors in any filters to charge (in case using internal pullup)
+    delay(1);
+
+    // Store initial state for later
+    oldState = 0;
+    oldState |= digitalRead(pinA);
+    oldState |= digitalRead(pinB) << 1;
+    
+    if(isInterrupt){
+        Interrupts::enable(pinA, CHANGE, &QuadEncoder::isr, (void*)this);
+        Interrupts::enable(pinB, CHANGE, &QuadEncoder::isr, (void*)this);
+    }
+}
+
+QuadEncoder::~QuadEncoder(){
+    if(isInterrupt){
+        Interrupts::disable(pinA);
+        Interrupts::disable(pinB);
+    }
+}
+
+uint16_t QuadEncoder::getSendData(uint8_t *data){
+    // Buffer count little endian
+    Conversions::convertInt32ToData(count, &data[0], true);
+    // Buffer velocity little endian
+    Conversions::convertFloatToData(velocity, &data[4], true);
+    return 8;
+}
+
+bool QuadEncoder::service(){
+    if(!isInterrupt){
+        isrMember();
+    }
+
+    // Calculate velocity every 10ms
+    // Filtered with digital low pass filter
+    unsigned long now = micros();
+    if(now - lastVelCalc >= 10000){
+        // Velocity in ticks / ms
+        float rawVel = (count - lastCount) / ((now - lastVelCalc) / 1000.0);
+        velocity = velocity - (0.075 * (velocity - rawVel));
+        lastCount = count;
+        lastVelCalc = now;
+    }
+    
+    return (millis() - lastSendTime) >= sendRateMs;
+}
+
+void QuadEncoder::handleMessage(uint8_t *data, uint16_t len){
+    
+}
+
+void ISR_ATTRS QuadEncoder::isrMember(){
+    uint8_t currState = 0;
+    currState |= digitalRead(pinA);
+    currState |= digitalRead(pinB) << 1;
+    // Turning this into a switch / case would make the code run faster
+    count += encoder_lookup[oldState][currState];
+    oldState = currState;
+}
+
+void ISR_ATTRS QuadEncoder::isr(void* userData){
+    ((QuadEncoder*)userData)->isrMember();
 }
 
 

@@ -13,11 +13,9 @@
 // Interfaces (uncomment only one)
 #define IFACE_UART
 
-
 // Interface settings (do not comment these out, only relevant options are used)
 #define UART_PORT       Serial
-#define UART_BAUD       57600
-#define UART_PORT_CLASS HardwareSerial      // Use usb_serial_class on Teensy
+#define UART_BAUD       57600    
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Flags to enable each supported sensor
@@ -31,6 +29,7 @@
 #define NxpAdafruit9Dof_ENABLE
 #define OldAdafruit9Dof_ENABLE
 #define SingleEncoder_ENABLE
+#define QuadEncoder_ENABLE
 #define Ultrasonic4Pin_ENABLE
 #define VoltageMonitor_ENABLE
 
@@ -47,7 +46,7 @@
 /// Debug settings
 ////////////////////////////////////////////////////////////////////////////////
 
-#define ARPFW_DEBUG
+// #define ARPFW_DEBUG
 
 #ifdef ARPFW_DEBUG
 

@@ -301,13 +301,87 @@ private:
     static void ISR_ATTRS isr(void* userData);
 
     uint8_t pin;
-    bool lastState;
+    uint8_t lastState;
     bool isInterrupt;
-    volatile uint32_t count = 0;
-    uint32_t lastCount = 0;
+    volatile int32_t count = 0;
+    int32_t lastCount = 0;
     unsigned long lastCountTime = 0;
     unsigned long lastVelCalc = 0;
     float velocity = 0;
+};
+
+/**
+ * Quadrature encoder (two channels)
+ */
+class QuadEncoder : public ArduinoDevice{
+public:
+    /**
+     * @param pin Digital pin number to use. If this pin is able to be used as an interrupt it will be
+     * @param pullup if true internal pullup will be used, if false it will not
+     */
+    QuadEncoder(uint8_t pinA, uint8_t pinB, bool pullup);
+
+    /**
+     * Construct a SingleEncoder from command data
+     * Data format: [ANALOG_A][PIN_A][ANALOG_B][PIN_B][PULLUP]
+     *      ANALOG_A: 1 = analog pin #, 0 = digital pin #
+     *      PIN_A: Pin number for channel A (unsigned 8-bit int)
+     *      ANALOG_B: 1 = analog pin #, 0 = digital pin #
+     *      PIN_B: Pin number for channel B (unsigned 8-bit int)
+     *      PULLUP: 1 = use internal pullup resistor (both pins), 0 = do not (both pins)
+     */
+    QuadEncoder(uint8_t *data, uint16_t len);
+
+    ~QuadEncoder();
+
+    uint16_t getSendData(uint8_t *data) override;
+
+    bool service() override;
+
+    void handleMessage(uint8_t *data, uint16_t len) override;
+
+private:
+    void init(uint8_t pinA, uint8_t pinB, bool pullup);
+
+    void ISR_ATTRS isrMember();
+    static void ISR_ATTRS isr(void* userData);
+
+    uint8_t pinA, pinB;
+    volatile uint8_t oldState;
+    bool isInterrupt;
+    volatile int32_t count = 0;
+    int32_t lastCount = 0;
+    unsigned long lastVelCalc = 0;
+    float velocity = 0;
+
+    // States:
+    //       AB
+    // 0 = 0b00 = Both low
+    // 1 = 0b01 = B high
+    // 2 = 0b10 = A high
+    // 3 = 0b11 = Both high
+    
+    // Counting edges of both CH A and CH B
+    // Counting both rising and falling edges
+    //
+    // Diagonal states should never occur
+    // If they do, a count was missed (meaning the change is either 2 or -2)
+    // In this case, the following rule is used to determine direction:
+    // - If A rises: and B is high = positive, B is low = negative
+    // - If A falls: and B is high = negative, B is low = positive
+    // Ideally, this would never actually happen 
+    //
+    // 2-D lookup array
+    // First index (row) is old state
+    // Second index (column) is current state
+    const int8_t encoder_lookup[4][4] = {
+                            // AB
+        {+0, +1, -1, +2},   // 00
+        {-1, +0, -2, +1},   // 01
+        {+1, -2, +0, -1},   // 10
+        {+2, -1, +1, +0}    // 11
+    //AB 00  01  10  11
+    };
 };
 
 

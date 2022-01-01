@@ -87,6 +87,11 @@ int16_t RPiInterface::addDevice(){
         // Pass buffer without "ADDMPU6050" and without CRC
         device = new Mpu6050Imu(&readBuffer[10], readBufferLen - 12);
         #endif
+    }else if(dataStartsWith(readBuffer, readBufferLen, (uint8_t*)"ADDQENC", 7)){
+        #ifdef QuadEncoder_ENABLE
+        // Pass buffer without "ADDQENC" and without CRC
+        device = new QuadEncoder(&readBuffer[7], readBufferLen - 9);
+        #endif
     }
 
     if(device != nullptr){
@@ -156,7 +161,6 @@ void RPiInterface::run(){
         // Read available data
         uint16_t count = available();
         while(count > 0){
-
             if(readData() && checkData()){
                 // Ignore CRC now
                 readBufferLen -= 2;
@@ -179,7 +183,6 @@ void RPiInterface::run(){
                 // Clear buffer after handling data
                 readBufferLen = 0;
             }
-
             count--;
         }
     }
@@ -278,37 +281,4 @@ bool RPiInterface::dataDoesMatch(uint8_t *data1, uint16_t len1, uint8_t *data2, 
         if(data1[i] != data2[i]) return false;
     }
     return true;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-/// RPiUartInterface
-////////////////////////////////////////////////////////////////////////////////
-
-RPiUartInterface::RPiUartInterface(UART_PORT_CLASS &serial, uint32_t baud) : serial(serial), baud(baud){
-    
-}
-
-void RPiUartInterface::open(){
-    serial.begin(baud);
-}
-
-void RPiUartInterface::close(){
-    serial.end();
-}
-
-uint16_t RPiUartInterface::available(){
-    return serial.available();
-}
-
-int16_t RPiUartInterface::read(){
-    return serial.read();
-}
-
-void RPiUartInterface::write(uint8_t data){
-    serial.write(data);
-}
-
-void RPiUartInterface::flush(){
-    serial.flush();
 }
